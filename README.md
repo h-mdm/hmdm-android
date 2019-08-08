@@ -1,12 +1,10 @@
 # Headwind MDM: free and open-source MDM launcher
 
 ## Starting work
-=============
 
 Open the project directory in Android Studio (use default settings).
 
 ## Debugging on the device
-=======================
 
 1. Connect the device by USB
 2. Click "Run 'App'" icon in Android Studio
@@ -21,7 +19,6 @@ Open the project directory in Android Studio (use default settings).
 `dpm set-device-owner com.hmdm.launcher/.AdminReceiver`
 
 ## Building the APK
-================
 
 Build the APK after you successfully build the app.
 
@@ -30,7 +27,6 @@ Build the APK after you successfully build the app.
 3. Select the place you'd like to save APK
 
 ## Building the library
-====================
 
 1. Select the 'lib' item in the project tree
 2. Select Build - Make Module 'lib'
