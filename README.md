@@ -9,11 +9,10 @@ Open the project directory in Android Studio (use default settings).
 1. Connect the device by USB
 2. Click "Run 'App'" icon in Android Studio
 3. After successful run, add device owner rights to the app (optional).
-   * Run in the console
+   1. Run in the console
    
 `adb shell`
-
-   * Run the command in the adb console
+   2. Run the command in the adb console
    
 `dpm set-device-owner com.hmdm.launcher/.AdminReceiver`
 
