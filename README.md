@@ -10,8 +10,11 @@ Open the project directory in Android Studio (use default settings).
 2. Click "Run 'App'" icon in Android Studio
 3. After successful run, add device owner rights to the app (optional).
    1. Run in the console
+   
 `adb shell`
+
    2. Run the command in the adb console
+   
 `dpm set-device-owner com.hmdm.launcher/.AdminReceiver`
 
 ## Building the APK
