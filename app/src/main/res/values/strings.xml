@@ -1,0 +1,87 @@
+<!--
+  ~ Headwind MDM: Open Source Android MDM Software
+  ~ https://h-mdm.com
+  ~
+  ~ Copyright (C) 2019 Headwind Solutions LLC (http://h-sms.com)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resources>
+    <string name="app_name">Headwind MDM</string>
+    <string name="admin_title">Administrator</string>
+    <string name="vendor">(c) 2019 Headwind Solutions</string>
+    <string name="demo_text">Headwind MDM © 2019 HeadWind Solutions LLC</string>
+    <string name="install_error">Error installing </string>
+    <string name="dialog_enter_device_id_error">This device ID is not registered on server. Please enter another device ID.</string>
+    <string name="dialog_enter_device_id_variants">Variants</string>
+    <string name="dialog_enter_device_id_save">Save</string>
+    <string name="dialog_enter_device_id_title">Enter device ID</string>
+    <string name="main_start_preparations">Preparing to start</string>
+    <string name="main_downloading_configuration">Updating configuration file</string>
+    <string name="main_downloading_content">Updating data</string>
+    <string name="main_update_applications">Installing and updating applications</string>
+    <string name="dialog_root_message">You need ROOT access</string>
+    <string name="main_application_start">Starting application</string>
+    <string name="main_app_installing">Installing application</string>
+    <string name="main_app_downloading">Downloading application</string>
+    <string name="main_app_downloading_error">Failed to download the package</string>
+    <string name="main_app_removing">Uninstalling application</string>
+    <string name="main_activity_repeat">Retry</string>
+    <string name="main_activity_cancel">Cancel</string>
+    <string name="main_activity_details">Details</string>
+    <string name="select_system_launcher">Select a system launcher</string>
+    <string name="dialog_network_error_title">Server connection error. Please check the Internet connection and try again.</string>
+    <string name="main_activity_update_config">Requesting configuration file from server</string>
+    <string name="main_activity_applications_update">Updating applications</string>
+    <string name="dialog_overlay_settings_title">Please allow the app to draw over other windows. A settings sheet will now be opened. Find the \"Headwind MDM\" item, allow to draw over other windows, and tap \"Back\". If you can\'t find the setting, tap \"Skip\" (the app may not work as expected!)</string>
+    <string name="dialog_history_settings_title">Please allow the app to use history. A settings sheet will now be opened. Find the \"Headwind MDM\" item, allow access to the app history, and tap \"Back\". If you can\'t find the setting, tap \"Skip\" (the app may not work as expected!)</string>
+    <string name="dialog_history_settings_continue">Continue</string>
+    <string name="dialog_history_settings_skip">Skip</string>
+    <string name="dialog_unknown_sources_title">Please allow installation from unknown sources. A settings sheet will now open. Find \"Unknown sources\", allow the installation and click \"Back\".</string>
+    <string name="dialog_unknown_sources_continue">Continue</string>
+    <string name="dialog_administrator_mode_message">Please allow the app to work in the device administrator mode. A Settings sheet will now open. Select \"Device administrators\", find the \"Headwind MDM\" item, activate the administrator, and tap \"Back\".</string>
+    <string name="dialog_administrator_mode_continue">Continue</string>
+    <string name="dialog_administrator_mode_skip">Skip</string>
+    <string name="accessibility_service_description">Active app monitoring by Headwind MDM Launcher</string>
+    <string name="dialog_accessibility_service_message">Please allow the app to use accessibility services. A Settings sheet will now open. Find the \"Headwind MDM\" item, allow to use accessibility services, and tap \"Back\".</string>
+    <string name="dialog_accessibility_service_continue">Continue</string>
+    <string name="dialog_accessibility_service_skip">Skip</string>
+    <string name="access_to_app_denied">Access to this app (%s) is blocked by the administrator</string>
+    <string name="dialog_app_not_allowed_close">Close</string>
+    <string name="dialog_app_not_allowed_admin">Administrator</string>
+    <string name="device_id">Device ID</string>
+    <string name="imei">IMEI</string>
+    <string name="serial_number">Serial number</string>
+    <string name="phone_number">Phone number</string>
+    <string name="launcher_version">Launcher version</string>
+    <string name="admin_change_device_id">Change device ID</string>
+    <string name="admin_allow_settings">Open settings</string>
+    <string name="settings_allowed">You are allowed to change settings within 3 minutes.</string>
+    <string name="admin_refresh">Update configuration</string>
+    <string name="admin_exit">Exit to system launcher</string>
+    <string name="reboot">Reboot device</string>
+    <string name="reboot_failed">Not enough rights to reboot the device.</string>
+    <string name="message_turn_on_gps">The settings screen will open. Please turn on GPS location on this screen and click Back.</string>
+    <string name="message_turn_off_gps">The settings screen will open. Please TURN OFF GPS location on this screen and click Back.</string>
+    <string name="message_turn_on_mobile_data">The settings screen will open. Please turn on mobile data on this screen and click Back.</string>
+    <string name="message_turn_off_mobile_data">The settings screen will open. Please TURN OFF mobile data on this screen and click Back.</string>
+    <string name="switch_off_blockings">Switching off restrictions...</string>
+    <string name="kiosk_mode_requires_overlays">Kiosk mode disabled: no permission to draw over other windows. Please allow Headwind MDM to draw over other windows.</string>
+    <string name="enter_admin_password">Enter administrator password</string>
+    <string name="wrong_password">Wrong password</string>
+    <string name="dialog_enter_password_login">Login</string>
+    <string name="dialog_enter_password_cancel">Cancel</string>
+    <string name="internal_error">The app encountered an internal error. Please reboot the device and retry the action.</string>
+    <string name="empty_configuration">The configuration is not set, retrying to get from the server!</string>
+</resources>
