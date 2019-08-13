@@ -31,6 +31,7 @@ public class Application {
     private boolean showIcon;
     private boolean remove;
     private boolean runAfterInstall;
+    private boolean skipVersion;
 
     public Application() {}
 
@@ -90,4 +91,11 @@ public class Application {
         this.runAfterInstall = runAfterInstall;
     }
 
+    public boolean isSkipVersion() {
+        return skipVersion;
+    }
+
+    public void setSkipVersion(boolean skipVersion) {
+        this.skipVersion = skipVersion;
+    }
 }

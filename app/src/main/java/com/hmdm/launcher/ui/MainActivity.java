@@ -177,7 +177,7 @@ public class MainActivity
                     binding.setShowContent( false );
                     break;
                 case Const.ACTION_HIDE_SCREEN:
-                    if ( applicationNotAllowed != null ) {
+                    if ( applicationNotAllowed != null && !ProUtils.kioskModeRequired(MainActivity.this) ) {
                         TextView textView = ( TextView ) applicationNotAllowed.findViewById( R.id.message );
                         textView.setText( String.format( getString(R.string.access_to_app_denied),
                                 intent.getStringExtra( Const.PACKAGE_NAME ) ) );
@@ -425,7 +425,7 @@ public class MainActivity
                         // We are in the main app: let's open launcher activity
                         interruptResumeFlow = true;
                         Intent restoreLauncherIntent = new Intent( MainActivity.this, MainActivity.class );
-                        restoreLauncherIntent.addFlags( Intent.FLAG_ACTIVITY_NEW_TASK );
+                        restoreLauncherIntent.addFlags( Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT );
                         startActivity( restoreLauncherIntent );
                         createAndShowEnterPasswordDialog();
                         kioskUnlockCounter = 0;
@@ -692,7 +692,7 @@ public class MainActivity
                 }
 
                 if (!application.isRemove() &&
-                        (application.getVersion().equals("0") || areVersionsEqual(packageInfo.versionName, application.getVersion()))) {
+                        (application.isSkipVersion() || application.getVersion().equals("0") || areVersionsEqual(packageInfo.versionName, application.getVersion()))) {
                     // If installation is required, but the app of the same version already installed, do not install
                     it.remove();
                     continue;
@@ -1358,19 +1358,6 @@ public class MainActivity
             return false;
         } else {
             return true;
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults ) {
-        super.onRequestPermissionsResult( requestCode, permissions, grantResults );
-
-        if ( requestCode == PERMISSIONS_REQUEST && grantResults.length > 0 &&
-                grantResults[ 0 ] == PackageManager.PERMISSION_GRANTED ) {
-            if ( !configInitialized ) {
-                Log.i(LOG_TAG, "onRequestPermissionsResult(): calling updateConfig()");
-                updateConfig( false );
-            }
         }
     }
 
