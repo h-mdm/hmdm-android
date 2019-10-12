@@ -19,17 +19,8 @@
 
 package com.hmdm.launcher.json;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.os.Build;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.hmdm.launcher.Const;
-import com.hmdm.launcher.helper.SettingsHelper;
-import com.hmdm.launcher.util.DeviceInfoProvider;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -44,51 +35,12 @@ public class DeviceInfo {
     private String deviceId;
     private String phone;
     private String imei;
+    private boolean mdmMode;
+    private int batteryLevel;
+    private String batteryCharging;
+    private String androidVersion;
 
     public DeviceInfo() {}
-
-    public DeviceInfo( Context context ) {
-        this.model = Build.MODEL;
-
-        SharedPreferences preferences = context.getSharedPreferences( Const.PREFERENCES, Context.MODE_PRIVATE );
-        permissions.add( preferences.getInt( Const.PREFERENCES_ADMINISTRATOR, -1 ) );
-        permissions.add( preferences.getInt( Const.PREFERENCES_OVERLAY, -1 ) );
-        permissions.add( preferences.getInt( Const.PREFERENCES_USAGE_STATISTICS, -1 ) );
-
-        PackageManager packageManager = context.getPackageManager();
-        SettingsHelper config = SettingsHelper.getInstance( context );
-        if ( config.getConfig() != null ) {
-            List< Application > requiredApps = SettingsHelper.getInstance( context ).getConfig().getApplications();
-            for ( Application application : requiredApps ) {
-                try {
-                    PackageInfo packageInfo = packageManager.getPackageInfo( application.getPkg(), 0 );
-
-                    Application installedApp = new Application();
-                    installedApp.setName( application.getName() );
-                    installedApp.setPkg( packageInfo.packageName );
-                    installedApp.setVersion( packageInfo.versionName );
-
-                    applications.add( installedApp );
-                } catch ( PackageManager.NameNotFoundException e ) {
-                    // Application not installed
-                }
-            }
-        }
-
-        this.setDeviceId( SettingsHelper.getInstance( context ).getDeviceId() );
-
-        String phone = DeviceInfoProvider.getPhoneNumber(context);
-        if (phone == null || phone.equals("")) {
-            phone = config.getConfig().getPhone();
-        }
-        this.setPhone(phone);
-
-        String imei = DeviceInfoProvider.getImei(context);
-        if (imei == null || imei.equals("")) {
-            imei = config.getConfig().getImei();
-        }
-        this.setImei(imei);
-    }
 
     public String getModel() {
         return model;
@@ -136,5 +88,37 @@ public class DeviceInfo {
 
     public void setImei(String imei) {
         this.imei = imei;
+    }
+
+    public boolean isMdmMode() {
+        return mdmMode;
+    }
+
+    public void setMdmMode(boolean mdmMode) {
+        this.mdmMode = mdmMode;
+    }
+
+    public int getBatteryLevel() {
+        return batteryLevel;
+    }
+
+    public void setBatteryLevel(int batteryLevel) {
+        this.batteryLevel = batteryLevel;
+    }
+
+    public String isBatteryCharging() {
+        return batteryCharging;
+    }
+
+    public void setBatteryCharging(String batteryCharging) {
+        this.batteryCharging = batteryCharging;
+    }
+
+    public String getAndroidVersion() {
+        return androidVersion;
+    }
+
+    public void setAndroidVersion(String androidVersion) {
+        this.androidVersion = androidVersion;
     }
 }

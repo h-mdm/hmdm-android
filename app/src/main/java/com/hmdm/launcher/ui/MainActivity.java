@@ -162,8 +162,6 @@ public class MainActivity
     private static final String WORK_TAG_DEVICEINFO = "com.hmdm.launcher.WORK_TAG_DEVICEINFO";
     private boolean sendDeviceInfoScheduled = false;
 
-    private Handler emuiRestarterHandler;
-
     private int kioskUnlockCounter = 0;
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -177,7 +175,8 @@ public class MainActivity
                     binding.setShowContent( false );
                     break;
                 case Const.ACTION_HIDE_SCREEN:
-                    if ( applicationNotAllowed != null && !ProUtils.kioskModeRequired(MainActivity.this) ) {
+                    if ( applicationNotAllowed != null &&
+                            (!ProUtils.kioskModeRequired(MainActivity.this) || !ProUtils.isKioskAppInstalled(MainActivity.this)) ) {
                         TextView textView = ( TextView ) applicationNotAllowed.findViewById( R.id.message );
                         textView.setText( String.format( getString(R.string.access_to_app_denied),
                                 intent.getStringExtra( Const.PACKAGE_NAME ) ) );
@@ -248,7 +247,6 @@ public class MainActivity
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(Const.ACTION_INSTALL_COMPLETE)) {
-                    stopEmuiRestarter();
                     // Always grant all dangerous rights to the app
                     // TODO: in the future, the rights must be configurable on the server
                     String packageName = intent.getStringExtra(Const.PACKAGE_NAME);
@@ -305,8 +303,14 @@ public class MainActivity
 
         int administratorMode = preferences.getInt( Const.PREFERENCES_ADMINISTRATOR, - 1 );
         if ( administratorMode == -1 ) {
-            createAndShowAdministratorDialog();
-            return;
+            if (checkAdminMode()) {
+                preferences.
+                        edit().
+                        putInt( Const.PREFERENCES_ADMINISTRATOR, Const.PREFERENCES_ADMINISTRATOR_ON ).
+                        commit();
+            } else {
+                return;
+            }
         }
 
         int overlayMode = preferences.getInt( Const.PREFERENCES_OVERLAY, - 1 );
@@ -458,6 +462,14 @@ public class MainActivity
         }
     }
 
+    private boolean checkAdminMode() {
+        if (!Utils.checkAdminMode(this)) {
+            createAndShowAdministratorDialog();
+            return false;
+        }
+        return true;
+    }
+
     // Access to usage statistics is required in the Pro-version only
     private boolean checkUsageStatistics() {
         if (!ProUtils.checkUsageStatistics(this)) {
@@ -468,10 +480,8 @@ public class MainActivity
     }
 
     private boolean checkAlarmWindow() {
-        if (  Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                !Settings.canDrawOverlays( this ) ) {
+        if (!Utils.canDrawOverlays(this)) {
             createAndShowOverlaySettingsDialog();
-
             return false;
         } else {
             return true;
@@ -479,14 +489,10 @@ public class MainActivity
     }
 
     private boolean checkUnknownSources() {
-        try {
-        if ( Settings.Secure.getInt(getContentResolver(), Settings.Secure.INSTALL_NON_MARKET_APPS) != 1 ) {
+        if ( !Utils.canInstallPackages(this) ) {
             createAndShowUnknownSourcesDialog();
             return false;
         } else {
-            return true;
-        }
-        } catch (Settings.SettingNotFoundException e) {
             return true;
         }
     }
@@ -798,14 +804,13 @@ public class MainActivity
             if (Utils.isDeviceOwner(this)) {
                 Log.i(LOG_TAG, "installApplication(): silently installing app " + packageName);
                 if (packageName.equals(getPackageName()) &&
-                        getPackageManager().getLaunchIntentForPackage(Const.EMUI_LAUNCHER_RESTARTER_PACKAGE_ID) != null) {
+                        getPackageManager().getLaunchIntentForPackage(Const.LAUNCHER_RESTARTER_PACKAGE_ID) != null) {
                     // Restart self in EMUI: there's no auto restart after update in EMUI, we must use a helper app
-                    startMiuiRestarter();
+                    startLauncherRestarter();
                 }
                 Utils.silentInstallApplication(this, file, packageName, new Utils.SilentInstallErrorHandler() {
                     @Override
                     public void onInstallError() {
-                        stopEmuiRestarter();
                         Log.i(LOG_TAG, "installApplication(): error installing app " + packageName);
                         handler.post(new Runnable() {
                             @Override
@@ -1031,7 +1036,7 @@ public class MainActivity
                 return Result.failure();
             }
 
-            DeviceInfo deviceInfo = new DeviceInfo(context);
+            DeviceInfo deviceInfo = DeviceInfoProvider.getDeviceInfo(context);
 
             ServerService serverService = ServerServiceKeeper.getServerServiceInstance(context);
             ServerService secondaryServerService = ServerServiceKeeper.getSecondaryServerServiceInstance(context);
@@ -1190,11 +1195,6 @@ public class MainActivity
 
     public void setAdminMode( View view ) {
         dismissDialog(administratorModeDialog);
-
-        preferences.
-                edit().
-                putInt( Const.PREFERENCES_ADMINISTRATOR, Const.PREFERENCES_ADMINISTRATOR_ON ).
-                commit();
 
         Intent intent = new Intent( android.provider.Settings.ACTION_SECURITY_SETTINGS);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -1435,7 +1435,12 @@ public class MainActivity
 
     public void continueUnknownSources( View view ) {
         dismissDialog(unknownSourcesDialog);
-        startActivity(new Intent(android.provider.Settings.ACTION_SECURITY_SETTINGS));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            startActivity(new Intent(android.provider.Settings.ACTION_SECURITY_SETTINGS));
+        } else {
+            // In Android Oreo and above, permission to install packages are set per each app
+            startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName())));
+        }
     }
 
     @Override
@@ -1556,39 +1561,18 @@ public class MainActivity
     }
 
     // The following algorithm of launcher restart works in EMUI:
-    // Run EMUI_LAUNCHER_RESTARTER activity; every received intent in this app
-    // delays the launcher restart by one second.
-    // If this instance of the launcher dies, the new one will be started within a second
-    private void startMiuiRestarter() {
-        if (emuiRestarterHandler != null) {
+    // Run EMUI_LAUNCHER_RESTARTER activity once and send the old version number to it.
+    // The restarter application will check the launcher version each second, and restart it
+    // when it is changed.
+    private void startLauncherRestarter() {
+        // Sending an intent before updating, otherwise the launcher may be terminated at any time
+        Intent intent = getPackageManager().getLaunchIntentForPackage(Const.LAUNCHER_RESTARTER_PACKAGE_ID);
+        if (intent == null) {
+            Log.i("LauncherRestarter", "No restarter app, please add it in the config!");
             return;
         }
-
-        // Sending an intent synchronous BEFORE starting update, otherwise we may not succeed to start Handler
-        Intent intent = getPackageManager().getLaunchIntentForPackage(Const.EMUI_LAUNCHER_RESTARTER_PACKAGE_ID);
+        intent.putExtra(Const.LAUNCHER_RESTARTER_OLD_VERSION, BuildConfig.VERSION_NAME);
         startActivity(intent);
         Log.i("LauncherRestarter", "Calling launcher restarter from the launcher");
-
-        emuiRestarterHandler = new Handler();
-        final Runnable restarterAppRunnable = new Runnable() {
-            @Override
-            public void run() {
-                Intent intent = getPackageManager().getLaunchIntentForPackage(Const.EMUI_LAUNCHER_RESTARTER_PACKAGE_ID);
-                startActivity(intent);
-                Log.i("LauncherRestarter", "Calling launcher restarter from the launcher");
-                Toast.makeText(MainActivity.this, "Called restarter", Toast.LENGTH_SHORT).show();
-                emuiRestarterHandler.postDelayed(this, 200);
-            }
-        };
-        emuiRestarterHandler.postDelayed(restarterAppRunnable, 200);
-    }
-
-    private void stopEmuiRestarter() {
-        if (emuiRestarterHandler == null) {
-            return;
-        }
-        Log.i("LauncherRestarter", "Stopping restarter loop");
-        emuiRestarterHandler.removeCallbacksAndMessages(null);
-        emuiRestarterHandler = null;
     }
 }

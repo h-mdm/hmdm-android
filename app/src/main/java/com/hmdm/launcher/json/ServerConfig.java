@@ -51,6 +51,8 @@ public class ServerConfig {
 
     private List< Application > applications = new LinkedList();
 
+    private List< ApplicationSetting > applicationSettings = new LinkedList();
+
     public static final String TITLE_NONE = "none";
     public static final String TITLE_DEVICE_ID = "deviceId";
     public static final int DEFAULT_ICON_SIZE = 100;
@@ -92,6 +94,14 @@ public class ServerConfig {
 
     public void setApplications( List< Application > applications ) {
         this.applications = applications;
+    }
+
+    public List< ApplicationSetting > getApplicationSettings() {
+        return applicationSettings;
+    }
+
+    public void setApplicationSettings( List< ApplicationSetting > applicationSettings ) {
+        this.applicationSettings = applicationSettings;
     }
 
     public String getPassword() {

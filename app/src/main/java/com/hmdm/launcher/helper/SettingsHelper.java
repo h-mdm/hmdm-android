@@ -25,9 +25,12 @@ import android.content.SharedPreferences;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.json.Application;
+import com.hmdm.launcher.json.ApplicationSetting;
 import com.hmdm.launcher.json.ServerConfig;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 public class SettingsHelper {
 
@@ -43,6 +46,7 @@ public class SettingsHelper {
     private SharedPreferences sharedPreferences;
     private ServerConfig config;
     private ServerConfig oldConfig;
+    private Map<String,ApplicationSetting> appSettings = new HashMap<>();
 
     private static SettingsHelper instance;
 
@@ -67,6 +71,7 @@ public class SettingsHelper {
                 config = mapper.readValue(
                         sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_CONFIG, "" ),
                         ServerConfig.class );
+                updateAppSettingsMap(config);
             }
         } catch ( Exception e ) {
             e.printStackTrace();
@@ -114,6 +119,7 @@ public class SettingsHelper {
             // Do not apply changes when there's an error while writing settings
             return;
         }
+        updateAppSettingsMap(config);
         this.oldConfig = this.config;
         this.config = config;
     }
@@ -132,5 +138,48 @@ public class SettingsHelper {
                 return;
             }
         }
+    }
+
+    public void updateAppSettingsMap(ServerConfig config) {
+        if (config == null || config.getApplicationSettings() == null) {
+            return;
+        }
+        appSettings.clear();
+        for (ApplicationSetting setting : config.getApplicationSettings()) {
+            String key = setting.getPackageId() + "." + setting.getName();
+            appSettings.put(key, setting);
+        }
+    }
+
+    public String getAppPreference(String packageId, String attr) {
+        String key = packageId + "." + attr;
+        ApplicationSetting setting = appSettings.get(key);
+        if (setting == null) {
+            return null;
+        }
+        return setting.getValue();
+    }
+
+    public boolean setAppPreference(String packageId, String attr, String value) {
+        String key = packageId + "." + attr;
+        ApplicationSetting setting = appSettings.get(key);
+        if (setting == null) {
+            setting = new ApplicationSetting();
+            setting.setPackageId(packageId);
+            setting.setName(attr);
+            setting.setType(1);     // 1 is string (default value)
+            setting.setReadOnly(false);
+            appSettings.put(key, setting);
+        }
+        if (setting.isReadOnly()) {
+            return false;
+        }
+        setting.setValue(value);
+        setting.setLastUpdate(System.currentTimeMillis());
+        return true;
+    }
+
+    public void commitAppPreferences(String packageId) {
+        // TODO: send new preferences to server
     }
 }

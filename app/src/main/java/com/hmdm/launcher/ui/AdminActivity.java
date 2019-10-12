@@ -24,6 +24,7 @@ import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -165,6 +166,19 @@ public class AdminActivity extends BaseActivity {
                 startActivity( Intent.createChooser( intent, getString( R.string.select_system_launcher ) ) );
             }
         }, 1000);
+    }
+
+    public void resetPermissions(View view) {
+        SharedPreferences preferences = getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.remove(Const.PREFERENCES_UNKNOWN_SOURCES);
+        editor.remove(Const.PREFERENCES_ADMINISTRATOR);
+        editor.remove(Const.PREFERENCES_ACCESSIBILITY_SERVICE);
+        editor.remove(Const.PREFERENCES_OVERLAY);
+        editor.remove(Const.PREFERENCES_USAGE_STATISTICS);
+        editor.remove(Const.PREFERENCES_DEVICE_OWNER);
+        editor.commit();
+        Toast.makeText(this, R.string.permissions_reset_hint, Toast.LENGTH_LONG).show();
     }
 
     public void reboot(View view) {

@@ -70,6 +70,7 @@
     <string name="settings_allowed">You are allowed to change settings within 3 minutes.</string>
     <string name="admin_refresh">Update configuration</string>
     <string name="admin_exit">Exit to system launcher</string>
+    <string name="admin_reset_permissions">Check permissions</string>
     <string name="reboot">Reboot device</string>
     <string name="reboot_failed">Not enough rights to reboot the device.</string>
     <string name="message_turn_on_gps">The settings screen will open. Please turn on GPS location on this screen and click Back.</string>
@@ -84,4 +85,5 @@
     <string name="dialog_enter_password_cancel">Cancel</string>
     <string name="internal_error">The app encountered an internal error. Please reboot the device and retry the action.</string>
     <string name="empty_configuration">The configuration is not set, retrying to get from the server!</string>
+    <string name="permissions_reset_hint">Close the admin panel to check and request permissions.</string>
 </resources>

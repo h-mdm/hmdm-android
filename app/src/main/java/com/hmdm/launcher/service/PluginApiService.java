@@ -79,5 +79,35 @@ public class PluginApiService extends Service {
             item.setMessage(message);
             RemoteLogger.postLog(PluginApiService.this, item);
         }
+
+        @Override
+        public String queryAppPreference(String packageId, String attr) {
+            SettingsHelper settingsHelper = SettingsHelper.getInstance(PluginApiService.this);
+            if ( settingsHelper.getConfig() == null ) {
+                // This shouldn't happen!
+                return null;
+            }
+            return settingsHelper.getAppPreference(packageId, attr);
+        }
+
+        @Override
+        public boolean setAppPreference(String packageId, String attr, String value) {
+            SettingsHelper settingsHelper = SettingsHelper.getInstance(PluginApiService.this);
+            if ( settingsHelper.getConfig() == null ) {
+                // This shouldn't happen!
+                return false;
+            }
+            return settingsHelper.setAppPreference(packageId, attr, value);
+        }
+
+        @Override
+        public void commitAppPreferences(String packageId) {
+            SettingsHelper settingsHelper = SettingsHelper.getInstance(PluginApiService.this);
+            if ( settingsHelper.getConfig() == null ) {
+                // This shouldn't happen!
+                return;
+            }
+            settingsHelper.commitAppPreferences(packageId);
+        }
     };
 }

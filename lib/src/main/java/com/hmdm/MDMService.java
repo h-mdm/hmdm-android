@@ -170,5 +170,54 @@ public class MDMService {
         }
     }
 
+    public static class Preferences {
+
+        public static String get(String attr, String defValue) {
+            if (instance == null || instance.mdmApi == null || instance.context == null) {
+                // Not initialized, just return
+                android.util.Log.w(Const.LOG_TAG, "Connection to Headwind MDM not initialized!");
+                return defValue;
+            }
+            try {
+                String result = instance.mdmApi.queryAppPreference(instance.context.getPackageName(), attr);
+                if (result == null) {
+                    return defValue;
+                }
+                return result;
+            } catch (Exception e) {
+                android.util.Log.w(Const.LOG_TAG, "Remote exception while trying to get Headwind MDM app preference " + attr);
+                e.printStackTrace();
+            }
+            return defValue;
+        }
+
+        public static boolean set(String attr, String value) {
+            if (instance == null || instance.mdmApi == null || instance.context == null) {
+                // Not initialized, just return
+                android.util.Log.w(Const.LOG_TAG, "Connection to Headwind MDM not initialized!");
+            }
+            try {
+                return instance.mdmApi.setAppPreference(instance.context.getPackageName(), attr, value);
+            } catch (Exception e) {
+                android.util.Log.w(Const.LOG_TAG, "Remote exception while trying to set Headwind MDM app preference " + attr + "=" + value);
+                e.printStackTrace();
+            }
+            return false;
+        }
+
+        public static void apply() {
+            if (instance == null || instance.mdmApi == null || instance.context == null) {
+                // Not initialized, just return
+                android.util.Log.w(Const.LOG_TAG, "Connection to Headwind MDM not initialized!");
+                return;
+            }
+            try {
+                instance.mdmApi.commitAppPreferences(instance.context.getPackageName());
+            } catch (Exception e) {
+                android.util.Log.w(Const.LOG_TAG, "Remote exception while trying to apply Headwind MDM app preferences!");
+                e.printStackTrace();
+            }
+        }
+    }
 
 }

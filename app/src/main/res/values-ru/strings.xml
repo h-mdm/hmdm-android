@@ -69,6 +69,7 @@
     <string name="admin_allow_settings">Открыть настройки</string>
     <string name="settings_allowed">Изменение настроек разрешено в течение 3 минут</string>
     <string name="admin_refresh">Обновить конфигурацию</string>
+    <string name="admin_reset_permissions">Проверить разрешения</string>
     <string name="admin_exit">Выйти в системный лаунчер</string>
     <string name="reboot">Перезагрузка</string>
     <string name="reboot_failed">Не удалось перезагрузить устройство - не хватает прав.</string>
@@ -84,4 +85,5 @@
     <string name="dialog_enter_password_cancel">Отмена</string>
     <string name="internal_error">В оболочке возникла ошибка. Пожалуйста, перезагрузите устройство и повторите действие ещё раз.</string>
     <string name="empty_configuration">Конфигурация еще не получена, пытаемся скачать еще раз!</string>
+    <string name="permissions_reset_hint">Чтобы проверить и заново запросить разрешения - закройте экран администратора.</string>
 </resources>

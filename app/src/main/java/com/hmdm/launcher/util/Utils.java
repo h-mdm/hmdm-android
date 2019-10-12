@@ -34,6 +34,7 @@ import android.content.pm.PermissionInfo;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Environment;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.WindowManager;
 
@@ -311,6 +312,34 @@ public class Utils {
             return h * 60 + m;
         } catch (Exception e) {
             return -1;
+        }
+    }
+
+    public static boolean canInstallPackages(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            // Global setting works for Android 7 and below
+            try {
+                return Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.INSTALL_NON_MARKET_APPS) == 1;
+            } catch (Settings.SettingNotFoundException e) {
+                return true;
+            }
+        } else {
+            return context.getPackageManager().canRequestPackageInstalls();
+        }
+    }
+
+    public static boolean canDrawOverlays(Context context) {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+                Settings.canDrawOverlays(context);
+    }
+
+    public static boolean checkAdminMode(Context context) {
+        try {
+            DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+            return dpm.isAdminActive(adminComponentName);
+        } catch (Exception e) {
+            return true;
         }
     }
 }

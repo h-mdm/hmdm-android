@@ -72,7 +72,8 @@ public class Const {
 
     public static final int SETTINGS_UNBLOCK_TIME = 180000;
 
-    public static final String EMUI_LAUNCHER_RESTARTER_PACKAGE_ID = "com.hmdm.emuilauncherrestarter";
+    public static final String LAUNCHER_RESTARTER_PACKAGE_ID = "com.hmdm.emuilauncherrestarter";
+    public static final String LAUNCHER_RESTARTER_OLD_VERSION = "oldVersion";
 
     public static final String SETTINGS_PACKAGE_NAME = "com.android.settings";
     public static final String GSF_PACKAGE_NAME = "com.google.android.gsf";
