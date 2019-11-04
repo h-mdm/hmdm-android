@@ -109,7 +109,7 @@ public class RemoteLogService extends Service {
         // This is running in a background thread by WorkManager
         public Result doWork() {
             try {
-                DatabaseHelper dbHelper = new DatabaseHelper(context);
+                DatabaseHelper dbHelper = DatabaseHelper.instance(context);
 
                 while (true) {
                     List<RemoteLogItem> unsentItems = LogTable.select(dbHelper.getReadableDatabase(), MAX_UPLOADED_MESSAGES);
@@ -128,7 +128,7 @@ public class RemoteLogService extends Service {
                     } else {
                         Log.i(Const.LOG_TAG, "Logs are uploaded");
                         // Mark items as sent and query next items
-                        LogTable.delete(new DatabaseHelper(context).getWritableDatabase(), unsentItems);
+                        LogTable.delete(DatabaseHelper.instance(context).getWritableDatabase(), unsentItems);
                     }
                 }
             } catch (Exception e) {

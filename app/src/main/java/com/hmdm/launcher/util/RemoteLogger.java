@@ -41,11 +41,11 @@ public class RemoteLogger {
     public static long lastLogRemoval = 0;
 
     public static void updateConfig(Context context, List<RemoteLogConfig> rules) {
-        LogConfigTable.replaceAll(new DatabaseHelper(context).getWritableDatabase(), rules);
+        LogConfigTable.replaceAll(DatabaseHelper.instance(context).getWritableDatabase(), rules);
     }
 
     public static void postLog(Context context, RemoteLogItem item) {
-        DatabaseHelper dbHelper = new DatabaseHelper(context);
+        DatabaseHelper dbHelper = DatabaseHelper.instance(context);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         if (LogConfigTable.match(db, item)) {
             db = dbHelper.getWritableDatabase();

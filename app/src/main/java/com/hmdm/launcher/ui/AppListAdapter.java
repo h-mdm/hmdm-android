@@ -151,6 +151,10 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
             Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(
                     resolveInfo.packageName );
             if ( launchIntent != null ) {
+                // These magic flags are found in the source code of the default Android launcher
+                // These flags preserve the app activity stack (otherwise a launch activity appears at the top which is not correct)
+                launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+                        Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
                 context.startActivity( launchIntent );
                 if ( listener != null ) {
                     listener.onAppChoose( resolveInfo );

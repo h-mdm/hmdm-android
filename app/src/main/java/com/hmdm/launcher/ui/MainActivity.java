@@ -88,12 +88,14 @@ import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.pro.service.CheckForegroundAppAccessibilityService;
 import com.hmdm.launcher.pro.service.CheckForegroundApplicationService;
+import com.hmdm.launcher.pro.service.DetailedInfoService;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
 import com.hmdm.launcher.service.PluginApiService;
 import com.hmdm.launcher.service.PushNotificationPollingService;
 import com.hmdm.launcher.task.GetRemoteLogConfigTask;
 import com.hmdm.launcher.task.GetServerConfigTask;
+import com.hmdm.launcher.task.SendDeviceInfoTask;
 import com.hmdm.launcher.util.AppInfo;
 import com.hmdm.launcher.util.DeviceInfoProvider;
 import com.hmdm.launcher.util.RemoteLogger;
@@ -101,7 +103,6 @@ import com.hmdm.launcher.util.Utils;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -210,6 +211,24 @@ public class MainActivity
     protected void onCreate( Bundle savedInstanceState ) {
         super.onCreate( savedInstanceState );
 
+        // Disable crashes to avoid "select a launcher" popup
+        // Crashlytics will show an exception anyway!
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                e.printStackTrace();
+                // Restart launcher if there's a launcher restarter
+                Intent intent = getPackageManager().getLaunchIntentForPackage(Const.LAUNCHER_RESTARTER_PACKAGE_ID);
+                if (intent != null) {
+                    startActivity(intent);
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    finishAffinity();
+                }
+                System.exit(0);
+            }
+        });
+
         // Crashlytics is not included in the open-source version
         ProUtils.initCrashlytics(this);
 
@@ -217,10 +236,13 @@ public class MainActivity
         binding.setMessage( getString( R.string.main_start_preparations ) );
         binding.setLoading( true );
 
+        // Shouldn't we move this to onResume???
+        // https://stackoverflow.com/questions/51863600/java-lang-illegalstateexception-not-allowed-to-start-service-intent-from-activ
         startService(new Intent( this, PluginApiService.class ));
         if (BuildConfig.PUSH_NOTIFICATION_POLLING) {
             startService(new Intent(this, PushNotificationPollingService.class));
         }
+        startService(new Intent(this, DetailedInfoService.class));
 
         settingsHelper = SettingsHelper.getInstance( this );
         preferences = getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
@@ -642,10 +664,33 @@ public class MainActivity
             protected void onPostExecute( Integer result ) {
                 super.onPostExecute( result );
                 Log.i(LOG_TAG, "updateRemoteLogConfig(): result=" + result);
-                checkAndUpdateApplications();
+                checkFactoryReset();
             }
         };
         task.execute();
+    }
+
+    private void checkFactoryReset() {
+        ServerConfig config = settingsHelper.getConfig();
+        if (config.getFactoryReset() != null && config.getFactoryReset()) {
+            // We got a factory reset request, let's confirm and erase everything!
+            SendDeviceInfoTask confirmTask = new SendDeviceInfoTask(this) {
+                @Override
+                protected void onPostExecute( Integer result ) {
+                    // Do a factory reset if we can
+                    if (Utils.checkAdminMode(MainActivity.this)) {
+                        Utils.factoryReset(MainActivity.this);
+                    }
+                }
+            };
+
+            DeviceInfo deviceInfo = DeviceInfoProvider.getDeviceInfo(this, true, true);
+            deviceInfo.setFactoryReset(Utils.checkAdminMode(this));
+            confirmTask.execute(deviceInfo);
+
+        } else {
+            checkAndUpdateApplications();
+        }
     }
 
     private void checkAndUpdateApplications() {
@@ -939,13 +984,7 @@ public class MainActivity
             ConnectivityManager cm = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
             if (cm != null && !dialogWillShow) {
                 try {
-                    // A hack: use private API
-                    // https://stackoverflow.com/questions/12686899/test-if-background-data-and-packet-data-is-enabled-or-not?rq=1
-                    Class clazz = Class.forName(cm.getClass().getName());
-                    Method method = clazz.getDeclaredMethod("getMobileDataEnabled");
-                    method.setAccessible(true); // Make the method callable
-                    // get the setting for "mobile data"
-                    boolean enabled = (Boolean)method.invoke(cm);
+                    boolean enabled = Utils.isMobileDataEnabled(this);
                     final Intent mobileDataSettingsIntent = new Intent();
                     // One more hack: open the data transport activity
                     // https://stackoverflow.com/questions/31700842/which-intent-should-open-data-usage-screen-from-settings
@@ -1036,7 +1075,7 @@ public class MainActivity
                 return Result.failure();
             }
 
-            DeviceInfo deviceInfo = DeviceInfoProvider.getDeviceInfo(context);
+            DeviceInfo deviceInfo = DeviceInfoProvider.getDeviceInfo(context, true, true);
 
             ServerService serverService = ServerServiceKeeper.getServerServiceInstance(context);
             ServerService secondaryServerService = ServerServiceKeeper.getSecondaryServerServiceInstance(context);
@@ -1343,14 +1382,16 @@ public class MainActivity
 
     private boolean checkPermissions( boolean startSettings ) {
         if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                ( checkSelfPermission( android.Manifest.permission.READ_EXTERNAL_STORAGE ) != PackageManager.PERMISSION_GRANTED ||
-                  checkSelfPermission( android.Manifest.permission.WRITE_EXTERNAL_STORAGE ) != PackageManager.PERMISSION_GRANTED ||
+                ( checkSelfPermission( Manifest.permission.READ_EXTERNAL_STORAGE ) != PackageManager.PERMISSION_GRANTED ||
+                  checkSelfPermission( Manifest.permission.WRITE_EXTERNAL_STORAGE ) != PackageManager.PERMISSION_GRANTED ||
+                  checkSelfPermission( Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED ||
                   checkSelfPermission( Manifest.permission.READ_PHONE_STATE ) != PackageManager.PERMISSION_GRANTED ) ) {
 
             if ( startSettings ) {
                 requestPermissions( new String[] {
-                        android.Manifest.permission.READ_EXTERNAL_STORAGE,
-                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.ACCESS_FINE_LOCATION,
                         Manifest.permission.READ_PHONE_STATE
                 }, PERMISSIONS_REQUEST );
             }
@@ -1553,7 +1594,12 @@ public class MainActivity
                         startActivity(settingsIntent);
                     }
                 }, 300);*/
-                startActivity(settingsIntent);
+                try {
+                    startActivity(settingsIntent);
+                } catch (/*ActivityNotFound*/Exception e) {
+                    // Open settings by default
+                    startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS));
+                }
             }
         });
 

@@ -49,6 +49,8 @@ public class ServerConfig {
     private String systemUpdateFrom;
     private String systemUpdateTo;
 
+    private Boolean factoryReset;
+
     private List< Application > applications = new LinkedList();
 
     private List< ApplicationSetting > applicationSettings = new LinkedList();
@@ -221,5 +223,13 @@ public class ServerConfig {
 
     public void setSystemUpdateTo(String systemUpdateTo) {
         this.systemUpdateTo = systemUpdateTo;
+    }
+
+    public Boolean getFactoryReset() {
+        return factoryReset;
+    }
+
+    public void setFactoryReset(Boolean factoryReset) {
+        this.factoryReset = factoryReset;
     }
 }

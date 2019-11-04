@@ -20,7 +20,6 @@
 package com.hmdm.launcher.util;
 
 import android.annotation.SuppressLint;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -30,6 +29,7 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 
+import com.hmdm.launcher.Const;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.DeviceInfo;
@@ -42,33 +42,37 @@ public class DeviceInfoProvider {
 
     private final static String LOG_TAG = "HeadwindMdm";
 
-    public static DeviceInfo getDeviceInfo(Context context ) {
+    public static DeviceInfo getDeviceInfo(Context context, boolean queryPermissions, boolean queryApps) {
         DeviceInfo deviceInfo = new DeviceInfo();
         List< Integer > permissions = deviceInfo.getPermissions();
         List< Application > applications = deviceInfo.getApplications();
 
         deviceInfo.setModel(Build.MODEL);
 
-        permissions.add(Utils.checkAdminMode(context) ? 1 : 0);
-        permissions.add(Utils.canDrawOverlays(context) ? 1 : 0);
-        permissions.add(ProUtils.checkUsageStatistics(context) ? 1 : 0);
+        if (queryPermissions) {
+            permissions.add(Utils.checkAdminMode(context) ? 1 : 0);
+            permissions.add(Utils.canDrawOverlays(context) ? 1 : 0);
+            permissions.add(ProUtils.checkUsageStatistics(context) ? 1 : 0);
+        }
 
-        PackageManager packageManager = context.getPackageManager();
-        SettingsHelper config = SettingsHelper.getInstance( context );
-        if ( config.getConfig() != null ) {
-            List<Application> requiredApps = SettingsHelper.getInstance( context ).getConfig().getApplications();
-            for ( Application application : requiredApps ) {
-                try {
-                    PackageInfo packageInfo = packageManager.getPackageInfo( application.getPkg(), 0 );
+        SettingsHelper config = SettingsHelper.getInstance(context);
+        if (queryApps) {
+            PackageManager packageManager = context.getPackageManager();
+            if (config.getConfig() != null) {
+                List<Application> requiredApps = SettingsHelper.getInstance(context).getConfig().getApplications();
+                for (Application application : requiredApps) {
+                    try {
+                        PackageInfo packageInfo = packageManager.getPackageInfo(application.getPkg(), 0);
 
-                    Application installedApp = new Application();
-                    installedApp.setName( application.getName() );
-                    installedApp.setPkg( packageInfo.packageName );
-                    installedApp.setVersion( packageInfo.versionName );
+                        Application installedApp = new Application();
+                        installedApp.setName(application.getName());
+                        installedApp.setPkg(packageInfo.packageName);
+                        installedApp.setVersion(packageInfo.versionName);
 
-                    applications.add( installedApp );
-                } catch ( PackageManager.NameNotFoundException e ) {
-                    // Application not installed
+                        applications.add(installedApp);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        // Application not installed
+                    }
                 }
             }
         }
@@ -97,10 +101,10 @@ public class DeviceInfoProvider {
             int chargePlug = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
             switch (chargePlug) {
                 case BatteryManager.BATTERY_PLUGGED_USB:
-                    deviceInfo.setBatteryCharging("usb");
+                    deviceInfo.setBatteryCharging(Const.DEVICE_CHARGING_USB);
                     break;
                 case BatteryManager.BATTERY_PLUGGED_AC:
-                    deviceInfo.setBatteryCharging("ac");
+                    deviceInfo.setBatteryCharging(Const.DEVICE_CHARGING_AC);
                     break;
             }
         } else {

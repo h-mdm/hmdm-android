@@ -91,4 +91,33 @@ public class Const {
     public static final String INTENT_PUSH_NOTIFICATION_EXTRA = "com.hmdm.PUSH_DATA";
 
     public static final String WORK_TAG_COMMON = "com.hmdm.launcher";
+
+    public static final String DEVICE_CHARGING_USB = "usb";
+    public static final String DEVICE_CHARGING_AC = "ac";
+
+    public static final String WIFI_STATE_FAILED = "failed";
+    public static final String WIFI_STATE_INACTIVE = "inactive";
+    public static final String WIFI_STATE_SCANNING = "scanning";
+    public static final String WIFI_STATE_DISCONNECTED = "disconnected";
+    public static final String WIFI_STATE_CONNECTING = "connecting";
+    public static final String WIFI_STATE_CONNECTED = "connected";
+
+    public static final String GPS_STATE_INACTIVE = "inactive";
+    public static final String GPS_STATE_LOST = "lost";
+    public static final String GPS_STATE_ACTIVE = "active";
+
+    public static final String MOBILE_STATE_INACTIVE = "inactive";
+    public static final String MOBILE_STATE_DISCONNECTED = "disconnected";
+    public static final String MOBILE_STATE_CONNECTED = "connected";
+
+    public static final String MOBILE_SIMSTATE_UNKNOWN = "unknown";
+    public static final String MOBILE_SIMSTATE_ABSENT = "absent";
+    public static final String MOBILE_SIMSTATE_PIN_REQUIRED = "pinRequired";
+    public static final String MOBILE_SIMSTATE_PUK_REQUIRED = "pukRequired";
+    public static final String MOBILE_SIMSTATE_LOCKED = "locked";
+    public static final String MOBILE_SIMSTATE_READY = "ready";
+    public static final String MOBILE_SIMSTATE_NOT_READY = "notReady";
+    public static final String MOBILE_SIMSTATE_DISABLED = "disabled";
+    public static final String MOBILE_SIMSTATE_ERROR = "error";
+    public static final String MOBILE_SIMSTATE_RESTRICTED = "restricted";
 }

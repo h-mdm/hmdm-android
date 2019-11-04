@@ -20,6 +20,8 @@
 package com.hmdm.launcher.server;
 
 
+import com.hmdm.launcher.json.DetailedInfo;
+import com.hmdm.launcher.json.DetailedInfoConfigResponse;
 import com.hmdm.launcher.json.DeviceInfo;
 import com.hmdm.launcher.json.PushResponse;
 import com.hmdm.launcher.json.RemoteLogConfigResponse;
@@ -34,6 +36,7 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 
 public interface ServerService {
@@ -54,4 +57,11 @@ public interface ServerService {
     @POST("{project}/rest/plugins/devicelog/log/list/{number}")
     @Headers("Content-Type: application/json")
     Call<ResponseBody> sendLogs(@Path("project") String project, @Path("number") String number, @Body List<RemoteLogItem> logItems);
+
+    @PUT("{project}/rest/plugins/deviceinfo/deviceinfo/public/{number}")
+    @Headers("Content-Type: application/json")
+    Call<ResponseBody> sendDetailedInfo(@Path("project") String project, @Path("number") String number, @Body List<DetailedInfo> infoItems);
+
+    @GET( "{project}/rest/plugins/deviceinfo/deviceinfo-plugin-settings/device/{number}" )
+    Call<DetailedInfoConfigResponse> getDetailedInfoConfig(@Path("project") String project, @Path("number") String number);
 }

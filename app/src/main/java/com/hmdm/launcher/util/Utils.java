@@ -32,6 +32,7 @@ import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
 import android.content.pm.PermissionInfo;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.Settings;
@@ -47,6 +48,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -341,5 +343,30 @@ public class Utils {
         } catch (Exception e) {
             return true;
         }
+    }
+
+    public static void factoryReset(Context context) {
+        try {
+            DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            dpm.wipeData(0);
+        } catch (Exception e) {
+        }
+    }
+
+    public static boolean isMobileDataEnabled(Context context) {
+        ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        // A hack: use private API
+        // https://stackoverflow.com/questions/12686899/test-if-background-data-and-packet-data-is-enabled-or-not?rq=1
+        try {
+            Class clazz = Class.forName(cm.getClass().getName());
+            Method method = clazz.getDeclaredMethod("getMobileDataEnabled");
+            method.setAccessible(true); // Make the method callable
+            // get the setting for "mobile data"
+            return (Boolean) method.invoke(cm);
+        } catch (Exception e) {
+            // Let it will be true by default
+            return true;
+        }
+
     }
 }

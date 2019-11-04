@@ -39,6 +39,7 @@ public class DeviceInfo {
     private int batteryLevel;
     private String batteryCharging;
     private String androidVersion;
+    private Boolean factoryReset;
 
     public DeviceInfo() {}
 
@@ -120,5 +121,13 @@ public class DeviceInfo {
 
     public void setAndroidVersion(String androidVersion) {
         this.androidVersion = androidVersion;
+    }
+
+    public Boolean getFactoryReset() {
+        return factoryReset;
+    }
+
+    public void setFactoryReset(Boolean factoryReset) {
+        this.factoryReset = factoryReset;
     }
 }

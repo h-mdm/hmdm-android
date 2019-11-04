@@ -65,6 +65,7 @@
     <string name="serial_number">Serial number</string>
     <string name="phone_number">Phone number</string>
     <string name="launcher_version">Launcher version</string>
+    <string name="close">Close</string>
     <string name="admin_change_device_id">Change device ID</string>
     <string name="admin_allow_settings">Open settings</string>
     <string name="settings_allowed">You are allowed to change settings within 3 minutes.</string>

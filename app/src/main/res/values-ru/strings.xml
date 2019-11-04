@@ -65,6 +65,7 @@
     <string name="serial_number">Серийный номер</string>
     <string name="phone_number">Номер телефона</string>
     <string name="launcher_version">Версия лаунчера</string>
+    <string name="close">Закрыть</string>
     <string name="admin_change_device_id">Изменить ID устройства</string>
     <string name="admin_allow_settings">Открыть настройки</string>
     <string name="settings_allowed">Изменение настроек разрешено в течение 3 минут</string>
