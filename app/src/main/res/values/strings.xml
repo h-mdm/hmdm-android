@@ -67,6 +67,7 @@
     <string name="launcher_version">Launcher version</string>
     <string name="close">Close</string>
     <string name="admin_change_device_id">Change device ID</string>
+    <string name="admin_change_server_url">Change server URL</string>
     <string name="admin_allow_settings">Open settings</string>
     <string name="settings_allowed">You are allowed to change settings within 3 minutes.</string>
     <string name="admin_refresh">Update configuration</string>
@@ -87,4 +88,10 @@
     <string name="internal_error">The app encountered an internal error. Please reboot the device and retry the action.</string>
     <string name="empty_configuration">The configuration is not set, retrying to get from the server!</string>
     <string name="permissions_reset_hint">Close the admin panel to check and request permissions.</string>
+    <string name="dialog_enter_server_error">Please enter a valid server URL.</string>
+    <string name="dialog_enter_server_ok">OK</string>
+    <string name="dialog_enter_server_title">Please enter the server URL</string>
+    <string name="dialog_enter_server_hint" translatable="false">http://hmdm.example.com:8080/hmdm/</string>
+    <string name="critical_server_failure">Quit due to server fault! Please fix the issue and restart Headwind MDM, or remove it completely and reinstall.</string>
+
 </resources>

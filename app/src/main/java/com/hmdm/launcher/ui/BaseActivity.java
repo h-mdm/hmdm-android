@@ -20,6 +20,7 @@
 package com.hmdm.launcher.ui;
 
 import android.app.Dialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
@@ -31,12 +32,19 @@ import androidx.databinding.DataBindingUtil;
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.databinding.DialogEnterDeviceIdBinding;
+import com.hmdm.launcher.databinding.DialogEnterServerBinding;
 import com.hmdm.launcher.databinding.DialogNetworkErrorBinding;
+import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.util.DeviceInfoProvider;
+
+import java.net.URL;
 
 public class BaseActivity extends AppCompatActivity {
 
     protected final static String LOG_TAG = "HeadwindMdm";
+
+    protected Dialog enterServerDialog;
+    protected DialogEnterServerBinding dialogEnterServerBinding;
 
     protected Dialog enterDeviceIdDialog;
     protected DialogEnterDeviceIdBinding enterDeviceIdDialogBinding;
@@ -100,6 +108,69 @@ public class BaseActivity extends AppCompatActivity {
 
         networkErrorDialog.setContentView( dialogNetworkErrorBinding.getRoot() );
         networkErrorDialog.show();
+    }
+
+
+    protected void createAndShowServerDialog(boolean error, String serverName, String serverPath) {
+        dismissDialog(enterServerDialog);
+        enterServerDialog = new Dialog( this );
+        dialogEnterServerBinding = DataBindingUtil.inflate(
+                LayoutInflater.from( this ),
+                R.layout.dialog_enter_server,
+                null,
+                false );
+        dialogEnterServerBinding.setError(error);
+        enterServerDialog.setCancelable(false);
+        enterServerDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
+
+        String serverUrl = serverName;
+        if (serverPath.length() > 0) {
+            serverUrl += "/";
+            serverUrl += serverPath;
+        }
+        dialogEnterServerBinding.setServer(serverUrl);
+
+        enterServerDialog.setContentView( dialogEnterServerBinding.getRoot() );
+        enterServerDialog.show();
+    }
+
+    public boolean saveServerUrlBase() {
+        String serverUrl = dialogEnterServerBinding.serverUrl.getText().toString();
+        if ( "".equals( serverUrl ) ) {
+            dialogEnterServerBinding.setError(true);
+            return false;
+        } else {
+            URL url;
+            try {
+                url = new URL(serverUrl);
+            } catch (Exception e) {
+                // Malformed URL
+                dialogEnterServerBinding.setError(true);
+                return false;
+            }
+
+            String baseUrl = url.getProtocol() + "://" + url.getHost();
+            if (url.getPort() != -1) {
+                baseUrl += ":" + url.getPort();
+            }
+            String serverProject = url.getPath();
+            if (serverProject.endsWith("/")) {
+                serverProject = serverProject.substring(0, serverProject.length() - 1);
+            }
+            if (serverProject.startsWith("/")) {
+                serverProject = serverProject.substring(1);
+            }
+            SettingsHelper settingsHelper = SettingsHelper.getInstance( this );
+            settingsHelper.setBaseUrl(baseUrl);
+            settingsHelper.setSecondaryBaseUrl(baseUrl);
+            settingsHelper.setServerProject(serverProject);
+            dialogEnterServerBinding.setError( false );
+
+            dismissDialog(enterServerDialog);
+
+            Log.i(LOG_TAG, "saveServerUrl(): calling updateConfig()");
+            return true;
+        }
     }
 
 }

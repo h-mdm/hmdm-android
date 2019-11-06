@@ -165,6 +165,8 @@ public class MainActivity
 
     private int kioskUnlockCounter = 0;
 
+    private boolean configFault = false;
+
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive( Context context, Intent intent ) {
@@ -471,6 +473,10 @@ public class MainActivity
         } else if ( !checkPermissions(true)) {
             // Permissions are requested inside checkPermissions, so do nothing here
             Log.i(LOG_TAG, "startLauncher: requesting permissions");
+        } else if (!Utils.isDeviceOwner(this) && !settingsHelper.isBaseUrlSet() &&
+                (BuildConfig.FLAVOR.equals("master") || BuildConfig.FLAVOR.equals("opensource"))) {
+            // For common public version, here's an option to change the server in non-MDM mode
+            createAndShowServerDialog(false, settingsHelper.getBaseUrl(), settingsHelper.getServerProject());
         } else if ( settingsHelper.getDeviceId().length() == 0 ) {
             createAndShowEnterDeviceIdDialog( false, null );
         } else if ( ! configInitialized ) {
@@ -1360,6 +1366,14 @@ public class MainActivity
         }
     }
 
+
+    public void saveServerUrl( View view ) {
+        if (saveServerUrlBase()) {
+            checkAndStartLauncher();
+        }
+    }
+
+
     public void networkErrorRepeatClicked( View view ) {
         dismissDialog(networkErrorDialog);
 
@@ -1370,12 +1384,20 @@ public class MainActivity
     public void networkErrorCancelClicked(View view) {
         dismissDialog(networkErrorDialog);
 
+        if (configFault) {
+            Log.i(LOG_TAG, "networkErrorCancelClicked(): no configuration available, quit");
+            Toast.makeText(this, R.string.critical_server_failure, Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
         Log.i(LOG_TAG, "networkErrorCancelClicked()");
         if ( settingsHelper.getConfig() != null ) {
             showContent( settingsHelper.getConfig() );
         } else {
             Log.i(LOG_TAG, "networkErrorCancelClicked(): no configuration available, retrying");
             Toast.makeText(this, R.string.empty_configuration, Toast.LENGTH_LONG).show();
+            configFault = true;
             updateConfig( false );
         }
     }

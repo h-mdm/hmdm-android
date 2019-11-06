@@ -78,6 +78,10 @@ public class SettingsHelper {
         }
     }
 
+    public boolean isBaseUrlSet() {
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_BASE_URL, null ) != null;
+    }
+
     public String getBaseUrl() {
         return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_BASE_URL, BuildConfig.BASE_URL );
     }

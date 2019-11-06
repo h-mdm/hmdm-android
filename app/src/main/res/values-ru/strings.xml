@@ -18,7 +18,7 @@
   -->
 
 <resources>
-    <string name="app_name">Рабочий стол</string>
+    <string name="app_name">Headwind MDM</string>
     <string name="admin_title">Администратор</string>
     <string name="vendor">(c) 2019 Хедвинд Солюшнз</string>
     <string name="demo_text">Демо-версия Android-оболочки. © 2019 ООО \"Хедвинд Солюшнз\"</string>
@@ -45,16 +45,16 @@
     <string name="main_activity_update_config">Запрашиваем конфигурацию с сервера</string>
     <string name="main_activity_applications_update">Обновляем приложения</string>
     <string name="dialog_overlay_settings_title">Пожалуйста, разрешите \"Наложение поверх других окон\". Сейчас откроется окно настроек Android, включите разрешение и нажмите \"Назад\". Если настроить наложение не удалось, нажмите \"Без разрешения\" (приложение может работать неверно).</string>
-    <string name="dialog_history_settings_title">Пожалуйста, разрешите \"Доступ к истории использования\". Сейчас откроется окно настроек Android, выберите приложение \"Рабочий стол\", включите разрешение и нажмите \"Назад\". Если настроить наложение не удалось, нажмите \"Без разрешения\".</string>
+    <string name="dialog_history_settings_title">Пожалуйста, разрешите \"Доступ к истории использования\". Сейчас откроется окно настроек Android, выберите приложение \"Headwind MDM\", включите разрешение и нажмите \"Назад\". Если настроить наложение не удалось, нажмите \"Без разрешения\".</string>
     <string name="dialog_history_settings_continue">Продолжить</string>
     <string name="dialog_history_settings_skip">Без разрешения</string>
     <string name="dialog_unknown_sources_title">Пожалуйста, разрешите установку приложений из неизвестных источников. Сейчас откроется окно настроек Android, найдите \"Неизвестные источники\", включите разрешение и нажмите \"Назад\".</string>
     <string name="dialog_unknown_sources_continue">Продолжить</string>
-    <string name="dialog_administrator_mode_message">Пожалуйста, разрешите установить приложение в качеcтве администратора устройства. Сейчас откроется окно настроек Android, выберите пункт \"Администраторы устройства\", в открывшемся списке найдите пункт \"Рабочий стол\", активируйте приложение и нажмите \"Назад\".</string>
+    <string name="dialog_administrator_mode_message">Пожалуйста, разрешите установить приложение в качеcтве администратора устройства. Сейчас откроется окно настроек Android, выберите пункт \"Администраторы устройства\", в открывшемся списке найдите пункт \"Headwind MDM\", активируйте приложение и нажмите \"Назад\".</string>
     <string name="dialog_administrator_mode_continue">Продолжить</string>
     <string name="dialog_administrator_mode_skip">Без разрешения</string>
     <string name="accessibility_service_description">Сервис мониторинга состояния рабочего стола</string>
-    <string name="dialog_accessibility_service_message">Пожалуйста, разрешите приложению использовать специальные возможности. Сейчас откроется окно настроек Android, выберите пункт \"Рабочий стол\", в открывшемся окне активируйте приложение и нажмите \"Назад\".</string>
+    <string name="dialog_accessibility_service_message">Пожалуйста, разрешите приложению использовать специальные возможности. Сейчас откроется окно настроек Android, выберите пункт \"Headwind MDM\", в открывшемся окне активируйте приложение и нажмите \"Назад\".</string>
     <string name="dialog_accessibility_service_continue">Продолжить</string>
     <string name="dialog_accessibility_service_skip">Без разрешения</string>
     <string name="access_to_app_denied">Доступ к этому приложению (%s) ограничен администратором</string>
@@ -67,6 +67,7 @@
     <string name="launcher_version">Версия лаунчера</string>
     <string name="close">Закрыть</string>
     <string name="admin_change_device_id">Изменить ID устройства</string>
+    <string name="admin_change_server_url">Изменить URL сервера</string>
     <string name="admin_allow_settings">Открыть настройки</string>
     <string name="settings_allowed">Изменение настроек разрешено в течение 3 минут</string>
     <string name="admin_refresh">Обновить конфигурацию</string>
@@ -87,4 +88,9 @@
     <string name="internal_error">В оболочке возникла ошибка. Пожалуйста, перезагрузите устройство и повторите действие ещё раз.</string>
     <string name="empty_configuration">Конфигурация еще не получена, пытаемся скачать еще раз!</string>
     <string name="permissions_reset_hint">Чтобы проверить и заново запросить разрешения - закройте экран администратора.</string>
+    <string name="dialog_enter_server_error">Пожалуйста, введите валидный URL сервера.</string>
+    <string name="dialog_enter_server_ok">OK</string>
+    <string name="dialog_enter_server_title">Введите URL сервера</string>
+    <string name="critical_server_failure">Завершение работы из-за ошибки сервера! Исправьте ошибку и перезапустите Headwind MDM, или удалите и установите лаунчер заново.</string>
+
 </resources>

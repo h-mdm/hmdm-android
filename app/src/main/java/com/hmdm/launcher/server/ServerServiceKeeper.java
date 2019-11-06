@@ -36,6 +36,12 @@ public class ServerServiceKeeper {
     private static ServerService serverServiceInstance;
     private static ServerService secondaryServerServiceInstance;
 
+    // This is called after changing the server URL
+    public static void resetServices() {
+        serverServiceInstance = null;
+        secondaryServerServiceInstance = null;
+    }
+
     public static ServerService getServerServiceInstance(Context context) {
         if ( serverServiceInstance == null ) {
             serverServiceInstance = createServerService( SettingsHelper.getInstance(context).getBaseUrl() );

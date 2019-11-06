@@ -40,6 +40,7 @@ import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.databinding.ActivityAdminBinding;
 import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.server.ServerServiceKeeper;
 import com.hmdm.launcher.util.AppInfo;
 import com.hmdm.launcher.util.LegacyUtils;
 
@@ -111,11 +112,23 @@ public class AdminActivity extends BaseActivity {
         createAndShowEnterDeviceIdDialog(false, settingsHelper.getDeviceId());
     }
 
+    public void changeServerUrl(View view) {
+        dismissDialog(enterServerDialog);
+        createAndShowServerDialog(false, settingsHelper.getBaseUrl(), settingsHelper.getServerProject());
+    }
+
     public void allowSettings(View view) {
         LocalBroadcastManager.getInstance( this ).sendBroadcast( new Intent( Const.ACTION_ENABLE_SETTINGS ) );
         Toast.makeText(this, R.string.settings_allowed, Toast.LENGTH_LONG).show();
         startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS));
         //finish();
+    }
+
+    public void saveServerUrl(View view ) {
+        if (saveServerUrlBase()) {
+            ServerServiceKeeper.resetServices();
+            updateConfig(view);
+        }
     }
 
     public void saveDeviceId(View view ) {
