@@ -44,6 +44,15 @@ public class RemoteLogger {
         LogConfigTable.replaceAll(DatabaseHelper.instance(context).getWritableDatabase(), rules);
     }
 
+    public static void log(Context context, int level, String message) {
+        RemoteLogItem item = new RemoteLogItem();
+        item.setTimestamp(System.currentTimeMillis());
+        item.setLogLevel(level);
+        item.setPackageId(context.getPackageName());
+        item.setMessage(message);
+        postLog(context, item);
+    }
+
     public static void postLog(Context context, RemoteLogItem item) {
         DatabaseHelper dbHelper = DatabaseHelper.instance(context);
         SQLiteDatabase db = dbHelper.getReadableDatabase();

@@ -172,10 +172,8 @@ public class MainActivity
         public void onReceive( Context context, Intent intent ) {
             switch ( intent.getAction() ) {
                 case Const.ACTION_UPDATE_CONFIGURATION:
-                    Log.i(LOG_TAG, "Updating configuration from broadcast receiver, force=true");
-                    updateConfig( true );
-                    interruptResumeFlow = true;
-                    binding.setShowContent( false );
+                    Log.i(LOG_TAG, "Updating configuration from broadcast receiver, force=false");
+                    updateConfig(false);
                     break;
                 case Const.ACTION_HIDE_SCREEN:
                     if ( applicationNotAllowed != null &&
@@ -481,6 +479,10 @@ public class MainActivity
             createAndShowEnterDeviceIdDialog( false, null );
         } else if ( ! configInitialized ) {
             Log.i(LOG_TAG, "Updating configuration in startLauncher()");
+            if (settingsHelper.getConfig() != null) {
+                // If it's not the first start, let's update in the background, show the content first!
+                showContent(settingsHelper.getConfig());
+            }
             updateConfig( false );
         } else if ( ! configInitializing ) {
             Log.i(LOG_TAG, "Showing content");
@@ -629,6 +631,11 @@ public class MainActivity
 
         Log.i(LOG_TAG, "updateConfig(): set configInitializing=true");
         configInitializing = true;
+
+        Intent detailedInfoRefreshIntent = new Intent(this, DetailedInfoService.class);
+        detailedInfoRefreshIntent.setAction(Const.ACTION_UPDATE_CONFIGURATION);
+        startService(detailedInfoRefreshIntent);
+
         binding.setMessage( getString( R.string.main_activity_update_config ) );
         GetServerConfigTask task = new GetServerConfigTask( this ) {
             @Override

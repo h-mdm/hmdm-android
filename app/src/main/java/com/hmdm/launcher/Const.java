@@ -120,4 +120,10 @@ public class Const {
     public static final String MOBILE_SIMSTATE_DISABLED = "disabled";
     public static final String MOBILE_SIMSTATE_ERROR = "error";
     public static final String MOBILE_SIMSTATE_RESTRICTED = "restricted";
+
+    public static final int LOG_ERROR = 1;
+    public static final int LOG_WARN = 2;
+    public static final int LOG_INFO = 3;
+    public static final int LOG_DEBUG = 4;
+    public static final int LOG_VERBOSE = 5;
 }
