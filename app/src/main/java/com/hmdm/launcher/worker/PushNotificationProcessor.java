@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package com.hmdm.launcher.service;
+package com.hmdm.launcher.worker;
 
 import android.content.Context;
 import android.content.Intent;
@@ -26,12 +26,14 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.json.PushMessage;
+import com.hmdm.launcher.util.RemoteLogger;
 
 import org.json.JSONObject;
 
 public class PushNotificationProcessor {
     public static void process(PushMessage message, Context context) {
         // Update local configuration
+        RemoteLogger.log(context, Const.LOG_DEBUG, "Got a configuration update request");
         if (message.getMessageType().equals(PushMessage.TYPE_CONFIG_UPDATED)) {
             LocalBroadcastManager.getInstance(context).
                     sendBroadcast(new Intent(Const.ACTION_UPDATE_CONFIGURATION));

@@ -93,5 +93,7 @@
     <string name="dialog_enter_server_title">Please enter the server URL</string>
     <string name="dialog_enter_server_hint" translatable="false">http://hmdm.example.com:8080/hmdm/</string>
     <string name="critical_server_failure">Quit due to server fault! Please fix the issue and restart Headwind MDM, or remove it completely and reinstall.</string>
+    <string name="dialog_permission_title">The app requires the permissions to run. Please grant the requested permissions.</string>
+    <string name="main_activity_exit">Exit</string>
 
 </resources>

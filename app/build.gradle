@@ -36,8 +36,8 @@ android {
         applicationId "com.hmdm.launcher"
         minSdkVersion 14
         targetSdkVersion 28
-        versionCode 57
-        versionName "2.27"
+        versionCode 62
+        versionName "2.32"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true
@@ -99,5 +99,5 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
 
     // Worker
-    implementation 'androidx.work:work-runtime:2.1.0-rc01'
+    implementation 'androidx.work:work-runtime:2.2.0'
 }

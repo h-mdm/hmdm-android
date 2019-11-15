@@ -20,7 +20,6 @@
 package com.hmdm.launcher.util;
 
 import android.content.Context;
-import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.hmdm.launcher.db.DatabaseHelper;
@@ -28,7 +27,7 @@ import com.hmdm.launcher.db.LogConfigTable;
 import com.hmdm.launcher.db.LogTable;
 import com.hmdm.launcher.json.RemoteLogConfig;
 import com.hmdm.launcher.json.RemoteLogItem;
-import com.hmdm.launcher.service.RemoteLogService;
+import com.hmdm.launcher.worker.RemoteLogWorker;
 
 import java.util.List;
 
@@ -72,6 +71,6 @@ public class RemoteLogger {
     }
 
     public static void sendLogsToServer(Context context) {
-        context.startService(new Intent(context, RemoteLogService.class));
+        RemoteLogWorker.scheduleUpload(context);
     }
 }

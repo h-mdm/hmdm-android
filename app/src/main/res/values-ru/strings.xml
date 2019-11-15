@@ -92,5 +92,7 @@
     <string name="dialog_enter_server_ok">OK</string>
     <string name="dialog_enter_server_title">Введите URL сервера</string>
     <string name="critical_server_failure">Завершение работы из-за ошибки сервера! Исправьте ошибку и перезапустите Headwind MDM, или удалите и установите лаунчер заново.</string>
+    <string name="dialog_permission_title">Приложение требует разрешений для работы. Пожалуйста, предоставьте требуемые разрешения.</string>
+    <string name="main_activity_exit">Выход</string>
 
 </resources>

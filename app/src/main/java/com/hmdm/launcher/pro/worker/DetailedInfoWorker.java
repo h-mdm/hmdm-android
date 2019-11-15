@@ -17,20 +17,20 @@
  * limitations under the License.
  */
 
-package com.hmdm.launcher.pro.service;
+package com.hmdm.launcher.pro.worker;
 
-import android.app.Service;
-import android.content.Intent;
-import android.os.IBinder;
+import android.content.Context;
 
 /**
- * In open-source version, the service checking foreground apps is just a stub;
- * this option is available in Pro-version only
+ * These functions are available in Pro-version only
+ * In a free version, the class contains stubs
  */
-public class DetailedInfoService extends Service {
-    @Override
-    public IBinder onBind(Intent intent) {
-        // Stub
-        return null;
+public class DetailedInfoWorker {
+    public static void schedule(Context context) {
+        // stub
+    }
+
+    public static void requestConfigUpdate(Context context) {
+        // stub
     }
 }

@@ -78,6 +78,7 @@ import com.hmdm.launcher.databinding.DialogEnterPasswordBinding;
 import com.hmdm.launcher.databinding.DialogFileDownloadingFailedBinding;
 import com.hmdm.launcher.databinding.DialogHistorySettingsBinding;
 import com.hmdm.launcher.databinding.DialogOverlaySettingsBinding;
+import com.hmdm.launcher.databinding.DialogPermissionsBinding;
 import com.hmdm.launcher.databinding.DialogSystemSettingsBinding;
 import com.hmdm.launcher.databinding.DialogUnknownSourcesBinding;
 import com.hmdm.launcher.helper.CryptoHelper;
@@ -88,11 +89,10 @@ import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.pro.service.CheckForegroundAppAccessibilityService;
 import com.hmdm.launcher.pro.service.CheckForegroundApplicationService;
-import com.hmdm.launcher.pro.service.DetailedInfoService;
+import com.hmdm.launcher.pro.worker.DetailedInfoWorker;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
 import com.hmdm.launcher.service.PluginApiService;
-import com.hmdm.launcher.service.PushNotificationPollingService;
 import com.hmdm.launcher.task.GetRemoteLogConfigTask;
 import com.hmdm.launcher.task.GetServerConfigTask;
 import com.hmdm.launcher.task.SendDeviceInfoTask;
@@ -100,6 +100,7 @@ import com.hmdm.launcher.util.AppInfo;
 import com.hmdm.launcher.util.DeviceInfoProvider;
 import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.Utils;
+import com.hmdm.launcher.worker.PushNotificationPollingWorker;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -148,6 +149,9 @@ public class MainActivity
     private Dialog systemSettingsDialog;
     private DialogSystemSettingsBinding dialogSystemSettingsBinding;
 
+    private Dialog permissionsDialog;
+    private DialogPermissionsBinding dialogPermissionsBinding;
+
     private Handler handler = new Handler();
     private View applicationNotAllowed;
 
@@ -172,6 +176,7 @@ public class MainActivity
         public void onReceive( Context context, Intent intent ) {
             switch ( intent.getAction() ) {
                 case Const.ACTION_UPDATE_CONFIGURATION:
+                    RemoteLogger.log(context, Const.LOG_DEBUG, "Update configuration");
                     Log.i(LOG_TAG, "Updating configuration from broadcast receiver, force=false");
                     updateConfig(false);
                     break;
@@ -232,17 +237,14 @@ public class MainActivity
         // Crashlytics is not included in the open-source version
         ProUtils.initCrashlytics(this);
 
+        DetailedInfoWorker.schedule(MainActivity.this);
+        if (BuildConfig.PUSH_NOTIFICATION_POLLING) {
+            PushNotificationPollingWorker.schedule(MainActivity.this);
+        }
+
         binding = DataBindingUtil.setContentView( this, R.layout.activity_main );
         binding.setMessage( getString( R.string.main_start_preparations ) );
         binding.setLoading( true );
-
-        // Shouldn't we move this to onResume???
-        // https://stackoverflow.com/questions/51863600/java-lang-illegalstateexception-not-allowed-to-start-service-intent-from-activ
-        startService(new Intent( this, PluginApiService.class ));
-        if (BuildConfig.PUSH_NOTIFICATION_POLLING) {
-            startService(new Intent(this, PushNotificationPollingService.class));
-        }
-        startService(new Intent(this, DetailedInfoService.class));
 
         settingsHelper = SettingsHelper.getInstance( this );
         preferences = getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
@@ -287,12 +289,28 @@ public class MainActivity
     protected void onResume() {
         super.onResume();
 
-        // Foreground apps checks are not available in a free version: services are the stubs
-        startService( new Intent( this, CheckForegroundApplicationService.class ) );
-        startService( new Intent( this, CheckForegroundAppAccessibilityService.class ) );
+        // Workaround against crash "App is in background" on Android 9: this is an Android OS bug
+        // https://stackoverflow.com/questions/52013545/android-9-0-not-allowed-to-start-service-app-is-in-background-after-onresume
+        try {
+            startServices();
+        } catch (Exception e) {
+            // Android OS bug!!!
+            e.printStackTrace();
 
-        // Send pending logs to server
-        RemoteLogger.sendLogsToServer(this);
+            // Repeat an attempt to start services after one second
+            new Handler().postDelayed(new Runnable() {
+                public void run() {
+                    try {
+                        startServices();
+                    } catch (Exception e) {
+                        // Still failed, now give up!
+                        // startService may fail after resuming, but the service may be already running (there's a WorkManager)
+                        // So if we get an exception here, just ignore it and hope the app will work further
+                        e.printStackTrace();
+                    }
+                }
+            }, 1000);
+        }
 
         if (interruptResumeFlow) {
             interruptResumeFlow = false;
@@ -300,6 +318,40 @@ public class MainActivity
         }
 
         checkAndStartLauncher();
+    }
+
+    private void startServices() {
+        // Foreground apps checks are not available in a free version: services are the stubs
+        startService(new Intent(MainActivity.this, CheckForegroundApplicationService.class));
+        startService(new Intent(MainActivity.this, CheckForegroundAppAccessibilityService.class));
+
+        // Moved to onResume!
+        // https://stackoverflow.com/questions/51863600/java-lang-illegalstateexception-not-allowed-to-start-service-intent-from-activ
+        startService(new Intent(MainActivity.this, PluginApiService.class));
+
+        // Send pending logs to server
+        RemoteLogger.sendLogsToServer(MainActivity.this);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String[] permissions, int[] grantResults) {
+        if (requestCode == PERMISSIONS_REQUEST) {
+            boolean noPermissions = false;
+            for (int n = 0; n < permissions.length; n++) {
+                if (permissions[n].equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    if (grantResults[n] != PackageManager.PERMISSION_GRANTED) {
+                        // The user didn't allow to determine location, this is not critical, just ignore it
+                        preferences.edit().putInt(Const.PREFERENCES_DISABLE_LOCATION, Const.PREFERENCES_ADMINISTRATOR_ON).commit();
+                    }
+                } else {
+                    if (grantResults[n] != PackageManager.PERMISSION_GRANTED) {
+                        // This is critical, let's user know
+                        createAndShowPermissionsDialog();
+                    }
+                }
+            }
+        }
     }
 
     private void checkAndStartLauncher() {
@@ -381,6 +433,31 @@ public class MainActivity
 
         createApplicationNotAllowedScreen();
         startLauncher();
+    }
+
+    private void createAndShowPermissionsDialog() {
+        dismissDialog(permissionsDialog);
+        permissionsDialog = new Dialog( this );
+        dialogPermissionsBinding = DataBindingUtil.inflate(
+                LayoutInflater.from( this ),
+                R.layout.dialog_permissions,
+                null,
+                false );
+        permissionsDialog.setCancelable( false );
+        permissionsDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
+
+        permissionsDialog.setContentView( dialogPermissionsBinding.getRoot() );
+        permissionsDialog.show();
+    }
+
+    public void permissionsRetryClicked(View view) {
+        dismissDialog(permissionsDialog);
+        startLauncher();
+    }
+
+    public void permissionsExitClicked(View view) {
+        dismissDialog(permissionsDialog);
+        finish();
     }
 
     private void createAndShowAccessibilityServiceDialog() {
@@ -631,10 +708,7 @@ public class MainActivity
 
         Log.i(LOG_TAG, "updateConfig(): set configInitializing=true");
         configInitializing = true;
-
-        Intent detailedInfoRefreshIntent = new Intent(this, DetailedInfoService.class);
-        detailedInfoRefreshIntent.setAction(Const.ACTION_UPDATE_CONFIGURATION);
-        startService(detailedInfoRefreshIntent);
+        DetailedInfoWorker.requestConfigUpdate(this);
 
         binding.setMessage( getString( R.string.main_activity_update_config ) );
         GetServerConfigTask task = new GetServerConfigTask( this ) {
@@ -788,6 +862,7 @@ public class MainActivity
 
                     if (application.isRemove()) {
                         // Remove the app
+                        RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Removing app: " + application.getPkg());
                         Log.i(LOG_TAG, "loadAndInstallApplications(): remove app " + application.getPkg());
                         updateMessageForApplicationRemoving( application.getName() );
                         uninstallApplication(application.getPkg());
@@ -797,6 +872,7 @@ public class MainActivity
 
                         File file = null;
                         try {
+                            RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Downloading app: " + application.getPkg());
                             Log.i(LOG_TAG, "loadAndInstallApplications(): downloading app " + application.getPkg());
                             file = Utils.downloadApplication(application.getUrl(),
                                     new Utils.DownloadApplicationProgress() {
@@ -815,6 +891,7 @@ public class MainActivity
                                             }
                                     });
                         } catch ( Exception e ) {
+                            RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Failed to download app " + application.getPkg() + ": " + e.getMessage());
                             Log.i(LOG_TAG, "loadAndInstallApplications(): failed to download app " + application.getPkg() + ": " + e.getMessage());
                             e.printStackTrace();
                         }
@@ -860,6 +937,7 @@ public class MainActivity
     // This function is called from a background thread
     private void installApplication( File file, final String packageName ) {
             if (Utils.isDeviceOwner(this)) {
+                RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Silently installing app " + packageName);
                 Log.i(LOG_TAG, "installApplication(): silently installing app " + packageName);
                 if (packageName.equals(getPackageName()) &&
                         getPackageManager().getLaunchIntentForPackage(Const.LAUNCHER_RESTARTER_PACKAGE_ID) != null) {
@@ -888,6 +966,7 @@ public class MainActivity
                     }
                 });
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Asking user to install app " + packageName);
             Intent intent = new Intent(Intent.ACTION_VIEW);
             Uri uri = FileProvider.getUriForFile( this,
                     getApplicationContext().getPackageName() + ".provider",
@@ -896,6 +975,7 @@ public class MainActivity
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(intent);
         } else {
+                RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Asking user to install app " + packageName);
             Uri apkUri = Uri.fromFile( file );
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
@@ -1123,7 +1203,7 @@ public class MainActivity
                 new PeriodicWorkRequest.Builder(SendDeviceInfoWorker.class, SEND_DEVICE_INFO_PERIOD_MINS, TimeUnit.MINUTES)
                         .addTag(Const.WORK_TAG_COMMON)
                         .build();
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(WORK_TAG_DEVICEINFO, ExistingPeriodicWorkPolicy.REPLACE, request);
+        WorkManager.getInstance(getApplicationContext()).enqueueUniquePeriodicWork(WORK_TAG_DEVICEINFO, ExistingPeriodicWorkPolicy.REPLACE, request);
     }
 
     private void scheduleInstalledAppsRun() {
@@ -1215,6 +1295,7 @@ public class MainActivity
         dismissDialog(deviceInfoDialog);
         dismissDialog(accessibilityServiceDialog);
         dismissDialog(systemSettingsDialog);
+        dismissDialog(permissionsDialog);
 
         LocalBroadcastManager.getInstance( this ).sendBroadcast( new Intent( Const.ACTION_SHOW_LAUNCHER ) );
     }
@@ -1410,24 +1491,49 @@ public class MainActivity
     }
 
     private boolean checkPermissions( boolean startSettings ) {
-        if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                ( checkSelfPermission( Manifest.permission.READ_EXTERNAL_STORAGE ) != PackageManager.PERMISSION_GRANTED ||
-                  checkSelfPermission( Manifest.permission.WRITE_EXTERNAL_STORAGE ) != PackageManager.PERMISSION_GRANTED ||
-                  checkSelfPermission( Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED ||
-                  checkSelfPermission( Manifest.permission.READ_PHONE_STATE ) != PackageManager.PERMISSION_GRANTED ) ) {
-
-            if ( startSettings ) {
-                requestPermissions( new String[] {
-                        Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.READ_PHONE_STATE
-                }, PERMISSIONS_REQUEST );
-            }
-
-            return false;
-        } else {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true;
+        }
+
+        // If the user didn't grant permissions, let him know and do not request until he confirms he want to retry
+        if (permissionsDialog != null && permissionsDialog.isShowing()) {
+            return false;
+        }
+
+        if (preferences.getInt(Const.PREFERENCES_DISABLE_LOCATION, Const.PREFERENCES_DISABLE_LOCATION_OFF) == Const.PREFERENCES_DISABLE_LOCATION_ON) {
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                    checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                    checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+
+                if (startSettings) {
+                    requestPermissions(new String[]{
+                            Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.READ_PHONE_STATE
+                    }, PERMISSIONS_REQUEST);
+                }
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                    checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                    checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                    checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+
+                if (startSettings) {
+                    requestPermissions(new String[]{
+                            Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.READ_PHONE_STATE
+                    }, PERMISSIONS_REQUEST);
+                }
+                return false;
+            } else {
+                return true;
+            }
         }
     }
 

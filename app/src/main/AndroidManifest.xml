@@ -100,12 +100,6 @@
             </intent-filter>
         </service>
 
-        <service android:name=".service.PushNotificationPollingService" />
-
-        <service android:name=".service.RemoteLogService" />
-
-        <service android:name=".pro.service.DetailedInfoService" />
-
         <service android:name=".pro.service.CheckForegroundAppAccessibilityService"
                  android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
                  android:label="@string/app_name">

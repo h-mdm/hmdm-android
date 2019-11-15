@@ -76,7 +76,12 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
         holder.binding.textView.setText(appInfo.name);
 
         if ( settingsHelper.getConfig().getTextColor() != null ) {
-            holder.binding.textView.setTextColor( Color.parseColor( settingsHelper.getConfig().getTextColor() ) );
+            try {
+                holder.binding.textView.setTextColor(Color.parseColor(settingsHelper.getConfig().getTextColor()));
+            } catch (Exception e) {
+                // Invalid color
+                e.printStackTrace();
+            }
         }
 
         try {

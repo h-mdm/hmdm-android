@@ -68,6 +68,10 @@ public class Const {
     public static final int PREFERENCES_UNKNOWN_SOURCES_ON = 1;
     public static final int PREFERENCES_UNKNOWN_SOURCES_OFF = 0;
 
+    public static final String PREFERENCES_DISABLE_LOCATION = "PREFERENCES_DISABLE_LOCATION";
+    public static final int PREFERENCES_DISABLE_LOCATION_ON = 1;
+    public static final int PREFERENCES_DISABLE_LOCATION_OFF = 0;
+
     public static final String LOG_TAG = "HeadwindMDM";
 
     public static final int SETTINGS_UNBLOCK_TIME = 180000;

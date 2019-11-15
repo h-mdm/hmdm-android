@@ -64,6 +64,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (oldVersion < 2 && newVersion >= 2) {
                 db.execSQL(InfoHistoryTable.getCreateTableSql());
             }
+            db.setTransactionSuccessful();
         } catch ( Exception e ) {
             e.printStackTrace();
         }

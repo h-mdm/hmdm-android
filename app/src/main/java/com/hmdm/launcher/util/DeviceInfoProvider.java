@@ -44,8 +44,8 @@ public class DeviceInfoProvider {
 
     public static DeviceInfo getDeviceInfo(Context context, boolean queryPermissions, boolean queryApps) {
         DeviceInfo deviceInfo = new DeviceInfo();
-        List< Integer > permissions = deviceInfo.getPermissions();
-        List< Application > applications = deviceInfo.getApplications();
+        List<Integer> permissions = deviceInfo.getPermissions();
+        List<Application> applications = deviceInfo.getApplications();
 
         deviceInfo.setModel(Build.MODEL);
 
@@ -61,6 +61,9 @@ public class DeviceInfoProvider {
             if (config.getConfig() != null) {
                 List<Application> requiredApps = SettingsHelper.getInstance(context).getConfig().getApplications();
                 for (Application application : requiredApps) {
+                    if (application.isRemove()) {
+                        continue;
+                    }
                     try {
                         PackageInfo packageInfo = packageManager.getPackageInfo(application.getPkg(), 0);
 
@@ -69,7 +72,17 @@ public class DeviceInfoProvider {
                         installedApp.setPkg(packageInfo.packageName);
                         installedApp.setVersion(packageInfo.versionName);
 
-                        applications.add(installedApp);
+                        // Verify there's no duplicates (due to different versions in config), otherwise it causes an error on the server
+                        boolean appPresents = false;
+                        for (Application a : applications) {
+                            if (a.getPkg().equalsIgnoreCase(installedApp.getPkg())) {
+                                appPresents = true;
+                                break;
+                            }
+                        }
+                        if (!appPresents) {
+                            applications.add(installedApp);
+                        }
                     } catch (PackageManager.NameNotFoundException e) {
                         // Application not installed
                     }
