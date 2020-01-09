@@ -50,9 +50,11 @@ import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -98,12 +100,14 @@ import com.hmdm.launcher.task.GetServerConfigTask;
 import com.hmdm.launcher.task.SendDeviceInfoTask;
 import com.hmdm.launcher.util.AppInfo;
 import com.hmdm.launcher.util.DeviceInfoProvider;
+import com.hmdm.launcher.util.PushNotificationMqttWrapper;
 import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.Utils;
-import com.hmdm.launcher.worker.PushNotificationPollingWorker;
+import com.hmdm.launcher.worker.PushNotificationWorker;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -238,8 +242,8 @@ public class MainActivity
         ProUtils.initCrashlytics(this);
 
         DetailedInfoWorker.schedule(MainActivity.this);
-        if (BuildConfig.PUSH_NOTIFICATION_POLLING) {
-            PushNotificationPollingWorker.schedule(MainActivity.this);
+        if (BuildConfig.ENABLE_PUSH) {
+            PushNotificationWorker.schedule(MainActivity.this);
         }
 
         binding = DataBindingUtil.setContentView( this, R.layout.activity_main );
@@ -424,9 +428,8 @@ public class MainActivity
             }
         }
 
-        if ( usageStatisticsMode == Const.PREFERENCES_USAGE_STATISTICS_OFF ||
-                (settingsHelper != null && settingsHelper.getConfig() != null && settingsHelper.getConfig().getLockStatusBar() != null && settingsHelper.getConfig().getLockStatusBar())) {
-            // If usage statistics is not available (some early Samsung devices), block the status bar and right bar (App list) expansion
+        if (settingsHelper != null && settingsHelper.getConfig() != null && settingsHelper.getConfig().getLockStatusBar() != null && settingsHelper.getConfig().getLockStatusBar()) {
+            // If the admin requested status bar lock (may be required for some early Samsung devices), block the status bar and right bar (App list) expansion
             statusBarView = ProUtils.preventStatusBarExpansion(this);
             rightToolbarView = ProUtils.preventApplicationsList(this);
         }
@@ -642,7 +645,8 @@ public class MainActivity
         } catch ( Exception e ) { e.printStackTrace(); }
     }
 
-    private ImageView createManageButton(int imageResource, int imageResourceBlack, int offset) {
+    // This is an overlay button which is not necessary! We need normal buttons in the launcher window.
+    /*private ImageView createManageButton(int imageResource, int imageResourceBlack, int offset) {
         WindowManager manager = ((WindowManager)getApplicationContext().getSystemService(Context.WINDOW_SERVICE));
 
         WindowManager.LayoutParams localLayoutParams = new WindowManager.LayoutParams();
@@ -670,6 +674,39 @@ public class MainActivity
 
         try {
             manager.addView( manageButton, localLayoutParams );
+        } catch ( Exception e ) { e.printStackTrace(); }
+        return manageButton;
+    } */
+
+    private ImageView createManageButton(int imageResource, int imageResourceBlack, int offset) {
+        WindowManager manager = ((WindowManager)getApplicationContext().getSystemService(Context.WINDOW_SERVICE));
+
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
+        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+
+        boolean dark = true;
+        try {
+            ServerConfig config = settingsHelper.getConfig();
+            if (config.getBackgroundColor() != null) {
+                int color = Color.parseColor(config.getBackgroundColor());
+                dark = !Utils.isLightColor(color);
+            }
+        } catch (Exception e) {
+        }
+
+        RelativeLayout view = new RelativeLayout(this);
+        // Offset is multiplied by 2 because the view is centered. Yeah I know its an Induism)
+        view.setPadding(0, offset * 2, 0, 0);
+        view.setLayoutParams(layoutParams);
+
+        ImageView manageButton = new ImageView( this );
+        manageButton.setImageResource(dark ? imageResource : imageResourceBlack);
+        view.addView(manageButton);
+
+        try {
+            RelativeLayout root = findViewById(R.id.activity_main);
+            root.addView(view);
         } catch ( Exception e ) { e.printStackTrace(); }
         return manageButton;
     }
@@ -732,7 +769,7 @@ public class MainActivity
                         break;
                     case Const.TASK_NETWORK_ERROR:
                         if ( settingsHelper.getConfig() != null && !force ) {
-                            showContent( settingsHelper.getConfig() );
+                            updateRemoteLogConfig();
                         } else {
                             createAndShowNetworkErrorDialog();
                         }
@@ -751,10 +788,36 @@ public class MainActivity
             protected void onPostExecute( Integer result ) {
                 super.onPostExecute( result );
                 Log.i(LOG_TAG, "updateRemoteLogConfig(): result=" + result);
-                checkFactoryReset();
+                setupPushService();
             }
         };
         task.execute();
+    }
+
+    private void setupPushService() {
+        String pushOptions = null;
+        if (settingsHelper != null && settingsHelper.getConfig() != null) {
+            pushOptions = settingsHelper.getConfig().getPushOptions();
+        }
+        if (BuildConfig.ENABLE_PUSH && pushOptions != null && (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER)
+                || pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM))) {
+            try {
+                URL url = new URL(settingsHelper.getBaseUrl());
+                Runnable nextRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        checkFactoryReset();
+                    }
+                };
+                PushNotificationMqttWrapper.getInstance().connect(this, url.getHost(), BuildConfig.MQTT_PORT,
+                        pushOptions, settingsHelper.getDeviceId(), nextRunnable, nextRunnable);
+            } catch (Exception e) {
+                e.printStackTrace();
+                checkFactoryReset();
+            }
+        } else {
+            checkFactoryReset();
+        }
     }
 
     private void checkFactoryReset() {
@@ -799,13 +862,14 @@ public class MainActivity
         PackageManager packageManager = getPackageManager();
 
         // First handle apps to be removed, then apps to be installed
+        // We process only applications of type "app" (default) and skip web links and others
         for (Application a : applications) {
-            if (a.isRemove()) {
+            if ((a.getType() == null || a.getType().equals(Application.TYPE_APP)) && a.isRemove()) {
                 applicationsForInstall.add(a);
             }
         }
         for (Application a : applications) {
-            if (!a.isRemove()) {
+            if ((a.getType() == null || a.getType().equals(Application.TYPE_APP)) && !a.isRemove()) {
                 applicationsForInstall.add(a);
             }
         }
@@ -853,8 +917,104 @@ public class MainActivity
         return v1d.equals(v2d);
     }
 
+    private class ApplicationStatus {
+        public Application application;
+        public boolean installed;
+    }
+
+    // Here we avoid ConcurrentModificationException by executing all operations with applicationForInstall list in a main thread
     private void loadAndInstallApplications() {
-        AsyncTask.execute( new Runnable() {
+        if ( applicationsForInstall.size() > 0 ) {
+            Application application = applicationsForInstall.remove(0);
+
+            new AsyncTask<Application, Void, ApplicationStatus>() {
+
+                @Override
+                protected ApplicationStatus doInBackground(Application... applications) {
+                    final Application application = applications[0];
+                    ApplicationStatus applicationStatus = null;
+
+                    if (application.isRemove()) {
+                        // Remove the app
+                        RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Removing app: " + application.getPkg());
+                        Log.i(LOG_TAG, "loadAndInstallApplications(): remove app " + application.getPkg());
+                        updateMessageForApplicationRemoving( application.getName() );
+                        uninstallApplication(application.getPkg());
+
+                    } else if ( application.getUrl() != null ) {
+                        updateMessageForApplicationDownloading( application.getName() );
+
+                        File file = null;
+                        try {
+                            RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Downloading app: " + application.getPkg());
+                            Log.i(LOG_TAG, "loadAndInstallApplications(): downloading app " + application.getPkg());
+                            file = Utils.downloadApplication(application.getUrl(),
+                                    new Utils.DownloadApplicationProgress() {
+                                        @Override
+                                        public void onDownloadProgress(final int progress, final long total, final long current) {
+                                            handler.post( new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    binding.progress.setMax( 100 );
+                                                    binding.progress.setProgress( progress );
+
+                                                    binding.setFileLength( total );
+                                                    binding.setDownloadedLength( current );
+                                                }
+                                            } );
+                                        }
+                                    });
+                        } catch ( Exception e ) {
+                            RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Failed to download app " + application.getPkg() + ": " + e.getMessage());
+                            Log.i(LOG_TAG, "loadAndInstallApplications(): failed to download app " + application.getPkg() + ": " + e.getMessage());
+                            e.printStackTrace();
+                        }
+
+                        applicationStatus = new ApplicationStatus();
+                        applicationStatus.application = application;
+                        if ( file != null ) {
+                            updateMessageForApplicationInstalling( application.getName() );
+                            installApplication( file, application.getPkg() );
+                            applicationStatus.installed = true;
+                        } else {
+                            applicationStatus.installed = false;
+                        }
+                    } else {
+                        handler.post( new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.i(LOG_TAG, "loadAndInstallApplications(): proceed to next app");
+                                loadAndInstallApplications();
+                            }
+                        } );
+                    }
+
+                    return applicationStatus;
+                }
+
+                @Override
+                protected void onPostExecute(ApplicationStatus applicationStatus) {
+                    if (applicationStatus != null) {
+                        if (applicationStatus.installed) {
+                            if (applicationStatus.application.isRunAfterInstall()) {
+                                applicationsForRun.add(applicationStatus.application);
+                            }
+                        } else {
+                            applicationsForInstall.add( 0, applicationStatus.application );
+                            createAndShowFileNotDownloadedDialog( applicationStatus.application );
+                            binding.setDownloading( false );
+                        }
+                    }
+                }
+
+            }.execute(application);
+        } else {
+            Log.i(LOG_TAG, "Showing content from loadAndInstallApplications()");
+            showContent( settingsHelper.getConfig() );
+        }
+
+        /*
+                AsyncTask.execute( new Runnable() {
             @Override
             public void run() {
                 if ( applicationsForInstall.size() > 0 ) {
@@ -932,18 +1092,20 @@ public class MainActivity
                 }
             }
         } );
+
+         */
     }
 
     // This function is called from a background thread
     private void installApplication( File file, final String packageName ) {
-            if (Utils.isDeviceOwner(this)) {
+        if (packageName.equals(getPackageName()) &&
+                getPackageManager().getLaunchIntentForPackage(Const.LAUNCHER_RESTARTER_PACKAGE_ID) != null) {
+            // Restart self in EMUI: there's no auto restart after update in EMUI, we must use a helper app
+            startLauncherRestarter();
+        }
+        if (Utils.isDeviceOwner(this)) {
                 RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Silently installing app " + packageName);
                 Log.i(LOG_TAG, "installApplication(): silently installing app " + packageName);
-                if (packageName.equals(getPackageName()) &&
-                        getPackageManager().getLaunchIntentForPackage(Const.LAUNCHER_RESTARTER_PACKAGE_ID) != null) {
-                    // Restart self in EMUI: there's no auto restart after update in EMUI, we must use a helper app
-                    startLauncherRestarter();
-                }
                 Utils.silentInstallApplication(this, file, packageName, new Utils.SilentInstallErrorHandler() {
                     @Override
                     public void onInstallError() {
@@ -1120,7 +1282,13 @@ public class MainActivity
         }
 
         if ( config.getBackgroundColor() != null ) {
-            binding.activityMainContentWrapper.setBackgroundColor( Color.parseColor( config.getBackgroundColor() ) );
+            try {
+                binding.activityMainContentWrapper.setBackgroundColor(Color.parseColor(config.getBackgroundColor()));
+            } catch (Exception e) {
+                // Invalid color
+                e.printStackTrace();
+                binding.activityMainContentWrapper.setBackgroundColor( getResources().getColor(R.color.defaultBackground));
+            }
         } else {
             binding.activityMainContentWrapper.setBackgroundColor( getResources().getColor(R.color.defaultBackground));
         }
@@ -1232,7 +1400,12 @@ public class MainActivity
         String titleType = config.getTitle();
         if (titleType != null && titleType.equals(ServerConfig.TITLE_DEVICE_ID)) {
             if (config.getTextColor() != null) {
-                binding.activityMainTitle.setTextColor(Color.parseColor(settingsHelper.getConfig().getTextColor()));
+                try {
+                    binding.activityMainTitle.setTextColor(Color.parseColor(settingsHelper.getConfig().getTextColor()));
+                } catch (Exception e) {
+                    // Invalid color
+                    e.printStackTrace();
+                }
             }
             binding.activityMainTitle.setVisibility(View.VISIBLE);
             binding.activityMainTitle.setText(SettingsHelper.getInstance(this).getDeviceId());

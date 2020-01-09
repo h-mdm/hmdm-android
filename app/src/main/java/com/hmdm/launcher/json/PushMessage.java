@@ -21,12 +21,12 @@ package com.hmdm.launcher.json;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import java.util.Map;
+import org.json.JSONObject;
 
 @JsonIgnoreProperties( ignoreUnknown = true )
 public class PushMessage {
     private String messageType;
-    private Map payload;
+    private String payload;
 
     public static final String TYPE_CONFIG_UPDATED = "configUpdated";
 
@@ -38,11 +38,22 @@ public class PushMessage {
         this.messageType = messageType;
     }
 
-    public Map getPayload() {
+    public String getPayload() {
         return payload;
     }
 
-    public void setPayload(Map payload) {
+    public void setPayload(String payload) {
         this.payload = payload;
+    }
+
+    public JSONObject getPayloadJSON() {
+        if (payload != null) {
+            try {
+                return new JSONObject(payload);
+            } catch (Exception e) {
+                // Bad payload
+            }
+        }
+        return null;
     }
 }

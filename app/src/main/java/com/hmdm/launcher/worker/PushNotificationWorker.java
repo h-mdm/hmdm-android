@@ -28,21 +28,25 @@ import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.PushMessage;
 import com.hmdm.launcher.json.PushResponse;
+import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
+import com.hmdm.launcher.util.PushNotificationMqttWrapper;
 import com.hmdm.launcher.util.RemoteLogger;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import retrofit2.Response;
 
-public class PushNotificationPollingWorker extends Worker {
+public class PushNotificationWorker extends Worker {
 
     // Minimal interval is 15 minutes as per docs
     public static final int FIRE_PERIOD_MINS = 15;
@@ -52,7 +56,7 @@ public class PushNotificationPollingWorker extends Worker {
     public static void schedule(Context context) {
         RemoteLogger.log(context, Const.LOG_DEBUG, "Push notifications enqueued: " + FIRE_PERIOD_MINS + " mins");
         PeriodicWorkRequest queryRequest =
-                new PeriodicWorkRequest.Builder(PushNotificationPollingWorker.class, FIRE_PERIOD_MINS, TimeUnit.MINUTES)
+                new PeriodicWorkRequest.Builder(PushNotificationWorker.class, FIRE_PERIOD_MINS, TimeUnit.MINUTES)
                         .addTag(Const.WORK_TAG_COMMON)
                         .build();
         WorkManager.getInstance(context.getApplicationContext()).enqueueUniquePeriodicWork(WORK_TAG_PERIODIC, ExistingPeriodicWorkPolicy.REPLACE, queryRequest);
@@ -61,7 +65,7 @@ public class PushNotificationPollingWorker extends Worker {
     private Context context;
     private SettingsHelper settingsHelper;
 
-    public PushNotificationPollingWorker(
+    public PushNotificationWorker(
             @NonNull final Context context,
             @NonNull WorkerParameters params) {
         super(context, params);
@@ -76,6 +80,19 @@ public class PushNotificationPollingWorker extends Worker {
             return Result.failure();
         }
 
+        String pushOptions = settingsHelper.getConfig().getPushOptions();
+
+        if (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER) ||
+                pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM)) {
+            return doMqttWork();
+        } else {
+            // PUSH_OPTIONS_POLLING by default
+            return doPollingWork();
+        }
+    }
+
+    // Query server for incoming messages each 15 minutes
+    private Result doPollingWork() {
         ServerService serverService = ServerServiceKeeper.getServerServiceInstance(context);
         ServerService secondaryServerService = ServerServiceKeeper.getSecondaryServerServiceInstance(context);
         Response<PushResponse> response = null;
@@ -120,4 +137,16 @@ public class PushNotificationPollingWorker extends Worker {
         return Result.failure();
     }
 
+    // Periodic check if MQTT service is connected
+    // This will reconnect the service in case when the connection wasn't initially established or occasionally fails
+    private Result doMqttWork() {
+        try {
+            URL url = new URL(settingsHelper.getBaseUrl());
+            PushNotificationMqttWrapper.getInstance().connect(context, url.getHost(), BuildConfig.MQTT_PORT,
+                    settingsHelper.getConfig().getPushOptions(), settingsHelper.getDeviceId(), null, null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Result.success();
+    }
 }

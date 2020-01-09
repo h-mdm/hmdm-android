@@ -23,20 +23,32 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class AppInfo implements Parcelable {
+    public static final int TYPE_APP = 0;
+    public static final int TYPE_WEB = 1;
+
+    public int type;
     public CharSequence name;
     public String packageName;
+    public String url;
+    public String iconUrl;
 
     public AppInfo(){}
 
     protected AppInfo(Parcel in) {
+        type = in.readInt();
         name = in.readString();
         packageName = in.readString();
+        url = in.readString();
+        iconUrl = in.readString();
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(type);
         dest.writeString(name != null ? name.toString() : null);
         dest.writeString(packageName);
+        dest.writeString(url);
+        dest.writeString(iconUrl);
     }
 
     @Override

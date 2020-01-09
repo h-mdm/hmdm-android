@@ -61,9 +61,9 @@ public class PluginApiService extends Service {
                 return null;
             } else {
                 Bundle bundle = new Bundle();
-                bundle.putString(KEY_SERVER_HOST, Const.BASE_URL);
-                bundle.putString(KEY_SECONDARY_SERVER_HOST, Const.SECONDARY_BASE_URL);
-                bundle.putString(KEY_SERVER_PATH, Const.SERVER_PROJECT);
+                bundle.putString(KEY_SERVER_HOST, settingsHelper.getBaseUrl());
+                bundle.putString(KEY_SECONDARY_SERVER_HOST, settingsHelper.getSecondaryBaseUrl());
+                bundle.putString(KEY_SERVER_PATH, settingsHelper.getServerProject());
                 bundle.putString(KEY_DEVICE_ID, settingsHelper.getDeviceId());
                 return bundle;
             }

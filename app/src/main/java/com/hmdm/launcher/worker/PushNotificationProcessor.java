@@ -32,16 +32,16 @@ import org.json.JSONObject;
 
 public class PushNotificationProcessor {
     public static void process(PushMessage message, Context context) {
-        // Update local configuration
-        RemoteLogger.log(context, Const.LOG_DEBUG, "Got a configuration update request");
+        RemoteLogger.log(context, Const.LOG_DEBUG, "Got Push Message, type " + message.getMessageType());
         if (message.getMessageType().equals(PushMessage.TYPE_CONFIG_UPDATED)) {
+            // Update local configuration
             LocalBroadcastManager.getInstance(context).
                     sendBroadcast(new Intent(Const.ACTION_UPDATE_CONFIGURATION));
         }
         // Send broadcast to all plugins
         Intent intent = new Intent(Const.INTENT_PUSH_NOTIFICATION_PREFIX + message.getMessageType());
-        if (message.getPayload() != null) {
-            JSONObject jsonObject = new JSONObject(message.getPayload());
+        JSONObject jsonObject = message.getPayloadJSON();
+        if (jsonObject != null) {
             intent.putExtra(Const.INTENT_PUSH_NOTIFICATION_EXTRA, jsonObject.toString());
         }
         context.sendBroadcast(intent);

@@ -25,6 +25,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.telephony.TelephonyManager;
@@ -130,7 +132,44 @@ public class DeviceInfoProvider {
 
         deviceInfo.setAndroidVersion(Build.VERSION.RELEASE);
 
+        deviceInfo.setLocation(getLocation(context));
+
         return deviceInfo;
+    }
+
+    @SuppressWarnings({"MissingPermission"})
+    public static DeviceInfo.Location getLocation(Context context) {
+        try {
+            LocationManager locationManager = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+            Location lastLocationGps = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            Location lastLocationNetwork = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+            if (lastLocationGps != null || lastLocationNetwork != null) {
+
+                DeviceInfo.Location location = new DeviceInfo.Location();
+
+                Location lastLocation;
+                if (lastLocationGps == null) {
+                    lastLocation = lastLocationNetwork;
+                } else if (lastLocationNetwork == null) {
+                    lastLocation = lastLocationGps;
+                } else {
+                    // Get the latest location as the best one
+                    if (lastLocationGps.getTime() >= lastLocationNetwork.getTime()) {
+                        lastLocation = lastLocationGps;
+                    } else {
+                        lastLocation = lastLocationNetwork;
+                    }
+                }
+
+                location.setLat(lastLocation.getLatitude());
+                location.setLon(lastLocation.getLongitude());
+                location.setTs(lastLocation.getTime());
+                return location;
+            }
+        } catch (Exception e) {
+        }
+        return null;
     }
 
     public static String getSerialNumber() {

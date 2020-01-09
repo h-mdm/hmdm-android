@@ -24,6 +24,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties( ignoreUnknown = true )
 public class Application {
 
+    public static final String TYPE_APP = "app";
+    public static final String TYPE_WEB = "web";
+
+    private String type;
     private String name;
     private String pkg;
     private String version;
@@ -32,8 +36,18 @@ public class Application {
     private boolean remove;
     private boolean runAfterInstall;
     private boolean skipVersion;
+    private String iconText;
+    private String icon;
 
     public Application() {}
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 
     public String getName() {
         return name;
@@ -97,5 +111,21 @@ public class Application {
 
     public void setSkipVersion(boolean skipVersion) {
         this.skipVersion = skipVersion;
+    }
+
+    public String getIconText() {
+        return iconText;
+    }
+
+    public void setIconText(String iconText) {
+        this.iconText = iconText;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
 }

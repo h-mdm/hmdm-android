@@ -43,6 +43,7 @@ import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.server.ServerServiceKeeper;
 import com.hmdm.launcher.util.AppInfo;
 import com.hmdm.launcher.util.LegacyUtils;
+import com.hmdm.launcher.util.PushNotificationMqttWrapper;
 
 public class AdminActivity extends BaseActivity {
 
@@ -127,6 +128,7 @@ public class AdminActivity extends BaseActivity {
     public void saveServerUrl(View view ) {
         if (saveServerUrlBase()) {
             ServerServiceKeeper.resetServices();
+            PushNotificationMqttWrapper.getInstance().disconnect(this);
             updateConfig(view);
         }
     }

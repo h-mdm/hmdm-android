@@ -36,18 +36,20 @@ android {
         applicationId "com.hmdm.launcher"
         minSdkVersion 14
         targetSdkVersion 28
-        versionCode 62
-        versionName "2.32"
+        versionCode 71
+        versionName "3.01"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true
         }
+        multiDexEnabled true
 
         buildConfigField("String", "BASE_URL", "\"http://app.h-mdm.com\"")
         buildConfigField("String", "SECONDARY_BASE_URL", "\"http://app.h-mdm.com\"")
         buildConfigField("String", "SERVER_PROJECT", "\"\"")
         buildConfigField("Boolean", "SUGGEST_IMEI_AS_ID", "false")
-        buildConfigField("Boolean", "PUSH_NOTIFICATION_POLLING", "false")
+        buildConfigField("Boolean", "ENABLE_PUSH", "true")
+        buildConfigField("Integer", "MQTT_PORT", "31000")
     }
     buildTypes {
         release {
@@ -84,6 +86,9 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
     implementation 'com.google.android.material:material:1.0.0'
+
+    // MQTT messaging
+    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
 
     // Picassomk
     implementation 'com.squareup.picasso:picasso:2.5.2'

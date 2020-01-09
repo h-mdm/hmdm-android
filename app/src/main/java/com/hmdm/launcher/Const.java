@@ -35,9 +35,6 @@ public class Const {
     public static final String ACTION_INSTALL_COMPLETE = "INSTALL_COMPLETE";
 
     public static long CONNECTION_TIMEOUT = 10000;
-    public static final String BASE_URL = BuildConfig.BASE_URL;
-    public static final String SECONDARY_BASE_URL = BuildConfig.SECONDARY_BASE_URL;
-    public static final String SERVER_PROJECT = BuildConfig.SERVER_PROJECT;
     public static final String STATUS_OK = "OK";
     public static final String ORIENTATION = "ORIENTATION";
     public static final String PACKAGE_NAME = "PACKAGE_NAME";

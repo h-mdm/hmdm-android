@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Color;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,11 +37,12 @@ import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.util.AppInfo;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * Created by Ivan Lozenko on 21.02.2017.
@@ -92,7 +94,19 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
             int iconSize = context.getResources().getDimensionPixelOffset(R.dimen.app_icon_size) * iconScale / 100;
             holder.binding.imageView.getLayoutParams().width = iconSize;
             holder.binding.imageView.getLayoutParams().height = iconSize;
-            holder.binding.imageView.setImageDrawable(context.getPackageManager().getApplicationIcon(appInfo.packageName));
+            if (appInfo.iconUrl != null) {
+                // Load the icon
+                Picasso.with(context).load(appInfo.iconUrl).into(holder.binding.imageView);
+            } else {
+                switch (appInfo.type) {
+                    case AppInfo.TYPE_APP:
+                        holder.binding.imageView.setImageDrawable(context.getPackageManager().getApplicationIcon(appInfo.packageName));
+                        break;
+                    case AppInfo.TYPE_WEB:
+                        holder.binding.imageView.setImageDrawable(context.getResources().getDrawable(R.drawable.weblink));
+                        break;
+                }
+            }
         } catch (Exception e) {
             // Here we handle PackageManager.NameNotFoundException as well as
             // DeadObjectException (when a device is being turned off)
@@ -116,13 +130,18 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
     }
 
     private List<AppInfo> getInstalledApps(Context context) {
-        Set< String > installedPackages = new HashSet();
+        Map<String, Application> requiredPackages = new HashMap();
+        Map<String, Application> requiredLinks = new HashMap();
         SettingsHelper config = SettingsHelper.getInstance( context );
         if ( config.getConfig() != null ) {
             List< Application > applications = SettingsHelper.getInstance( context ).getConfig().getApplications();
             for ( Application application : applications ) {
                 if (application.isShowIcon() && !application.isRemove()) {
-                    installedPackages.add(application.getPkg());
+                    if (application.getType() == null || application.getType().equals(Application.TYPE_APP)) {
+                        requiredPackages.put(application.getPkg(), application);
+                    } else if (application.getType().equals(Application.TYPE_WEB)) {
+                        requiredLinks.put(application.getUrl(), application);
+                    }
                 }
             }
         }
@@ -132,16 +151,31 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
         if (packs == null) {
             return new ArrayList<AppInfo>();
         }
+        // First we display app icons
         for(int i=0;i < packs.size();i++) {
             ApplicationInfo p = packs.get(i);
             if ( context.getPackageManager().getLaunchIntentForPackage(p.packageName) != null &&
-                    installedPackages.contains( p.packageName ) ) {
+                    requiredPackages.containsKey( p.packageName ) ) {
+                Application app = requiredPackages.get(p.packageName);
                 AppInfo newInfo = new AppInfo();
-                newInfo.name = p.loadLabel(context.getPackageManager()).toString();
+                newInfo.type = AppInfo.TYPE_APP;
+                newInfo.name = app.getIconText() != null ? app.getIconText() : p.loadLabel(context.getPackageManager()).toString();
                 newInfo.packageName = p.packageName;
+                newInfo.iconUrl = app.getIcon();
                 appInfos.add(newInfo);
             }
         }
+
+        // Then we display weblinks
+        for (Map.Entry<String, Application> entry : requiredLinks.entrySet()) {
+            AppInfo newInfo = new AppInfo();
+            newInfo.type = AppInfo.TYPE_WEB;
+            newInfo.name = entry.getValue().getIconText();
+            newInfo.url = entry.getValue().getUrl();
+            newInfo.iconUrl = entry.getValue().getIcon();
+            appInfos.add(newInfo);
+        }
+
         return appInfos;
     }
 
@@ -153,17 +187,28 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
         @Override
         public void onClick(View v) {
             AppInfo resolveInfo = (AppInfo)v.getTag();
-            Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(
-                    resolveInfo.packageName );
-            if ( launchIntent != null ) {
-                // These magic flags are found in the source code of the default Android launcher
-                // These flags preserve the app activity stack (otherwise a launch activity appears at the top which is not correct)
-                launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
-                        Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-                context.startActivity( launchIntent );
-                if ( listener != null ) {
-                    listener.onAppChoose( resolveInfo );
-                }
+            switch (resolveInfo.type) {
+                case AppInfo.TYPE_APP:
+                    Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(
+                            resolveInfo.packageName);
+                    if (launchIntent != null) {
+                        // These magic flags are found in the source code of the default Android launcher
+                        // These flags preserve the app activity stack (otherwise a launch activity appears at the top which is not correct)
+                        launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+                                Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                        context.startActivity(launchIntent);
+                    }
+                    break;
+                case AppInfo.TYPE_WEB:
+                    if (resolveInfo.url != null) {
+                        Intent i = new Intent(Intent.ACTION_VIEW);
+                        i.setData(Uri.parse(resolveInfo.url));
+                        context.startActivity(i);
+                    }
+                    break;
+            }
+            if (listener != null) {
+                listener.onAppChoose(resolveInfo);
             }
         }
     };

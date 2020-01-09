@@ -40,6 +40,37 @@ public class DeviceInfo {
     private String batteryCharging;
     private String androidVersion;
     private Boolean factoryReset;
+    private Location location;
+
+    public static class Location {
+        private long ts;
+        private double lat;
+        private double lon;
+
+        public long getTs() {
+            return ts;
+        }
+
+        public void setTs(long ts) {
+            this.ts = ts;
+        }
+
+        public double getLat() {
+            return lat;
+        }
+
+        public void setLat(double lat) {
+            this.lat = lat;
+        }
+
+        public double getLon() {
+            return lon;
+        }
+
+        public void setLon(double lon) {
+            this.lon = lon;
+        }
+    }
 
     public DeviceInfo() {}
 
@@ -129,5 +160,13 @@ public class DeviceInfo {
 
     public void setFactoryReset(Boolean factoryReset) {
         this.factoryReset = factoryReset;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
     }
 }

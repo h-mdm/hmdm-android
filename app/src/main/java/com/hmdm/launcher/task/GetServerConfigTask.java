@@ -42,8 +42,14 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
 
     @Override
     protected Integer doInBackground( Void... voids ) {
-        ServerService serverService = ServerServiceKeeper.getServerServiceInstance(context);
-        ServerService secondaryServerService = ServerServiceKeeper.getSecondaryServerServiceInstance(context);
+        ServerService serverService;
+        ServerService secondaryServerService;
+        try {
+            serverService = ServerServiceKeeper.getServerServiceInstance(context);
+            secondaryServerService = ServerServiceKeeper.getSecondaryServerServiceInstance(context);
+        } catch (Exception e) {
+            return Const.TASK_NETWORK_ERROR;
+        }
         Response< ServerConfigResponse > response = null;
 
         try {

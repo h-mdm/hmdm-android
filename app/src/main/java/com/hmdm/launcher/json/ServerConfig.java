@@ -51,6 +51,8 @@ public class ServerConfig {
 
     private Boolean factoryReset;
 
+    private String pushOptions;
+
     private List< Application > applications = new LinkedList();
 
     private List< ApplicationSetting > applicationSettings = new LinkedList();
@@ -63,6 +65,10 @@ public class ServerConfig {
     public static final int SYSTEM_UPDATE_INSTANT = 1;
     public static final int SYSTEM_UPDATE_SCHEDULE = 2;
     public static final int SYSTEM_UPDATE_MANUAL = 3;
+
+    public static final String PUSH_OPTIONS_MQTT_WORKER = "mqttWorker";
+    public static final String PUSH_OPTIONS_MQTT_ALARM = "mqttAlarm";
+    public static final String PUSH_OPTIONS_POLLING = "polling";
 
     public ServerConfig() {}
 
@@ -231,5 +237,13 @@ public class ServerConfig {
 
     public void setFactoryReset(Boolean factoryReset) {
         this.factoryReset = factoryReset;
+    }
+
+    public String getPushOptions() {
+        return pushOptions;
+    }
+
+    public void setPushOptions(String pushOptions) {
+        this.pushOptions = pushOptions;
     }
 }
