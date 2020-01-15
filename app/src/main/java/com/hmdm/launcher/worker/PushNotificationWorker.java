@@ -84,7 +84,10 @@ public class PushNotificationWorker extends Worker {
 
         if (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER) ||
                 pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM)) {
-            return doMqttWork();
+            // Note: MQTT client is automatically reconnected, and re-initializing it may cause looped errors
+            // So by now, this option is not used and we do nothing here.
+            //return doMqttWork();
+            return Result.success();
         } else {
             // PUSH_OPTIONS_POLLING by default
             return doPollingWork();
@@ -139,6 +142,10 @@ public class PushNotificationWorker extends Worker {
 
     // Periodic check if MQTT service is connected
     // This will reconnect the service in case when the connection wasn't initially established or occasionally fails
+    // Note: MQTT client is automatically reconnected, and re-initializing it may cause looped errors
+    // This option is not used by now. To make it working properly, we need first to make sure that network and server is available
+    // but the MQTT client doesn't work, and re-initialize it only in this case!
+    // In general, MQTT client must reconnect after turning Wi-Fi off and back on.
     private Result doMqttWork() {
         try {
             URL url = new URL(settingsHelper.getBaseUrl());

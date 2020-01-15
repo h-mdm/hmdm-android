@@ -52,6 +52,7 @@ public class PushNotificationMqttWrapper {
     private Handler handler;
     private BroadcastReceiver debugReceiver;
     private Context context;
+    private boolean needProcessConnectExtended;
 
     private PushNotificationMqttWrapper() {
     }
@@ -83,7 +84,7 @@ public class PushNotificationMqttWrapper {
         client = new MqttAndroidClient(context, serverUri, deviceId);
         client.setTraceEnabled(true);
         client.setDefaultMessageListener(mqttMessageListener);
-        //setupDebugging(context);
+        setupDebugging(context);
 
         // We need to re-subscribe after reconnection. This is required because server may be not persistent
         // so after the server restart all subscription info is lost
@@ -103,13 +104,15 @@ public class PushNotificationMqttWrapper {
 
             @Override
             public void connectComplete(boolean reconnect, String serverURI) {
-                if (reconnect) {
+                if (reconnect || needProcessConnectExtended) {
+                    RemoteLogger.log(context, Const.LOG_DEBUG, "Reconnect complete");
                     subscribe(context, deviceId, null, null);
                 }
             }
         });
 
         try {
+            needProcessConnectExtended = false;
             client.connect(connectOptions, null, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
@@ -120,12 +123,11 @@ public class PushNotificationMqttWrapper {
                 public void onFailure(IMqttToken asyncActionToken, Throwable e) {
                     e.printStackTrace();
                     RemoteLogger.log(context, Const.LOG_WARN, "MQTT connection failure");
-                    try {
-                        client.disconnect();
-                        client.close();
-                        client = null;
-                    } catch (Exception ex) {
-                    }
+                    // We fail here but Mqtt client tries to reconnect and we need to subscribe
+                    // after connection succeeds. This is done in the extended callback client.
+                    // The flag needProcessConnectExtended prevents duplicate subscribe after
+                    // successful connection
+                    needProcessConnectExtended = true;
                     if (onFailure != null) {
                         handler.post(onFailure);
                     }
@@ -169,6 +171,7 @@ public class PushNotificationMqttWrapper {
             }
         } catch (MqttException e) {
             e.printStackTrace();
+            RemoteLogger.log(context, Const.LOG_DEBUG, "Exception while subscribing: " + e.getMessage());
             if (onFailure != null) {
                 handler.post(onFailure);
             }
@@ -182,7 +185,7 @@ public class PushNotificationMqttWrapper {
                 public void onReceive(Context context, Intent intent) {
                     String errorMessage = intent.getStringExtra("MqttService.errorMessage");
                     if (errorMessage != null) {
-                        Log.d(intent.getStringExtra("MqttService.traceTag"), errorMessage);
+                        Log.d(Const.LOG_TAG, intent.getStringExtra("MqttService.traceTag") + " " + errorMessage);
                     }
                 }
             };

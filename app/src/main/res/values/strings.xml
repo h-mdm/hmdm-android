@@ -50,6 +50,7 @@
     <string name="dialog_history_settings_skip">Skip</string>
     <string name="dialog_unknown_sources_title">Please allow installation from unknown sources. A settings sheet will now open. Find \"Unknown sources\", allow the installation and click \"Back\".</string>
     <string name="dialog_unknown_sources_continue">Continue</string>
+    <string name="dialog_miui_permissions_title">MIUI requires manual setup of custom permissions. App permissions window will now open. Tap \"Other permissions\", allow \"Display pop-up windows while running in the background\" and click \"Back\".</string>
     <string name="dialog_administrator_mode_message">Please allow the app to work in the device administrator mode. A Settings sheet will now open. Select \"Device administrators\", find the \"Headwind MDM\" item, activate the administrator, and tap \"Back\".</string>
     <string name="dialog_administrator_mode_continue">Continue</string>
     <string name="dialog_administrator_mode_skip">Skip</string>

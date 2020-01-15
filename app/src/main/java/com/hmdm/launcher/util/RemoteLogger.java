@@ -21,7 +21,9 @@ package com.hmdm.launcher.util;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
+import com.hmdm.launcher.Const;
 import com.hmdm.launcher.db.DatabaseHelper;
 import com.hmdm.launcher.db.LogConfigTable;
 import com.hmdm.launcher.db.LogTable;
@@ -36,7 +38,6 @@ import java.util.List;
  * and storing unsent logs
  */
 public class RemoteLogger {
-
     public static long lastLogRemoval = 0;
 
     public static void updateConfig(Context context, List<RemoteLogConfig> rules) {
@@ -44,6 +45,24 @@ public class RemoteLogger {
     }
 
     public static void log(Context context, int level, String message) {
+        switch (level) {
+            case Const.LOG_VERBOSE:
+                Log.v(Const.LOG_TAG, message);
+                break;
+            case Const.LOG_DEBUG:
+                Log.d(Const.LOG_TAG, message);
+                break;
+            case Const.LOG_INFO:
+                Log.i(Const.LOG_TAG, message);
+                break;
+            case Const.LOG_WARN:
+                Log.w(Const.LOG_TAG, message);
+                break;
+            case Const.LOG_ERROR:
+                Log.e(Const.LOG_TAG, message);
+                break;
+        }
+
         RemoteLogItem item = new RemoteLogItem();
         item.setTimestamp(System.currentTimeMillis());
         item.setLogLevel(level);

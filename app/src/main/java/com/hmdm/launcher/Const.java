@@ -41,33 +41,17 @@ public class Const {
 
     public static final String PREFERENCES = "PREFERENCES";
 
+    public static final int PREFERENCES_ON = 1;
+    public static final int PREFERENCES_OFF = 0;
+
     public static final String PREFERENCES_ADMINISTRATOR = "PREFERENCES_ADMINISTRATOR";
-    public static final int PREFERENCES_ADMINISTRATOR_ON = 1;
-    public static final int PREFERENCES_ADMINISTRATOR_OFF = 0;
-
     public static final String PREFERENCES_OVERLAY = "PREFERENCES_OVERLAY";
-    public static final int PREFERENCES_OVERLAY_ON = 1;
-    public static final int PREFERENCES_OVERLAY_OFF = 0;
-
     public static final String PREFERENCES_USAGE_STATISTICS = "PREFERENCES_USAGE_STATISTICS";
-    public static final int PREFERENCES_USAGE_STATISTICS_ON = 1;
-    public static final int PREFERENCES_USAGE_STATISTICS_OFF = 0;
-
     public static final String PREFERENCES_ACCESSIBILITY_SERVICE = "PREFERENCES_ACCESSIBILITY_SERVICE";
-    public static final int PREFERENCES_ACCESSIBILITY_SERVICE_ON = 1;
-    public static final int PREFERENCES_ACCESSIBILITY_SERVICE_OFF = 0;
-
     public static final String PREFERENCES_DEVICE_OWNER = "PREFERENCES_DEVICE_OWNER";
-    public static final int PREFERENCES_DEVICE_OWNER_ON = 1;
-    public static final int PREFERENCES_DEVICE_OWNER_OFF = 0;
-
     public static final String PREFERENCES_UNKNOWN_SOURCES = "PREFERENCES_UNKNOWN_SOURCES";
-    public static final int PREFERENCES_UNKNOWN_SOURCES_ON = 1;
-    public static final int PREFERENCES_UNKNOWN_SOURCES_OFF = 0;
-
     public static final String PREFERENCES_DISABLE_LOCATION = "PREFERENCES_DISABLE_LOCATION";
-    public static final int PREFERENCES_DISABLE_LOCATION_ON = 1;
-    public static final int PREFERENCES_DISABLE_LOCATION_OFF = 0;
+    public static final String PREFERENCES_MIUI_PERMISSIONS = "PREFERENCES_MIUI_PERMISSIONS";
 
     public static final String LOG_TAG = "HeadwindMDM";
 

@@ -41,7 +41,7 @@ public class AdminReceiver extends DeviceAdminReceiver {
     public void onEnabled(Context context, Intent intent) {
         // We come here after both successful provisioning and manual activation of the device owner
         SharedPreferences preferences = context.getApplicationContext().getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
-        preferences.edit().putInt(Const.PREFERENCES_ADMINISTRATOR, Const.PREFERENCES_ADMINISTRATOR_ON).commit();
+        preferences.edit().putInt(Const.PREFERENCES_ADMINISTRATOR, Const.PREFERENCES_ON).commit();
     }
 
     @Override

@@ -79,6 +79,7 @@ import com.hmdm.launcher.databinding.DialogDeviceInfoBinding;
 import com.hmdm.launcher.databinding.DialogEnterPasswordBinding;
 import com.hmdm.launcher.databinding.DialogFileDownloadingFailedBinding;
 import com.hmdm.launcher.databinding.DialogHistorySettingsBinding;
+import com.hmdm.launcher.databinding.DialogMiuiPermissionsBinding;
 import com.hmdm.launcher.databinding.DialogOverlaySettingsBinding;
 import com.hmdm.launcher.databinding.DialogPermissionsBinding;
 import com.hmdm.launcher.databinding.DialogSystemSettingsBinding;
@@ -138,6 +139,9 @@ public class MainActivity
     private Dialog historySettingsDialog;
     private DialogHistorySettingsBinding dialogHistorySettingsBinding;
 
+    private Dialog miuiPermissionsDialog;
+    private DialogMiuiPermissionsBinding dialogMiuiPermissionsBinding;
+
     private Dialog unknownSourcesDialog;
     private DialogUnknownSourcesBinding dialogUnknownSourcesBinding;
 
@@ -181,7 +185,6 @@ public class MainActivity
             switch ( intent.getAction() ) {
                 case Const.ACTION_UPDATE_CONFIGURATION:
                     RemoteLogger.log(context, Const.LOG_DEBUG, "Update configuration");
-                    Log.i(LOG_TAG, "Updating configuration from broadcast receiver, force=false");
                     updateConfig(false);
                     break;
                 case Const.ACTION_HIDE_SCREEN:
@@ -250,6 +253,9 @@ public class MainActivity
         binding.setMessage( getString( R.string.main_start_preparations ) );
         binding.setLoading( true );
 
+        // Try to start services in onCreate(), this may fail, we will try again on each onResume.
+        startServicesWithRetry();
+
         settingsHelper = SettingsHelper.getInstance( this );
         preferences = getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
         initReceiver();
@@ -293,8 +299,19 @@ public class MainActivity
     protected void onResume() {
         super.onResume();
 
-        // Workaround against crash "App is in background" on Android 9: this is an Android OS bug
-        // https://stackoverflow.com/questions/52013545/android-9-0-not-allowed-to-start-service-app-is-in-background-after-onresume
+        startServicesWithRetry();
+
+        if (interruptResumeFlow) {
+            interruptResumeFlow = false;
+            return;
+        }
+
+        checkAndStartLauncher();
+    }
+
+    // Workaround against crash "App is in background" on Android 9: this is an Android OS bug
+    // https://stackoverflow.com/questions/52013545/android-9-0-not-allowed-to-start-service-app-is-in-background-after-onresume
+    private void startServicesWithRetry() {
         try {
             startServices();
         } catch (Exception e) {
@@ -315,13 +332,6 @@ public class MainActivity
                 }
             }, 1000);
         }
-
-        if (interruptResumeFlow) {
-            interruptResumeFlow = false;
-            return;
-        }
-
-        checkAndStartLauncher();
     }
 
     private void startServices() {
@@ -346,7 +356,7 @@ public class MainActivity
                 if (permissions[n].equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
                     if (grantResults[n] != PackageManager.PERMISSION_GRANTED) {
                         // The user didn't allow to determine location, this is not critical, just ignore it
-                        preferences.edit().putInt(Const.PREFERENCES_DISABLE_LOCATION, Const.PREFERENCES_ADMINISTRATOR_ON).commit();
+                        preferences.edit().putInt(Const.PREFERENCES_DISABLE_LOCATION, Const.PREFERENCES_ON).commit();
                     }
                 } else {
                     if (grantResults[n] != PackageManager.PERMISSION_GRANTED) {
@@ -362,9 +372,21 @@ public class MainActivity
 
         boolean deviceOwner = Utils.isDeviceOwner(this);
         preferences.edit().putInt(Const.PREFERENCES_DEVICE_OWNER, deviceOwner ?
-            Const.PREFERENCES_DEVICE_OWNER_ON : Const.PREFERENCES_DEVICE_OWNER_OFF).commit();
+            Const.PREFERENCES_ON : Const.PREFERENCES_OFF).commit();
         if (deviceOwner) {
             Utils.autoGrantRequestedPermissions(this, getPackageName());
+        }
+
+        int miuiPermissionMode = preferences.getInt(Const.PREFERENCES_MIUI_PERMISSIONS, -1);
+        if (miuiPermissionMode == -1) {
+            if (checkMiuiPermissions()) {
+                preferences.
+                        edit().
+                        putInt( Const.PREFERENCES_MIUI_PERMISSIONS, Const.PREFERENCES_ON ).
+                        commit();
+            } else {
+                return;
+            }
         }
 
         int unknownSourceMode = preferences.getInt(Const.PREFERENCES_UNKNOWN_SOURCES, -1);
@@ -372,7 +394,7 @@ public class MainActivity
             if (checkUnknownSources()) {
                 preferences.
                         edit().
-                        putInt( Const.PREFERENCES_UNKNOWN_SOURCES, Const.PREFERENCES_UNKNOWN_SOURCES_ON ).
+                        putInt( Const.PREFERENCES_UNKNOWN_SOURCES, Const.PREFERENCES_ON ).
                         commit();
             } else {
                 return;
@@ -384,7 +406,7 @@ public class MainActivity
             if (checkAdminMode()) {
                 preferences.
                         edit().
-                        putInt( Const.PREFERENCES_ADMINISTRATOR, Const.PREFERENCES_ADMINISTRATOR_ON ).
+                        putInt( Const.PREFERENCES_ADMINISTRATOR, Const.PREFERENCES_ON ).
                         commit();
             } else {
                 return;
@@ -396,7 +418,7 @@ public class MainActivity
             if ( checkAlarmWindow() ) {
                 preferences.
                         edit().
-                        putInt( Const.PREFERENCES_OVERLAY, Const.PREFERENCES_OVERLAY_ON ).
+                        putInt( Const.PREFERENCES_OVERLAY, Const.PREFERENCES_ON ).
                         commit();
             } else {
                 return;
@@ -408,7 +430,7 @@ public class MainActivity
             if ( checkUsageStatistics() ) {
                 preferences.
                         edit().
-                        putInt( Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_USAGE_STATISTICS_ON ).
+                        putInt( Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_ON ).
                         commit();
             } else {
                 return;
@@ -420,7 +442,7 @@ public class MainActivity
             if ( checkAccessibilityService() ) {
                 preferences.
                         edit().
-                        putInt( Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_ACCESSIBILITY_SERVICE_ON ).
+                        putInt( Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_ON ).
                         commit();
             } else {
                 createAndShowAccessibilityServiceDialog();
@@ -485,7 +507,7 @@ public class MainActivity
 
         preferences.
                 edit().
-                putInt( Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_ACCESSIBILITY_SERVICE_OFF ).
+                putInt( Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF ).
                 commit();
 
         checkAndStartLauncher();
@@ -596,6 +618,16 @@ public class MainActivity
         } else {
             return true;
         }
+    }
+
+    private boolean checkMiuiPermissions() {
+        // Permissions to open popup from background first appears in MIUI 11 (Android 9)
+        if (Utils.isMiui(this) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            createAndShowMiuiPermissionsDialog();
+            // It is not known how to check this permission programmatically, so return true
+            return true;
+        }
+        return true;
     }
 
     private boolean checkUnknownSources() {
@@ -937,48 +969,51 @@ public class MainActivity
                     if (application.isRemove()) {
                         // Remove the app
                         RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Removing app: " + application.getPkg());
-                        Log.i(LOG_TAG, "loadAndInstallApplications(): remove app " + application.getPkg());
                         updateMessageForApplicationRemoving( application.getName() );
                         uninstallApplication(application.getPkg());
 
-                    } else if ( application.getUrl() != null ) {
-                        updateMessageForApplicationDownloading( application.getName() );
+                    } else if ( application.getUrl() != null && !application.getUrl().startsWith("market://details") ) {
+                        updateMessageForApplicationDownloading(application.getName());
 
                         File file = null;
                         try {
                             RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Downloading app: " + application.getPkg());
-                            Log.i(LOG_TAG, "loadAndInstallApplications(): downloading app " + application.getPkg());
                             file = Utils.downloadApplication(application.getUrl(),
                                     new Utils.DownloadApplicationProgress() {
                                         @Override
                                         public void onDownloadProgress(final int progress, final long total, final long current) {
-                                            handler.post( new Runnable() {
+                                            handler.post(new Runnable() {
                                                 @Override
                                                 public void run() {
-                                                    binding.progress.setMax( 100 );
-                                                    binding.progress.setProgress( progress );
+                                                    binding.progress.setMax(100);
+                                                    binding.progress.setProgress(progress);
 
-                                                    binding.setFileLength( total );
-                                                    binding.setDownloadedLength( current );
+                                                    binding.setFileLength(total);
+                                                    binding.setDownloadedLength(current);
                                                 }
-                                            } );
+                                            });
                                         }
                                     });
-                        } catch ( Exception e ) {
+                        } catch (Exception e) {
                             RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Failed to download app " + application.getPkg() + ": " + e.getMessage());
-                            Log.i(LOG_TAG, "loadAndInstallApplications(): failed to download app " + application.getPkg() + ": " + e.getMessage());
                             e.printStackTrace();
                         }
 
                         applicationStatus = new ApplicationStatus();
                         applicationStatus.application = application;
-                        if ( file != null ) {
-                            updateMessageForApplicationInstalling( application.getName() );
-                            installApplication( file, application.getPkg() );
+                        if (file != null) {
+                            updateMessageForApplicationInstalling(application.getName());
+                            installApplication(file, application.getPkg());
                             applicationStatus.installed = true;
                         } else {
                             applicationStatus.installed = false;
                         }
+                    } else if (application.getUrl().startsWith("market://details")) {
+                        RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Installing app " + application.getPkg() + " from Google Play");
+                        installApplicationFromPlayMarket(application.getUrl(), application.getPkg());
+                        applicationStatus = new ApplicationStatus();
+                        applicationStatus.application = application;
+                        applicationStatus.installed = true;
                     } else {
                         handler.post( new Runnable() {
                             @Override
@@ -1096,6 +1131,13 @@ public class MainActivity
          */
     }
 
+    private void installApplicationFromPlayMarket(final String uri, final String packageName) {
+        RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Asking user to install app " + packageName);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(uri));
+        startActivity(intent);
+    }
+
     // This function is called from a background thread
     private void installApplication( File file, final String packageName ) {
         if (packageName.equals(getPackageName()) &&
@@ -1105,7 +1147,6 @@ public class MainActivity
         }
         if (Utils.isDeviceOwner(this)) {
                 RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Silently installing app " + packageName);
-                Log.i(LOG_TAG, "installApplication(): silently installing app " + packageName);
                 Utils.silentInstallApplication(this, file, packageName, new Utils.SilentInstallErrorHandler() {
                     @Override
                     public void onInstallError() {
@@ -1493,7 +1534,7 @@ public class MainActivity
 
         preferences.
                 edit().
-                putInt( Const.PREFERENCES_ADMINISTRATOR, Const.PREFERENCES_ADMINISTRATOR_OFF ).
+                putInt( Const.PREFERENCES_ADMINISTRATOR, Const.PREFERENCES_OFF ).
                 commit();
 
         checkAndStartLauncher();
@@ -1562,7 +1603,7 @@ public class MainActivity
 
         preferences.
                 edit().
-                putInt( Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_USAGE_STATISTICS_OFF ).
+                putInt( Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_OFF ).
                 commit();
         checkAndStartLauncher();
     }
@@ -1593,7 +1634,7 @@ public class MainActivity
 
         preferences.
                 edit().
-                putInt( Const.PREFERENCES_OVERLAY, Const.PREFERENCES_OVERLAY_OFF ).
+                putInt( Const.PREFERENCES_OVERLAY, Const.PREFERENCES_OFF ).
                 commit();
         checkAndStartLauncher();
     }
@@ -1673,7 +1714,7 @@ public class MainActivity
             return false;
         }
 
-        if (preferences.getInt(Const.PREFERENCES_DISABLE_LOCATION, Const.PREFERENCES_DISABLE_LOCATION_OFF) == Const.PREFERENCES_DISABLE_LOCATION_ON) {
+        if (preferences.getInt(Const.PREFERENCES_DISABLE_LOCATION, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
             if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
                     checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
                     checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
@@ -1790,6 +1831,30 @@ public class MainActivity
             // In Android Oreo and above, permission to install packages are set per each app
             startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName())));
         }
+    }
+
+    private void createAndShowMiuiPermissionsDialog() {
+        dismissDialog(miuiPermissionsDialog);
+        miuiPermissionsDialog = new Dialog( this );
+        dialogMiuiPermissionsBinding = DataBindingUtil.inflate(
+                LayoutInflater.from( this ),
+                R.layout.dialog_miui_permissions,
+                null,
+                false );
+        miuiPermissionsDialog.setCancelable( false );
+        miuiPermissionsDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
+
+        miuiPermissionsDialog.setContentView( dialogMiuiPermissionsBinding.getRoot() );
+        miuiPermissionsDialog.show();
+    }
+
+    public void continueMiuiPermissions( View view ) {
+        dismissDialog(miuiPermissionsDialog);
+
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", getPackageName(), null);
+        intent.setData(uri);
+        startActivity(intent);
     }
 
     @Override
