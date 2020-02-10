@@ -19,6 +19,7 @@
 
 package com.hmdm.launcher.ui;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,6 +32,7 @@ import androidx.databinding.DataBindingUtil;
 
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.R;
+import com.hmdm.launcher.databinding.DialogDeviceInfoBinding;
 import com.hmdm.launcher.databinding.DialogEnterDeviceIdBinding;
 import com.hmdm.launcher.databinding.DialogEnterServerBinding;
 import com.hmdm.launcher.databinding.DialogNetworkErrorBinding;
@@ -51,6 +53,9 @@ public class BaseActivity extends AppCompatActivity {
 
     protected Dialog networkErrorDialog;
     protected DialogNetworkErrorBinding dialogNetworkErrorBinding;
+
+    protected Dialog deviceInfoDialog;
+    protected DialogDeviceInfoBinding dialogDeviceInfoBinding;
 
     protected void dismissDialog(Dialog dialog) {
         if (dialog != null) {
@@ -171,6 +176,47 @@ public class BaseActivity extends AppCompatActivity {
             Log.i(LOG_TAG, "saveServerUrl(): calling updateConfig()");
             return true;
         }
+    }
+
+    @SuppressLint( { "MissingPermission" } )
+    protected void createAndShowInfoDialog() {
+        dismissDialog(deviceInfoDialog);
+        deviceInfoDialog = new Dialog( this );
+        dialogDeviceInfoBinding = DataBindingUtil.inflate(
+                LayoutInflater.from( this ),
+                R.layout.dialog_device_info,
+                null,
+                false );
+        deviceInfoDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
+        deviceInfoDialog.setCancelable( false );
+
+        deviceInfoDialog.setContentView( dialogDeviceInfoBinding.getRoot() );
+
+        dialogDeviceInfoBinding.setSerialNumber(DeviceInfoProvider.getSerialNumber());
+
+        SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
+
+        String phone = DeviceInfoProvider.getPhoneNumber(this);
+        if (phone == null || phone.equals("")) {
+            phone = settingsHelper.getConfig() != null ? settingsHelper.getConfig().getPhone() : "";
+        }
+        dialogDeviceInfoBinding.setPhone(phone);
+
+        String imei = DeviceInfoProvider.getImei(this);
+        if (imei == null || imei.equals("")) {
+            imei = settingsHelper.getConfig() != null ? settingsHelper.getConfig().getImei() : "";
+        }
+        dialogDeviceInfoBinding.setImei(imei);
+
+        dialogDeviceInfoBinding.setDeviceId(SettingsHelper.getInstance(this).getDeviceId());
+        dialogDeviceInfoBinding.setVersion( BuildConfig.FLAVOR.length() > 0 ?
+                BuildConfig.VERSION_NAME + "-" + BuildConfig.FLAVOR : BuildConfig.VERSION_NAME );
+
+        deviceInfoDialog.show();
+    }
+
+    public void closeDeviceInfoDialog( View view ) {
+        dismissDialog(deviceInfoDialog);
     }
 
 }

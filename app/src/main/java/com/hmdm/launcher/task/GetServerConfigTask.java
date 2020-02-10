@@ -21,10 +21,13 @@ package com.hmdm.launcher.task;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.provider.Settings;
 
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.ServerConfigResponse;
+import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
 
@@ -70,6 +73,15 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
             if ( response.isSuccessful() ) {
                 if ( Const.STATUS_OK.equals( response.body().getStatus() ) && response.body().getData() != null ) {
                     settingsHelper.updateConfig( response.body().getData() );
+
+                    // Prevent from occasional launch in the kiosk mode without any possibility to exit!
+                    if (ProUtils.kioskModeRequired(context) &&
+                            !settingsHelper.getConfig().getMainApp().equals(context.getPackageName()) &&
+                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                            !Settings.canDrawOverlays(context)) {
+                            settingsHelper.getConfig().setKioskMode(false);
+                            settingsHelper.updateConfig(settingsHelper.getConfig());
+                    }
 
                     return Const.TASK_SUCCESS;
                 } else {

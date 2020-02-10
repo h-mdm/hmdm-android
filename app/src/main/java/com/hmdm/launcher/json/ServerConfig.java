@@ -52,6 +52,7 @@ public class ServerConfig {
     private Boolean factoryReset;
 
     private String pushOptions;
+    private String requestUpdates;
 
     private List< Application > applications = new LinkedList();
 
@@ -245,5 +246,13 @@ public class ServerConfig {
 
     public void setPushOptions(String pushOptions) {
         this.pushOptions = pushOptions;
+    }
+
+    public String getRequestUpdates() {
+        return requestUpdates;
+    }
+
+    public void setRequestUpdates(String requestUpdates) {
+        this.requestUpdates = requestUpdates;
     }
 }

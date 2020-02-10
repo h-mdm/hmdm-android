@@ -41,6 +41,7 @@ public class DeviceInfo {
     private String androidVersion;
     private Boolean factoryReset;
     private Location location;
+    private String launcherType;
 
     public static class Location {
         private long ts;
@@ -168,5 +169,13 @@ public class DeviceInfo {
 
     public void setLocation(Location location) {
         this.location = location;
+    }
+
+    public String getLauncherType() {
+        return launcherType;
+    }
+
+    public void setLauncherType(String launcherType) {
+        this.launcherType = launcherType;
     }
 }

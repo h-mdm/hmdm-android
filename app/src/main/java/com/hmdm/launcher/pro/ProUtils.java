@@ -75,6 +75,11 @@ public class ProUtils {
         return false;
     }
 
+    public static boolean isKioskModeRunning(Context context) {
+        // Stub
+        return false;
+    }
+
     // Start COSU kiosk mode
     public static boolean startCosuKioskMode(String kioskApp, Activity activity) {
         // Stub

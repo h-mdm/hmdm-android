@@ -33,6 +33,7 @@ public class Const {
     public static final String ACTION_UPDATE_CONFIGURATION = "UPDATE_CONFIGURATION";
     public static final String ACTION_ADMIN = "ADMIN";
     public static final String ACTION_INSTALL_COMPLETE = "INSTALL_COMPLETE";
+    public static final String ACTION_DISABLE_BLOCK_WINDOW = "DISABLE_BLOCK_WINDOW";
 
     public static long CONNECTION_TIMEOUT = 10000;
     public static final String STATUS_OK = "OK";

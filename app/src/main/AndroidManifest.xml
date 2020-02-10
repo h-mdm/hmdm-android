@@ -43,6 +43,7 @@
     <uses-permission android:name="com.mediatek.permission.CTA_ENABLE_WIFI"/>
     <uses-permission android:name="com.mediatek.permission.CTA_ENABLE_BT"/>
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:icon="@mipmap/ic_launcher"
@@ -114,6 +115,8 @@
         </service>
 
         <service android:name="org.eclipse.paho.android.service.MqttService"/>
+
+        <service android:name=".service.LocationService"/>
 
     </application>
 

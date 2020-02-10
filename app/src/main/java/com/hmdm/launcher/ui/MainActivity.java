@@ -20,12 +20,10 @@
 package com.hmdm.launcher.ui;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -75,7 +73,6 @@ import com.hmdm.launcher.R;
 import com.hmdm.launcher.databinding.ActivityMainBinding;
 import com.hmdm.launcher.databinding.DialogAccessibilityServiceBinding;
 import com.hmdm.launcher.databinding.DialogAdministratorModeBinding;
-import com.hmdm.launcher.databinding.DialogDeviceInfoBinding;
 import com.hmdm.launcher.databinding.DialogEnterPasswordBinding;
 import com.hmdm.launcher.databinding.DialogFileDownloadingFailedBinding;
 import com.hmdm.launcher.databinding.DialogHistorySettingsBinding;
@@ -95,6 +92,7 @@ import com.hmdm.launcher.pro.service.CheckForegroundApplicationService;
 import com.hmdm.launcher.pro.worker.DetailedInfoWorker;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
+import com.hmdm.launcher.service.LocationService;
 import com.hmdm.launcher.service.PluginApiService;
 import com.hmdm.launcher.task.GetRemoteLogConfigTask;
 import com.hmdm.launcher.task.GetServerConfigTask;
@@ -148,9 +146,6 @@ public class MainActivity
     private Dialog administratorModeDialog;
     private DialogAdministratorModeBinding dialogAdministratorModeBinding;
 
-    private Dialog deviceInfoDialog;
-    private DialogDeviceInfoBinding dialogDeviceInfoBinding;
-
     private Dialog accessibilityServiceDialog;
     private DialogAccessibilityServiceBinding dialogAccessibilityServiceBinding;
 
@@ -202,13 +197,29 @@ public class MainActivity
                             }
                         }, 5000 );
                     }
-
                     break;
+
+                case Const.ACTION_DISABLE_BLOCK_WINDOW:
+                    if ( applicationNotAllowed != null) {
+                        applicationNotAllowed.setVisibility(View.GONE);
+                    }
+                    break;
+
                 case Const.ACTION_EXIT:
                     finish();
                     break;
             }
 
+        }
+    };
+
+    private final BroadcastReceiver stateChangeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            try {
+                checkSystemSettings(settingsHelper.getConfig());
+            } catch (Exception e) {
+            }
         }
     };
 
@@ -249,6 +260,9 @@ public class MainActivity
             PushNotificationWorker.schedule(MainActivity.this);
         }
 
+        // Prevent showing the lock screen during the app download/installation
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         binding = DataBindingUtil.setContentView( this, R.layout.activity_main );
         binding.setMessage( getString( R.string.main_start_preparations ) );
         binding.setLoading( true );
@@ -259,6 +273,12 @@ public class MainActivity
         settingsHelper = SettingsHelper.getInstance( this );
         preferences = getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
         initReceiver();
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
+        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(stateChangeReceiver, intentFilter);
     }
 
     @Override
@@ -535,7 +555,7 @@ public class MainActivity
 
     private void createButtons() {
         ServerConfig config = settingsHelper.getConfig();
-        if (ProUtils.kioskModeRequired(this)) {
+        if (ProUtils.kioskModeRequired(this) && !settingsHelper.getConfig().getMainApp().equals(getPackageName())) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                     !Settings.canDrawOverlays( this )) {
                 Toast.makeText(this, R.string.kiosk_mode_requires_overlays, Toast.LENGTH_LONG).show();
@@ -871,8 +891,43 @@ public class MainActivity
             confirmTask.execute(deviceInfo);
 
         } else {
-            checkAndUpdateApplications();
+            updateLocationService();
         }
+    }
+
+    private void updateLocationService() {
+        startLocationServiceWithRetry();
+        checkAndUpdateApplications();
+    }
+
+    // Workaround against crash "App is in background" on Android 9: this is an Android OS bug
+    // https://stackoverflow.com/questions/52013545/android-9-0-not-allowed-to-start-service-app-is-in-background-after-onresume
+    private void startLocationServiceWithRetry() {
+        try {
+            startLocationService();
+        } catch (Exception e) {
+            // Android OS bug!!!
+            e.printStackTrace();
+
+            // Repeat an attempt to start service after one second
+            new Handler().postDelayed(new Runnable() {
+                public void run() {
+                    try {
+                        startLocationService();
+                    } catch (Exception e) {
+                        // Still failed, now give up!
+                        e.printStackTrace();
+                    }
+                }
+            }, 1000);
+        }
+    }
+
+    private void startLocationService() {
+        ServerConfig config = settingsHelper.getConfig();
+        Intent intent = new Intent(this, LocationService.class);
+        intent.setAction(config.getRequestUpdates() != null ? config.getRequestUpdates() : LocationService.ACTION_STOP);
+        startService(intent);
     }
 
     private void checkAndUpdateApplications() {
@@ -1036,8 +1091,14 @@ public class MainActivity
                             }
                         } else {
                             applicationsForInstall.add( 0, applicationStatus.application );
-                            createAndShowFileNotDownloadedDialog( applicationStatus.application );
-                            binding.setDownloading( false );
+                            if (!ProUtils.kioskModeRequired(MainActivity.this)) {
+                                createAndShowFileNotDownloadedDialog(applicationStatus.application);
+                                binding.setDownloading( false );
+                            } else {
+                                // Avoid user interaction in kiosk mode, just ignore download error and keep the old version
+                                // Note: view is not used in this method so just pass null there
+                                confirmDownloadFailureClicked(null);
+                            }
                         }
                     }
                 }
@@ -1281,11 +1342,14 @@ public class MainActivity
             if (cm != null && !dialogWillShow) {
                 try {
                     boolean enabled = Utils.isMobileDataEnabled(this);
-                    final Intent mobileDataSettingsIntent = new Intent();
+                    //final Intent mobileDataSettingsIntent = new Intent();
                     // One more hack: open the data transport activity
                     // https://stackoverflow.com/questions/31700842/which-intent-should-open-data-usage-screen-from-settings
-                    mobileDataSettingsIntent.setComponent(new ComponentName("com.android.settings",
-                            "com.android.settings.Settings$DataUsageSummaryActivity"));
+                    //mobileDataSettingsIntent.setComponent(new ComponentName("com.android.settings",
+                    //        "com.android.settings.Settings$DataUsageSummaryActivity"));
+                    //Intent mobileDataSettingsIntent = new Intent(Intent.ACTION_MAIN);
+                    //mobileDataSettingsIntent.setClassName("com.android.phone", "com.android.phone.NetworkSetting");
+                    Intent mobileDataSettingsIntent = new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS);
                     if (config.getMobileData() && !enabled) {
                         postDelayedSystemSettingDialog(getString(R.string.message_turn_on_mobile_data), mobileDataSettingsIntent);
                     } else if (!config.getMobileData() && enabled) {
@@ -1311,7 +1375,8 @@ public class MainActivity
 
         if (ProUtils.kioskModeRequired(this)) {
             String kioskApp = settingsHelper.getConfig().getMainApp();
-            if (kioskApp != null && kioskApp.trim().length() > 0) {
+            // It is not possible to set Headwind MDM as a main app: the logic is then broken
+            if (kioskApp != null && kioskApp.trim().length() > 0 && !kioskApp.equals(getPackageName())) {
                 if (ProUtils.startCosuKioskMode(kioskApp, this)) {
                     return;
                 } else {
@@ -1319,6 +1384,12 @@ public class MainActivity
                 }
             } else {
                 Log.e(Const.LOG_TAG, "Kiosk mode disabled: please setup the main app!");
+            }
+        } else {
+            if (ProUtils.isKioskModeRunning(this)) {
+                // Turn off kiosk and show desktop if it is turned off in the configuration
+                ProUtils.unlockKiosk(this);
+                openDefaultLauncher();
             }
         }
 
@@ -1354,7 +1425,17 @@ public class MainActivity
 
         binding.activityMainContent.setLayoutManager( new GridLayoutManager( this, spanCount ) );
         binding.activityMainContent.setAdapter( new AppListAdapter( this, this ) );
-        binding.setShowContent( true );
+        binding.setShowContent(true);
+        // We can now sleep, uh
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    // Run default launcher (Headwind MDM) as if the user clicked Home button
+    private void openDefaultLauncher() {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
     }
 
     public static class SendDeviceInfoWorker extends Worker {
@@ -1492,6 +1573,7 @@ public class MainActivity
         }
 
         LocalBroadcastManager.getInstance( this ).unregisterReceiver( receiver );
+        unregisterReceiver(stateChangeReceiver);
     }
 
     @Override
@@ -1874,56 +1956,18 @@ public class MainActivity
 
     @Override
     public void onClick( View v ) {
-        if ( v.equals( infoView ) ) {
+        if (v.equals(infoView)) {
             createAndShowInfoDialog();
-        } else {
+        } else if (v.equals(updateView)) {
             if (enterDeviceIdDialog != null && enterDeviceIdDialog.isShowing()) {
                 Log.i(LOG_TAG, "Occasional update request when device info is entered, ignoring!");
                 return;
             }
             Log.i(LOG_TAG, "updating config on request");
-            binding.setShowContent( false );
+            binding.setShowContent(false);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             updateConfig( true );
         }
-    }
-
-    @SuppressLint( { "MissingPermission" } )
-    private void createAndShowInfoDialog() {
-        dismissDialog(deviceInfoDialog);
-        deviceInfoDialog = new Dialog( this );
-        dialogDeviceInfoBinding = DataBindingUtil.inflate(
-                LayoutInflater.from( this ),
-                R.layout.dialog_device_info,
-                null,
-                false );
-        deviceInfoDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
-        deviceInfoDialog.setCancelable( false );
-
-        deviceInfoDialog.setContentView( dialogDeviceInfoBinding.getRoot() );
-
-        dialogDeviceInfoBinding.setSerialNumber(DeviceInfoProvider.getSerialNumber());
-
-        String phone = DeviceInfoProvider.getPhoneNumber(this);
-        if (phone == null || phone.equals("")) {
-            phone = settingsHelper.getConfig() != null ? settingsHelper.getConfig().getPhone() : "";
-        }
-        dialogDeviceInfoBinding.setPhone(phone);
-
-        String imei = DeviceInfoProvider.getImei(this);
-        if (imei == null || imei.equals("")) {
-            imei = settingsHelper.getConfig() != null ? settingsHelper.getConfig().getImei() : "";
-        }
-        dialogDeviceInfoBinding.setImei(imei);
-
-        dialogDeviceInfoBinding.setDeviceId(SettingsHelper.getInstance(this).getDeviceId());
-        dialogDeviceInfoBinding.setVersion( BuildConfig.FLAVOR.length() > 0 ?
-                BuildConfig.VERSION_NAME + "-" + BuildConfig.FLAVOR : BuildConfig.VERSION_NAME );
-
-        deviceInfoDialog.show();
-    }
-
-    public void closeDeviceInfoDialog( View view ) {
-        dismissDialog(deviceInfoDialog);
     }
 
     private void postDelayedSystemSettingDialog(final String message, final Intent settingsIntent) {
@@ -1994,4 +2038,6 @@ public class MainActivity
         startActivity(intent);
         Log.i("LauncherRestarter", "Calling launcher restarter from the launcher");
     }
+
+
 }

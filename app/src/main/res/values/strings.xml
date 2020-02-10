@@ -20,8 +20,8 @@
 <resources>
     <string name="app_name">Headwind MDM</string>
     <string name="admin_title">Administrator</string>
-    <string name="vendor">(c) 2019 Headwind Solutions</string>
-    <string name="demo_text">Headwind MDM © 2019 HeadWind Solutions LLC</string>
+    <string name="vendor">(c) 2020 h-mdm.com</string>
+    <string name="demo_text">Headwind MDM © 2020 h-mdm.com</string>
     <string name="install_error">Error installing </string>
     <string name="dialog_enter_device_id_error">This device ID is not registered on server. Please enter another device ID.</string>
     <string name="dialog_enter_device_id_variants">Variants</string>
@@ -40,7 +40,7 @@
     <string name="main_activity_repeat">Retry</string>
     <string name="main_activity_cancel">Cancel</string>
     <string name="main_activity_details">Details</string>
-    <string name="select_system_launcher">Select a system launcher</string>
+    <string name="select_system_launcher">Select Headwind MDM as a default launcher and check \'Always\':</string>
     <string name="dialog_network_error_title">Server connection error. Please check the Internet connection and try again.</string>
     <string name="main_activity_update_config">Requesting configuration file from server</string>
     <string name="main_activity_applications_update">Updating applications</string>
@@ -58,7 +58,7 @@
     <string name="dialog_accessibility_service_message">Please allow the app to use accessibility services. A Settings sheet will now open. Find the \"Headwind MDM\" item, allow to use accessibility services, and tap \"Back\".</string>
     <string name="dialog_accessibility_service_continue">Continue</string>
     <string name="dialog_accessibility_service_skip">Skip</string>
-    <string name="access_to_app_denied">Access to this app (%s) is blocked by the administrator</string>
+    <string name="access_to_app_denied">Access to this app (%s) is blocked by the administrator. Click \'Home\' to proceed.</string>
     <string name="dialog_app_not_allowed_close">Close</string>
     <string name="dialog_app_not_allowed_admin">Administrator</string>
     <string name="device_id">Device ID</string>
@@ -96,5 +96,7 @@
     <string name="critical_server_failure">Quit due to server fault! Please fix the issue and restart Headwind MDM, or remove it completely and reinstall.</string>
     <string name="dialog_permission_title">The app requires the permissions to run. Please grant the requested permissions.</string>
     <string name="main_activity_exit">Exit</string>
+    <string name="browser_not_found">Cannot open the webpage because the browser is not found. Please add a browser app to the device configuration.</string>
+    <string name="location_service_text">Device location is monitored</string>
 
 </resources>

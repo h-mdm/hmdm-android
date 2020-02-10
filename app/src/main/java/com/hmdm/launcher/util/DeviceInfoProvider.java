@@ -31,6 +31,7 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 
+import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.Application;
@@ -131,8 +132,9 @@ public class DeviceInfoProvider {
         deviceInfo.setBatteryLevel(level * 100 / scale);
 
         deviceInfo.setAndroidVersion(Build.VERSION.RELEASE);
-
         deviceInfo.setLocation(getLocation(context));
+        deviceInfo.setMdmMode(Utils.isDeviceOwner(context));
+        deviceInfo.setLauncherType(BuildConfig.FLAVOR);
 
         return deviceInfo;
     }

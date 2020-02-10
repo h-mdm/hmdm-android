@@ -36,10 +36,12 @@ import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.databinding.ActivityAdminBinding;
 import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.server.ServerServiceKeeper;
 import com.hmdm.launcher.util.AppInfo;
 import com.hmdm.launcher.util.LegacyUtils;
@@ -86,6 +88,12 @@ public class AdminActivity extends BaseActivity {
 
         settingsHelper = SettingsHelper.getInstance( this );
         binding.deviceId.setText(settingsHelper.getDeviceId());
+        binding.deviceId.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                createAndShowInfoDialog();
+            }
+        });
     }
 
     @Override
@@ -128,7 +136,14 @@ public class AdminActivity extends BaseActivity {
     public void saveServerUrl(View view ) {
         if (saveServerUrlBase()) {
             ServerServiceKeeper.resetServices();
-            PushNotificationMqttWrapper.getInstance().disconnect(this);
+            String pushOptions = null;
+            if (settingsHelper != null && settingsHelper.getConfig() != null) {
+                pushOptions = settingsHelper.getConfig().getPushOptions();
+            }
+            if (BuildConfig.ENABLE_PUSH && pushOptions != null && (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER)
+                    || pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM))) {
+                PushNotificationMqttWrapper.getInstance().disconnect(this);
+            }
             updateConfig(view);
         }
     }

@@ -20,8 +20,8 @@
 <resources>
     <string name="app_name">Headwind MDM</string>
     <string name="admin_title">Администратор</string>
-    <string name="vendor">(c) 2019 Хедвинд Солюшнз</string>
-    <string name="demo_text">Демо-версия Android-оболочки. © 2019 ООО \"Хедвинд Солюшнз\"</string>
+    <string name="vendor">(c) 2020 h-mdm.com</string>
+    <string name="demo_text">Демо-версия Android-оболочки. © 2020 h-mdm.com</string>
     <string name="install_error">Ошибка установки</string>
     <string name="dialog_enter_device_id_error">Введенный ID устройства не зарегистрирован на сервере. Введите новый ID устройства.</string>
     <string name="dialog_enter_device_id_variants">Варианты</string>
@@ -40,7 +40,7 @@
     <string name="main_activity_repeat">Повторить</string>
     <string name="main_activity_cancel">Отмена</string>
     <string name="main_activity_details">Детали</string>
-    <string name="select_system_launcher">Выберите системный лаунчер</string>
+    <string name="select_system_launcher">Выберите Headwind MDM в качестве лаунчера и укажите \'Всегда\':</string>
     <string name="dialog_network_error_title">Произошла ошибка подключения к серверу. Проверьте своё интернет подключение и попробуйте снова.</string>
     <string name="main_activity_update_config">Запрашиваем конфигурацию с сервера</string>
     <string name="main_activity_applications_update">Обновляем приложения</string>
@@ -58,7 +58,7 @@
     <string name="dialog_accessibility_service_message">Пожалуйста, разрешите приложению использовать специальные возможности. Сейчас откроется окно настроек Android, выберите пункт \"Headwind MDM\", в открывшемся окне активируйте приложение и нажмите \"Назад\".</string>
     <string name="dialog_accessibility_service_continue">Продолжить</string>
     <string name="dialog_accessibility_service_skip">Без разрешения</string>
-    <string name="access_to_app_denied">Доступ к этому приложению (%s) ограничен администратором</string>
+    <string name="access_to_app_denied">Доступ к этому приложению (%s) ограничен администратором. Нажмите \'Home\' для возврата.</string>
     <string name="dialog_app_not_allowed_close">Закрыть</string>
     <string name="dialog_app_not_allowed_admin">Администратор</string>
     <string name="device_id">ID устройства</string>
@@ -95,5 +95,7 @@
     <string name="critical_server_failure">Завершение работы из-за ошибки сервера! Исправьте ошибку и перезапустите Headwind MDM, или удалите и установите лаунчер заново.</string>
     <string name="dialog_permission_title">Приложение требует разрешений для работы. Пожалуйста, предоставьте требуемые разрешения.</string>
     <string name="main_activity_exit">Выход</string>
+    <string name="browser_not_found">Невозможно открыть веб-страницу: браузер не найден. Пожалуйста, добавьте приложение-браузер в конфигурацию устройства.</string>
+    <string name="location_service_text">Местоположение устройства передается на сервер</string>
 
 </resources>

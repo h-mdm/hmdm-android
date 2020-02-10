@@ -19,6 +19,7 @@
 
 package com.hmdm.launcher.ui;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -27,6 +28,7 @@ import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -203,7 +205,11 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
                     if (resolveInfo.url != null) {
                         Intent i = new Intent(Intent.ACTION_VIEW);
                         i.setData(Uri.parse(resolveInfo.url));
-                        context.startActivity(i);
+                        try {
+                            context.startActivity(i);
+                        } catch (ActivityNotFoundException e) {
+                            Toast.makeText(context, R.string.browser_not_found, Toast.LENGTH_LONG).show();
+                        }
                     }
                     break;
             }

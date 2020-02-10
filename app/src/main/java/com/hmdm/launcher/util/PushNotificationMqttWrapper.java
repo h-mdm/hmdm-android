@@ -197,7 +197,7 @@ public class PushNotificationMqttWrapper {
         try {
             RemoteLogger.log(context, Const.LOG_DEBUG, "MQTT client disconnected by user request");
             client.disconnect();
-        } catch (MqttException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         client = null;
