@@ -33,7 +33,6 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -61,7 +60,7 @@ public class LocationService extends Service {
         @Override
         public void onLocationChanged(Location location) {
             // Do nothing here: we use getLastKnownLocation() to determine the location!
-            Toast.makeText(LocationService.this, "Location updated from GPS", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(LocationService.this, "Location updated from GPS", Toast.LENGTH_SHORT).show();
         }
 
         @Override
@@ -80,7 +79,7 @@ public class LocationService extends Service {
         @Override
         public void onLocationChanged(Location location) {
             // Do nothing here: we use getLastKnownLocation() to determine the location!
-            Toast.makeText(LocationService.this, "Location updated from Network", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(LocationService.this, "Location updated from Network", Toast.LENGTH_SHORT).show();
         }
 
         @Override

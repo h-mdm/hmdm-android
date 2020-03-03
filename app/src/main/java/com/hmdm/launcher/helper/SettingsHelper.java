@@ -50,15 +50,15 @@ public class SettingsHelper {
 
     private static SettingsHelper instance;
 
-    public static SettingsHelper getInstance( Context context ) {
-        if ( instance == null ) {
-            instance = new SettingsHelper( context );
+    public static SettingsHelper getInstance(Context context) {
+        if (instance == null) {
+            instance = new SettingsHelper(context);
         }
 
         return instance;
     }
 
-    public SettingsHelper( Context context ) {
+    public SettingsHelper(Context context) {
         PACKAGE_NAME = context.getPackageName();
         sharedPreferences = context.getSharedPreferences(PACKAGE_NAME + PREFERENCES_ID, Context.MODE_PRIVATE );
         initConfig();

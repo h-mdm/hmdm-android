@@ -23,10 +23,12 @@
     <string name="vendor">(c) 2020 h-mdm.com</string>
     <string name="demo_text">Headwind MDM © 2020 h-mdm.com</string>
     <string name="install_error">Error installing </string>
-    <string name="dialog_enter_device_id_error">This device ID is not registered on server. Please enter another device ID.</string>
+    <string name="dialog_enter_device_id_error">This ID is not registered at %s. Get the ID from \"Devices\" tab of the control panel.</string>
+    <string name="dialog_enter_device_id_qrcode">QR code</string>
     <string name="dialog_enter_device_id_variants">Variants</string>
     <string name="dialog_enter_device_id_save">Save</string>
-    <string name="dialog_enter_device_id_title">Enter device ID</string>
+    <string name="dialog_enter_device_id_exit">Exit</string>
+    <string name="dialog_enter_device_id_title">Enter the device ID at %s</string>
     <string name="main_start_preparations">Preparing to start</string>
     <string name="main_downloading_configuration">Updating configuration file</string>
     <string name="main_downloading_content">Updating data</string>
@@ -98,5 +100,5 @@
     <string name="main_activity_exit">Exit</string>
     <string name="browser_not_found">Cannot open the webpage because the browser is not found. Please add a browser app to the device configuration.</string>
     <string name="location_service_text">Device location is monitored</string>
-
+    <string name="qrcode_contents_error">Invalid QR code contents. Please generate the provisioning QR code in the Headwind MDM web panel.</string>
 </resources>

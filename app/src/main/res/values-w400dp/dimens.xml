@@ -20,4 +20,5 @@
 <resources>
     <dimen name="dialog_enter_device_id_width">350dp</dimen>
     <dimen name="button_text_size">14dp</dimen>
+    <dimen name="button_text_size_small">12dp</dimen>
 </resources>

@@ -53,6 +53,7 @@ public class Const {
     public static final String PREFERENCES_UNKNOWN_SOURCES = "PREFERENCES_UNKNOWN_SOURCES";
     public static final String PREFERENCES_DISABLE_LOCATION = "PREFERENCES_DISABLE_LOCATION";
     public static final String PREFERENCES_MIUI_PERMISSIONS = "PREFERENCES_MIUI_PERMISSIONS";
+    public static final String PREFERENCES_LOG_STRING = "PREFERENCES_LOG_STRING";
 
     public static final String LOG_TAG = "HeadwindMDM";
 

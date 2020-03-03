@@ -39,12 +39,14 @@
           tools:context="com.hmdm.launcher.ui.MainActivity">
 
         <TextView
+            android:id="@+id/deviceIdError"
             android:layout_width="@dimen/dialog_enter_device_id_width"
             android:layout_height="wrap_content"
             bind:boolToVisible="@{error}"
             android:text="@string/dialog_enter_device_id_error"/>
 
         <TextView
+            android:id="@+id/deviceIdPrompt"
             android:layout_width="@dimen/dialog_enter_device_id_width"
             android:layout_height="wrap_content"
             bind:boolToVisible="@{!error}"
@@ -64,10 +66,19 @@
             android:gravity="center_horizontal"
             >
             <Button
+                android:id="@+id/showDeviceIdQrCode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textSize="@dimen/button_text_size_small"
+                android:text="@string/dialog_enter_device_id_qrcode"
+                android:onClick="showDeviceIdQrCode"/>
+            <Button
                 android:id="@+id/showDeviceIdVariants"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:textSize="@dimen/button_text_size_small"
                 android:text="@string/dialog_enter_device_id_variants"
                 android:onClick="showDeviceIdVariants"/>
             <Button
@@ -75,8 +86,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:textSize="@dimen/button_text_size_small"
                 android:text="@string/dialog_enter_device_id_save"
                 android:onClick="saveDeviceId"/>
+            <Button
+                android:id="@+id/exitDeviceId"
+                bind:boolToVisible="@{error}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textSize="@dimen/button_text_size_small"
+                android:text="@string/dialog_enter_device_id_exit"
+                android:onClick="exitDeviceId"/>
 
         </LinearLayout>
 

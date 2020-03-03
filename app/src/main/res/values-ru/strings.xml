@@ -23,10 +23,12 @@
     <string name="vendor">(c) 2020 h-mdm.com</string>
     <string name="demo_text">Демо-версия Android-оболочки. © 2020 h-mdm.com</string>
     <string name="install_error">Ошибка установки</string>
-    <string name="dialog_enter_device_id_error">Введенный ID устройства не зарегистрирован на сервере. Введите новый ID устройства.</string>
+    <string name="dialog_enter_device_id_error">Этот ID не зарегистрирован на сервере %s, найдите ID на сервере в разделе \"Устройства\".</string>
+    <string name="dialog_enter_device_id_qrcode">QR код</string>
     <string name="dialog_enter_device_id_variants">Варианты</string>
     <string name="dialog_enter_device_id_save">Сохранить</string>
-    <string name="dialog_enter_device_id_title">Введите ID устройства</string>
+    <string name="dialog_enter_device_id_exit">Выход</string>
+    <string name="dialog_enter_device_id_title">Введите ID устройства на сервере %s</string>
     <string name="main_start_preparations">Подготовка к запуску</string>
     <string name="main_downloading_configuration">Обновляем файл конфигурации</string>
     <string name="main_downloading_content">Обновляем данные</string>
@@ -97,5 +99,5 @@
     <string name="main_activity_exit">Выход</string>
     <string name="browser_not_found">Невозможно открыть веб-страницу: браузер не найден. Пожалуйста, добавьте приложение-браузер в конфигурацию устройства.</string>
     <string name="location_service_text">Местоположение устройства передается на сервер</string>
-
+    <string name="qrcode_contents_error">Неверное содержимое QR кода. Пожалуйста, сформируйте QR код на сервере Headwind MDM.</string>
 </resources>

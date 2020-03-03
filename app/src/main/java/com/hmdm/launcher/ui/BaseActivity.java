@@ -21,16 +21,26 @@ package com.hmdm.launcher.ui;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.app.admin.DevicePolicyManager;
+import android.content.Intent;
+import android.os.Build;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 import com.hmdm.launcher.BuildConfig;
+import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.databinding.DialogDeviceInfoBinding;
 import com.hmdm.launcher.databinding.DialogEnterDeviceIdBinding;
@@ -38,12 +48,19 @@ import com.hmdm.launcher.databinding.DialogEnterServerBinding;
 import com.hmdm.launcher.databinding.DialogNetworkErrorBinding;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.util.DeviceInfoProvider;
+import com.hmdm.launcher.util.Utils;
+
+import org.json.JSONObject;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BaseActivity extends AppCompatActivity {
 
     protected final static String LOG_TAG = "HeadwindMdm";
+
+    protected ProgressDialog progressDialog;
 
     protected Dialog enterServerDialog;
     protected DialogEnterServerBinding dialogEnterServerBinding;
@@ -74,6 +91,14 @@ public class BaseActivity extends AppCompatActivity {
                 R.layout.dialog_enter_device_id,
                 null,
                 false );
+        SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
+        String serverUrl = settingsHelper.getBaseUrl();
+        String serverPath = settingsHelper.getServerProject();
+        if (serverPath.length() > 0) {
+            serverUrl += "/" + serverPath;
+        }
+        enterDeviceIdDialogBinding.deviceIdPrompt.setText(getString(R.string.dialog_enter_device_id_title, serverUrl));
+        enterDeviceIdDialogBinding.deviceIdError.setText(getString(R.string.dialog_enter_device_id_error, serverUrl));
         enterDeviceIdDialogBinding.setError( error );
         enterDeviceIdDialog.setCancelable( false );
         enterDeviceIdDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
@@ -84,20 +109,98 @@ public class BaseActivity extends AppCompatActivity {
         // Suggest IMEI as ID is an option which could be turned on in the build settings
         // Don't use this by default because the device ID must not be bound to IMEI:
         // if it's bound to IMEI, it becomes difficult to replace the device
-        String imei = BuildConfig.SUGGEST_IMEI_AS_ID ? DeviceInfoProvider.getImei(this) : null;
-        if (imei != null) {
-            String[] imeiArray = {
-                    imei
-            };
+        List<String> variantsList = new ArrayList<>();
+        if (BuildConfig.SUGGEST_IMEI_AS_ID) {
+            String imei = DeviceInfoProvider.getImei(this);
+            if (imei != null) {
+                variantsList.add(imei);
+            }
+            String serial = DeviceInfoProvider.getSerialNumber();
+            if (serial != null) {
+                variantsList.add(serial);
+            }
+        }
+        if (variantsList.size() > 0) {
+            String[] variantsArray = variantsList.toArray(new String[variantsList.size()]);
             enterDeviceIdDialogBinding.deviceId.setThreshold(0);
             enterDeviceIdDialogBinding.deviceId.setAdapter(new ArrayAdapter<String>(this,
-                    android.R.layout.select_dialog_item, imeiArray));
+                    android.R.layout.select_dialog_item, variantsArray));
         } else {
             enterDeviceIdDialogBinding.showDeviceIdVariants.setVisibility(View.GONE);
         }
 
+        enterDeviceIdDialogBinding.showDeviceIdQrCode.setVisibility(Utils.isDeviceOwner(this) ? View.VISIBLE : View.GONE);
+
         enterDeviceIdDialog.setContentView( enterDeviceIdDialogBinding.getRoot() );
         enterDeviceIdDialog.show();
+    }
+
+    public void showDeviceIdVariants(View view) {
+        enterDeviceIdDialogBinding.deviceId.showDropDown();
+    }
+
+    public void showDeviceIdQrCode(View view) {
+        IntentIntegrator integrator = new IntentIntegrator(this);
+        integrator.setOrientationLocked(false);
+        integrator.initiateScan();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        try {
+            IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+            if (result != null) {
+                if (result.getContents() != null) {
+                    updateSettingsFromQr(result.getContents());
+                }
+            } else {
+                super.onActivityResult(requestCode, resultCode, data);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateSettingsFromQr(String qrcode) {
+        try {
+            SettingsHelper settingsHelper = SettingsHelper.getInstance(getApplicationContext());
+            JSONObject qr = new JSONObject(qrcode);
+            JSONObject extras = qr.getJSONObject(DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
+
+            String deviceId = extras.optString(Const.QR_DEVICE_ID_ATTR, null);
+            if (deviceId == null) {
+                // Also let's try legacy attribute
+                deviceId = extras.optString(Const.QR_LEGACY_DEVICE_ID_ATTR, null);
+            }
+            if (deviceId != null) {
+                settingsHelper.setDeviceId(deviceId);
+            }
+
+            String baseUrl = extras.optString(Const.QR_BASE_URL_ATTR, null);
+            if (baseUrl != null) {
+                settingsHelper.setBaseUrl(baseUrl);
+            }
+
+            String secondaryBaseUrl = extras.optString(Const.QR_SECONDARY_BASE_URL_ATTR, null);
+            if (secondaryBaseUrl != null) {
+                settingsHelper.setSecondaryBaseUrl(secondaryBaseUrl);
+            }
+
+            String serverProject = extras.optString(Const.QR_SERVER_PROJECT_ATTR, null);
+            if (serverProject != null) {
+                settingsHelper.setServerProject(serverProject);
+            }
+
+        } catch (Exception e) {
+            Toast.makeText(this, R.string.qrcode_contents_error, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public void exitDeviceId(View view) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            finishAffinity();
+        }
+        System.exit(0);
     }
 
     protected void createAndShowNetworkErrorDialog() {
@@ -217,6 +320,36 @@ public class BaseActivity extends AppCompatActivity {
 
     public void closeDeviceInfoDialog( View view ) {
         dismissDialog(deviceInfoDialog);
+    }
+
+
+    public void exitToSystemLauncher( View view ) {
+        LocalBroadcastManager.getInstance( this ).sendBroadcast( new Intent( Const.ACTION_SERVICE_STOP ) );
+        LocalBroadcastManager.getInstance( this ).sendBroadcast( new Intent( Const.ACTION_EXIT ) );
+
+        // One second delay is required to avoid race between opening a forbidden activity and stopping the locked mode
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setMessage(getString(R.string.switch_off_blockings));
+        progressDialog.show();
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (progressDialog != null) {
+                    progressDialog.dismiss();
+                    progressDialog = null;
+                }
+
+                Intent intent = new Intent( Intent.ACTION_MAIN );
+                intent.addCategory( Intent.CATEGORY_HOME );
+                intent.addCategory( Intent.CATEGORY_DEFAULT );
+                intent.setFlags( Intent.FLAG_ACTIVITY_NEW_TASK );
+
+                startActivity( Intent.createChooser( intent, getString( R.string.select_system_launcher ) ) );
+            }
+        }, 1000);
     }
 
 }

@@ -33,11 +33,14 @@ import android.content.pm.PackageManager;
 import android.content.pm.PermissionInfo;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
+import android.os.UserManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.WindowManager;
+
+import androidx.core.content.FileProvider;
 
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.json.ServerConfig;
@@ -57,8 +60,6 @@ import java.util.List;
 import static android.app.admin.DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED;
 
 public class Utils {
-    private static final String LOG_TAG = "HeadwindMDM";
-
     public static boolean isDeviceOwner(Context context) {
         DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
         return dpm != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && dpm.isDeviceOwnerApp(context.getPackageName());
@@ -68,21 +69,21 @@ public class Utils {
         void onDownloadProgress(final int progress, final long total, final long current);
     }
 
-    public static File downloadApplication(String strUrl, DownloadApplicationProgress progressHandler ) throws Exception {
-        File tempFile = new File( Environment.getExternalStorageDirectory(), getFileName( strUrl ) );
-        if ( tempFile.exists() ) {
+    public static File downloadApplication(Context context, String strUrl, DownloadApplicationProgress progressHandler ) throws Exception {
+        File tempFile = new File(context.getExternalFilesDir(null), getFileName(strUrl));
+        if (tempFile.exists()) {
             tempFile.delete();
         }
 
         try {
             tempFile.createNewFile();
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             e.printStackTrace();
 
-            tempFile = File.createTempFile( getFileName( strUrl ), "temp" );
+            tempFile = File.createTempFile(getFileName(strUrl), "temp");
         }
 
-        URL url = new URL( strUrl );
+        URL url = new URL(strUrl);
 
         HttpURLConnection connection = (HttpURLConnection)url.openConnection();
         connection.setRequestMethod("GET");
@@ -97,7 +98,7 @@ public class Utils {
 
         int lengthOfFile = connection.getContentLength();
 
-        progressHandler.onDownloadProgress( 0, lengthOfFile, 0 );
+        progressHandler.onDownloadProgress(0, lengthOfFile, 0);
 
         InputStream is = url.openStream();
         DataInputStream dis = new DataInputStream(is);
@@ -106,14 +107,14 @@ public class Utils {
         int length;
         long total = 0;
 
-        FileOutputStream fos = new FileOutputStream( tempFile );
-        while ( ( length = dis.read( buffer ) ) > 0 ) {
+        FileOutputStream fos = new FileOutputStream(tempFile);
+        while ((length = dis.read(buffer)) > 0) {
             total += length;
             progressHandler.onDownloadProgress(
-                    ( int ) ( ( total * 100.0f ) / lengthOfFile ),
+                    (int)((total * 100.0f) / lengthOfFile),
                     lengthOfFile,
-                    total );
-            fos.write( buffer, 0, length );
+                    total);
+            fos.write(buffer, 0, length);
         }
         fos.flush();
         fos.close();
@@ -123,20 +124,26 @@ public class Utils {
         return tempFile;
     }
 
-    private static String getFileName( String strUrl ) {
-        return strUrl.substring( strUrl.lastIndexOf( "/" ) );
+    private static String getFileName(String strUrl) {
+        return strUrl.substring(strUrl.lastIndexOf("/"));
     }
 
-    public interface SilentInstallErrorHandler {
+    public interface InstallErrorHandler {
         public void onInstallError();
     }
 
-    public static void silentInstallApplication(Context context, File file, String packageName, SilentInstallErrorHandler errorHandler) {
+    public static void silentInstallApplication(Context context, File file, String packageName, InstallErrorHandler errorHandler) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             return;
         }
+
+        if (file.getName().endsWith(".xapk")) {
+            XapkUtils.install(context, XapkUtils.extract(context, file), packageName, errorHandler);
+            return;
+        }
+
         try {
-            Log.i(LOG_TAG, "Installing " + packageName);
+            Log.i(Const.LOG_TAG, "Installing " + packageName);
             FileInputStream in = new FileInputStream(file);
             PackageInstaller packageInstaller = context.getPackageManager().getPackageInstaller();
             PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(
@@ -156,14 +163,14 @@ public class Utils {
             out.close();
 
             session.commit(createIntentSender(context, sessionId, packageName));
-            Log.i(LOG_TAG, "Installation session committed");
+            Log.i(Const.LOG_TAG, "Installation session committed");
 
         } catch (Exception e) {
             errorHandler.onInstallError();
         }
     }
 
-    private static IntentSender createIntentSender(Context context, int sessionId, String packageName) {
+    public static IntentSender createIntentSender(Context context, int sessionId, String packageName) {
         Intent intent = new Intent(Const.ACTION_INSTALL_COMPLETE);
         if (packageName != null) {
             intent.putExtra(Const.PACKAGE_NAME, packageName);
@@ -184,6 +191,33 @@ public class Utils {
         } catch (Exception e) {
             // If we're trying to remove an unexistent app, it causes an exception so just ignore it
         }
+    }
+
+    public static void requestInstallApplication(Context context, File file, InstallErrorHandler errorHandler) {
+        if (file.getName().endsWith(".xapk")) {
+            XapkUtils.install(context, XapkUtils.extract(context, file), null, errorHandler);
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            Uri uri = FileProvider.getUriForFile( context,
+                    context.getApplicationContext().getPackageName() + ".provider",
+                    file );
+            intent.setDataAndType( uri, "application/vnd.android.package-archive" );
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            context.startActivity(intent);
+        } else {
+            Uri apkUri = Uri.fromFile( file );
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        }
+    }
+
+    public static void requestUninstallApplication(Context context, String packageName) {
+        Uri packageUri = Uri.parse("package:" + packageName);
+        context.startActivity(new Intent(Intent.ACTION_UNINSTALL_PACKAGE, packageUri));
     }
 
     // Automatically get dangerous permissions
@@ -383,5 +417,142 @@ public class Utils {
     public static boolean isMiui(Context context) {
         return isPackageInstalled(context, "com.miui.home") ||
                 isPackageInstalled(context, "com.miui.securitycenter");
+    }
+
+    public static boolean lockSafeBoot(Context context) {
+        if (!isDeviceOwner(context) || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return false;
+        }
+
+        DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(
+                Context.DEVICE_POLICY_SERVICE);
+        ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+
+        try {
+            devicePolicyManager.addUserRestriction(adminComponentName, UserManager.DISALLOW_SAFE_BOOT);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean lockUsbStorage(boolean lock, Context context) {
+        if (!isDeviceOwner(context) || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            try {
+                // Deprecated way to lock USB
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    Settings.Secure.putInt(context.getContentResolver(), Settings.Secure.USB_MASS_STORAGE_ENABLED, 0);
+                } else {
+                    Settings.Global.putInt(context.getContentResolver(), Settings.Global.USB_MASS_STORAGE_ENABLED, 0);
+                }
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        }
+
+        DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(
+                Context.DEVICE_POLICY_SERVICE);
+        ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+
+        try {
+            if (lock) {
+                devicePolicyManager.addUserRestriction(adminComponentName, UserManager.DISALLOW_USB_FILE_TRANSFER);
+                devicePolicyManager.addUserRestriction(adminComponentName, UserManager.DISALLOW_MOUNT_PHYSICAL_MEDIA);
+            } else {
+                devicePolicyManager.clearUserRestriction(adminComponentName, UserManager.DISALLOW_USB_FILE_TRANSFER);
+                devicePolicyManager.clearUserRestriction(adminComponentName, UserManager.DISALLOW_MOUNT_PHYSICAL_MEDIA);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean setBrightnessPolicy(Boolean auto, Integer brightness, Context context) {
+        if (!isDeviceOwner(context) || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return false;
+        }
+
+        DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(
+                Context.DEVICE_POLICY_SERVICE);
+        ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+
+        try {
+            if (auto == null) {
+                // This means we should unlock brightness
+                devicePolicyManager.clearUserRestriction(adminComponentName, UserManager.DISALLOW_CONFIG_BRIGHTNESS);
+            } else {
+                // Managed brightness
+                devicePolicyManager.addUserRestriction(adminComponentName, UserManager.DISALLOW_CONFIG_BRIGHTNESS);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    // This option is available in Android 9 and above
+                    if (auto) {
+                        devicePolicyManager.setSystemSetting(adminComponentName, Settings.System.SCREEN_BRIGHTNESS_MODE, "1");
+                    } else {
+                        devicePolicyManager.setSystemSetting(adminComponentName, Settings.System.SCREEN_BRIGHTNESS_MODE, "0");
+                        if (brightness != null) {
+                            devicePolicyManager.setSystemSetting(adminComponentName, Settings.System.SCREEN_BRIGHTNESS, "" + brightness);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean setScreenTimeoutPolicy(Boolean lock, Integer timeout, Context context) {
+        if (!isDeviceOwner(context) || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return false;
+        }
+
+        DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(
+                Context.DEVICE_POLICY_SERVICE);
+        ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+
+        try {
+            if (lock == null || !lock) {
+                // This means we should unlock screen timeout
+                devicePolicyManager.clearUserRestriction(adminComponentName, UserManager.DISALLOW_CONFIG_SCREEN_TIMEOUT);
+            } else {
+                // Managed screen timeout
+                devicePolicyManager.addUserRestriction(adminComponentName, UserManager.DISALLOW_CONFIG_SCREEN_TIMEOUT);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && timeout != null) {
+                    // This option is available in Android 9 and above
+                    devicePolicyManager.setSystemSetting(adminComponentName, Settings.System.SCREEN_OFF_TIMEOUT, "" + (timeout * 1000));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean lockVolume(Boolean lock, Context context) {
+        if (!isDeviceOwner(context) || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return false;
+        }
+
+        DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(
+                Context.DEVICE_POLICY_SERVICE);
+        ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+
+        try {
+            if (lock == null || !lock) {
+                devicePolicyManager.clearUserRestriction(adminComponentName, UserManager.DISALLOW_ADJUST_VOLUME);
+            } else {
+                devicePolicyManager.addUserRestriction(adminComponentName, UserManager.DISALLOW_ADJUST_VOLUME);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }

@@ -30,6 +30,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
@@ -57,7 +58,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.FileProvider;
 import androidx.databinding.DataBindingUtil;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -255,6 +255,8 @@ public class MainActivity
         // Crashlytics is not included in the open-source version
         ProUtils.initCrashlytics(this);
 
+        Utils.lockSafeBoot(this);
+
         DetailedInfoWorker.schedule(MainActivity.this);
         if (BuildConfig.ENABLE_PUSH) {
             PushNotificationWorker.schedule(MainActivity.this);
@@ -301,12 +303,22 @@ public class MainActivity
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(Const.ACTION_INSTALL_COMPLETE)) {
-                    // Always grant all dangerous rights to the app
-                    // TODO: in the future, the rights must be configurable on the server
-                    String packageName = intent.getStringExtra(Const.PACKAGE_NAME);
-                    if (packageName != null) {
-                        Log.i(LOG_TAG, "Install complete: " + packageName);
-                        Utils.autoGrantRequestedPermissions(MainActivity.this, packageName);
+                    int status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, 0);
+                    if (status == PackageInstaller.STATUS_PENDING_USER_ACTION) {
+                        Intent confirmationIntent = intent.getParcelableExtra(Intent.EXTRA_INTENT);
+                        confirmationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        try {
+                            startActivity(confirmationIntent);
+                        } catch (Exception e) {
+                        }
+                    } else if (Utils.isDeviceOwner(MainActivity.this)){
+                        // Always grant all dangerous rights to the app
+                        // TODO: in the future, the rights must be configurable on the server
+                        String packageName = intent.getStringExtra(Const.PACKAGE_NAME);
+                        if (packageName != null) {
+                            Log.i(LOG_TAG, "Install complete: " + packageName);
+                            Utils.autoGrantRequestedPermissions(MainActivity.this, packageName);
+                        }
                     }
                     checkAndStartLauncher();
                 }
@@ -643,6 +655,7 @@ public class MainActivity
     private boolean checkMiuiPermissions() {
         // Permissions to open popup from background first appears in MIUI 11 (Android 9)
         if (Utils.isMiui(this) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_ENABLE_SETTINGS));
             createAndShowMiuiPermissionsDialog();
             // It is not known how to check this permission programmatically, so return true
             return true;
@@ -747,9 +760,15 @@ public class MainActivity
         } catch (Exception e) {
         }
 
+        int offsetRight = 0;
+        if (settingsHelper != null && settingsHelper.getConfig() != null && settingsHelper.getConfig().getLockStatusBar() != null && settingsHelper.getConfig().getLockStatusBar()) {
+            // If we lock the right bar, let's shift buttons to avoid overlapping
+            offsetRight = getResources().getDimensionPixelOffset(R.dimen.prevent_applications_list_width);
+        }
+
         RelativeLayout view = new RelativeLayout(this);
         // Offset is multiplied by 2 because the view is centered. Yeah I know its an Induism)
-        view.setPadding(0, offset * 2, 0, 0);
+        view.setPadding(0, offset * 2, offsetRight, 0);
         view.setLayoutParams(layoutParams);
 
         ImageView manageButton = new ImageView( this );
@@ -799,6 +818,9 @@ public class MainActivity
         configInitializing = true;
         DetailedInfoWorker.requestConfigUpdate(this);
 
+        // Work around a strange bug with stale SettingsHelper instance: re-read its value
+        settingsHelper = SettingsHelper.getInstance(this);
+
         binding.setMessage( getString( R.string.main_activity_update_config ) );
         GetServerConfigTask task = new GetServerConfigTask( this ) {
             @Override
@@ -820,6 +842,7 @@ public class MainActivity
                         }
                         break;
                     case Const.TASK_NETWORK_ERROR:
+                        RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Failed to update config: network error");
                         if ( settingsHelper.getConfig() != null && !force ) {
                             updateRemoteLogConfig();
                         } else {
@@ -873,8 +896,8 @@ public class MainActivity
     }
 
     private void checkFactoryReset() {
-        ServerConfig config = settingsHelper.getConfig();
-        if (config.getFactoryReset() != null && config.getFactoryReset()) {
+        ServerConfig config = settingsHelper != null ? settingsHelper.getConfig() : null;
+        if (config != null && config.getFactoryReset() != null && config.getFactoryReset()) {
             // We got a factory reset request, let's confirm and erase everything!
             SendDeviceInfoTask confirmTask = new SendDeviceInfoTask(this) {
                 @Override
@@ -952,11 +975,13 @@ public class MainActivity
         // We process only applications of type "app" (default) and skip web links and others
         for (Application a : applications) {
             if ((a.getType() == null || a.getType().equals(Application.TYPE_APP)) && a.isRemove()) {
+                Log.d(LOG_TAG, "checkAndUpdateApplications(): marking app " + a.getPkg() + " to remove");
                 applicationsForInstall.add(a);
             }
         }
         for (Application a : applications) {
             if ((a.getType() == null || a.getType().equals(Application.TYPE_APP)) && !a.isRemove()) {
+                Log.d(LOG_TAG, "checkAndUpdateApplications(): marking app " + a.getPkg() + " to install");
                 applicationsForInstall.add(a);
             }
         }
@@ -966,6 +991,7 @@ public class MainActivity
             Application application = it.next();
             if ( (application.getUrl() == null || application.getUrl().trim().equals("")) && !application.isRemove() ) {
                 // An app without URL is a system app which doesn't require installation
+                Log.d(LOG_TAG, "checkAndUpdateApplications(): app " + application.getPkg() + " is system, skipping");
                 it.remove();
                 continue;
             }
@@ -976,6 +1002,8 @@ public class MainActivity
                 if (application.isRemove() && !application.getVersion().equals("0") &&
                         !areVersionsEqual(packageInfo.versionName, application.getVersion())) {
                     // If a removal is required, but the app version doesn't match, do not remove
+                    Log.d(LOG_TAG, "checkAndUpdateApplications(): app " + application.getPkg() + " version not match: "
+                            + application.getVersion() + " " + packageInfo.versionName + ", skipping");
                     it.remove();
                     continue;
                 }
@@ -983,6 +1011,8 @@ public class MainActivity
                 if (!application.isRemove() &&
                         (application.isSkipVersion() || application.getVersion().equals("0") || areVersionsEqual(packageInfo.versionName, application.getVersion()))) {
                     // If installation is required, but the app of the same version already installed, do not install
+                    Log.d(LOG_TAG, "checkAndUpdateApplications(): app " + application.getPkg() + " versions match: "
+                            + application.getVersion() + " " + packageInfo.versionName + ", skipping");
                     it.remove();
                     continue;
                 }
@@ -990,6 +1020,7 @@ public class MainActivity
                 // The app isn't installed, let's keep it in the "To be installed" list
                 if (application.isRemove()) {
                     // The app requires removal but already removed, remove from the list so do nothing with the app
+                    Log.d(LOG_TAG, "checkAndUpdateApplications(): app " + application.getPkg() + " not found, nothing to remove");
                     it.remove();
                     continue;
                 }
@@ -1033,7 +1064,7 @@ public class MainActivity
                         File file = null;
                         try {
                             RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Downloading app: " + application.getPkg());
-                            file = Utils.downloadApplication(application.getUrl(),
+                            file = Utils.downloadApplication(MainActivity.this, application.getUrl(),
                                     new Utils.DownloadApplicationProgress() {
                                         @Override
                                         public void onDownloadProgress(final int progress, final long total, final long current) {
@@ -1064,7 +1095,7 @@ public class MainActivity
                             applicationStatus.installed = false;
                         }
                     } else if (application.getUrl().startsWith("market://details")) {
-                        RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Installing app " + application.getPkg() + " from Google Play");
+                        RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Installing app " + application.getPkg() + " from Google Play");
                         installApplicationFromPlayMarket(application.getUrl(), application.getPkg());
                         applicationStatus = new ApplicationStatus();
                         applicationStatus.application = application;
@@ -1105,6 +1136,7 @@ public class MainActivity
 
             }.execute(application);
         } else {
+            RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Configuration updated");
             Log.i(LOG_TAG, "Showing content from loadAndInstallApplications()");
             showContent( settingsHelper.getConfig() );
         }
@@ -1207,8 +1239,8 @@ public class MainActivity
             startLauncherRestarter();
         }
         if (Utils.isDeviceOwner(this)) {
-                RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Silently installing app " + packageName);
-                Utils.silentInstallApplication(this, file, packageName, new Utils.SilentInstallErrorHandler() {
+                RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Silently installing app " + packageName);
+                Utils.silentInstallApplication(this, file, packageName, new Utils.InstallErrorHandler() {
                     @Override
                     public void onInstallError() {
                         Log.i(LOG_TAG, "installApplication(): error installing app " + packageName);
@@ -1229,32 +1261,29 @@ public class MainActivity
                         });
                     }
                 });
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Asking user to install app " + packageName);
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            Uri uri = FileProvider.getUriForFile( this,
-                    getApplicationContext().getPackageName() + ".provider",
-                    file );
-            intent.setDataAndType( uri, "application/vnd.android.package-archive" );
-            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            startActivity(intent);
         } else {
-                RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Asking user to install app " + packageName);
-            Uri apkUri = Uri.fromFile( file );
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
+            RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Asking user to install app " + packageName);
+            Utils.requestInstallApplication(MainActivity.this, file, new Utils.InstallErrorHandler() {
+                @Override
+                public void onInstallError() {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            checkAndStartLauncher();
+                        }
+                    });
+                }
+            });
         }
-
     }
 
     private void uninstallApplication(final String packageName) {
         if (Utils.isDeviceOwner(this)) {
+            RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Silently uninstall app " + packageName);
             Utils.silentUninstallApplication(this, packageName);
         } else {
-            Uri packageUri = Uri.parse("package:" + packageName);
-            startActivity(new Intent(Intent.ACTION_UNINSTALL_PACKAGE, packageUri));
+            RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Asking user to uninstall app " + packageName);
+            Utils.requestUninstallApplication(this, packageName);
         }
     }
 
@@ -1360,6 +1389,22 @@ public class MainActivity
                 }
             }
         }
+
+        if (config.getUsbStorage() != null) {
+            Utils.lockUsbStorage(config.getUsbStorage(), this);
+        }
+
+        // Null value is processed here, it means unlock brightness
+        Utils.setBrightnessPolicy(config.getAutoBrightness(), config.getBrightness(), this);
+
+        if (config.getManageTimeout() != null) {
+            Utils.setScreenTimeoutPolicy(config.getManageTimeout(), config.getTimeout(), this);
+        }
+
+        if (config.getLockVolume() != null) {
+            Utils.lockVolume(config.getLockVolume(), this);
+        }
+
         return true;
     }
 
@@ -1729,9 +1774,6 @@ public class MainActivity
         startActivityForResult( intent, 1001 );
     }
 
-    public void showDeviceIdVariants( View view ) {
-        enterDeviceIdDialogBinding.deviceId.showDropDown();
-    }
 
     public void saveDeviceId( View view ) {
         String deviceId = enterDeviceIdDialogBinding.deviceId.getText().toString();
@@ -1881,6 +1923,7 @@ public class MainActivity
                     if (ProUtils.kioskModeRequired(MainActivity.this)) {
                         ProUtils.unlockKiosk(MainActivity.this);
                     }
+                    RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Administrator panel opened");
                     startActivity( new Intent( MainActivity.this, AdminActivity.class ) );
                 } else {
                     dialogEnterPasswordBinding.setError( true );
@@ -1933,6 +1976,7 @@ public class MainActivity
     public void continueMiuiPermissions( View view ) {
         dismissDialog(miuiPermissionsDialog);
 
+        LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_ENABLE_SETTINGS));
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         Uri uri = Uri.fromParts("package", getPackageName(), null);
         intent.setData(uri);

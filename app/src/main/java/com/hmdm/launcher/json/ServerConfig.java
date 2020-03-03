@@ -54,6 +54,13 @@ public class ServerConfig {
     private String pushOptions;
     private String requestUpdates;
 
+    private Boolean usbStorage;
+    private Boolean autoBrightness;
+    private Integer brightness;
+    private Boolean manageTimeout;
+    private Integer timeout;
+    private Boolean lockVolume;
+
     private List< Application > applications = new LinkedList();
 
     private List< ApplicationSetting > applicationSettings = new LinkedList();
@@ -176,6 +183,7 @@ public class ServerConfig {
     public void setWifi(Boolean wifi) {
         this.wifi = wifi;
     }
+
     public Boolean getMobileData() {
         return mobileData;
     }
@@ -254,5 +262,53 @@ public class ServerConfig {
 
     public void setRequestUpdates(String requestUpdates) {
         this.requestUpdates = requestUpdates;
+    }
+
+    public Boolean getUsbStorage() {
+        return usbStorage;
+    }
+
+    public void setUsbStorage(Boolean usbStorage) {
+        this.usbStorage = usbStorage;
+    }
+
+    public Boolean getAutoBrightness() {
+        return autoBrightness;
+    }
+
+    public void setAutoBrightness(Boolean autoBrightness) {
+        this.autoBrightness = autoBrightness;
+    }
+
+    public Integer getBrightness() {
+        return brightness;
+    }
+
+    public void setBrightness(Integer brightness) {
+        this.brightness = brightness;
+    }
+
+    public Boolean getManageTimeout() {
+        return manageTimeout;
+    }
+
+    public void setManageTimeout(Boolean manageTimeout) {
+        this.manageTimeout = manageTimeout;
+    }
+
+    public Integer getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(Integer timeout) {
+        this.timeout = timeout;
+    }
+
+    public Boolean getLockVolume() {
+        return lockVolume;
+    }
+
+    public void setLockVolume(Boolean lockVolume) {
+        this.lockVolume = lockVolume;
     }
 }
