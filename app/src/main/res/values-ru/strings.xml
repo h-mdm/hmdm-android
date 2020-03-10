@@ -39,11 +39,14 @@
     <string name="main_app_downloading">Скачиваем приложение</string>
     <string name="main_app_downloading_error">Не удалось скачать приложение</string>
     <string name="main_app_removing">Удаляем приложение</string>
-    <string name="main_activity_repeat">Повторить</string>
+    <string name="main_file_downloading">Скачиваем файл</string>
+    <string name="main_file_downloading_error">Не удалось скачать файл</string>
+    <string name="main_activity_repeat">Повтор</string>
+    <string name="main_activity_reset">Сброс</string>
     <string name="main_activity_cancel">Отмена</string>
     <string name="main_activity_details">Детали</string>
     <string name="select_system_launcher">Выберите Headwind MDM в качестве лаунчера и укажите \'Всегда\':</string>
-    <string name="dialog_network_error_title">Произошла ошибка подключения к серверу. Проверьте своё интернет подключение и попробуйте снова.</string>
+    <string name="dialog_network_error_title">Произошла ошибка подключения к серверу %s. Проверьте своё интернет подключение и попробуйте снова.</string>
     <string name="main_activity_update_config">Запрашиваем конфигурацию с сервера</string>
     <string name="main_activity_applications_update">Обновляем приложения</string>
     <string name="dialog_overlay_settings_title">Пожалуйста, разрешите \"Наложение поверх других окон\". Сейчас откроется окно настроек Android, включите разрешение и нажмите \"Назад\". Если настроить наложение не удалось, нажмите \"Без разрешения\" (приложение может работать неверно).</string>

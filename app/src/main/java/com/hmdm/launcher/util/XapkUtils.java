@@ -81,7 +81,7 @@ public class XapkUtils {
         }
     }
 
-    public static void install(Context context, List<File> files, String packageName, Utils.InstallErrorHandler errorHandler) {
+    public static void install(Context context, List<File> files, String packageName, InstallUtils.InstallErrorHandler errorHandler) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             return;
         }
@@ -107,7 +107,7 @@ public class XapkUtils {
             }
 
             PackageInstaller.Session session = packageInstaller.openSession(sessionId);
-            session.commit(Utils.createIntentSender(context, sessionId, packageName));
+            session.commit(InstallUtils.createIntentSender(context, sessionId, packageName));
             session.close();
             Log.i(Const.LOG_TAG, "Installation session committed");
 

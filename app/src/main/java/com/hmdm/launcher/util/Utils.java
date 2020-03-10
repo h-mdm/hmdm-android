@@ -20,40 +20,25 @@
 package com.hmdm.launcher.util;
 
 import android.annotation.TargetApi;
-import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
 import android.app.admin.SystemUpdatePolicy;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentSender;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
 import android.content.pm.PermissionInfo;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.UserManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.WindowManager;
 
-import androidx.core.content.FileProvider;
-
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.json.ServerConfig;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Method;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,161 +48,6 @@ public class Utils {
     public static boolean isDeviceOwner(Context context) {
         DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
         return dpm != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && dpm.isDeviceOwnerApp(context.getPackageName());
-    }
-
-    public interface DownloadApplicationProgress {
-        void onDownloadProgress(final int progress, final long total, final long current);
-    }
-
-    public static File downloadApplication(Context context, String strUrl, DownloadApplicationProgress progressHandler ) throws Exception {
-        File tempFile = new File(context.getExternalFilesDir(null), getFileName(strUrl));
-        if (tempFile.exists()) {
-            tempFile.delete();
-        }
-
-        try {
-            tempFile.createNewFile();
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            tempFile = File.createTempFile(getFileName(strUrl), "temp");
-        }
-
-        URL url = new URL(strUrl);
-
-        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("Accept-Encoding", "identity");
-        connection.setConnectTimeout((int)Const.CONNECTION_TIMEOUT);
-        connection.setReadTimeout((int)Const.CONNECTION_TIMEOUT);
-        connection.connect();
-
-        if (connection.getResponseCode() != 200) {
-            return null;
-        }
-
-        int lengthOfFile = connection.getContentLength();
-
-        progressHandler.onDownloadProgress(0, lengthOfFile, 0);
-
-        InputStream is = url.openStream();
-        DataInputStream dis = new DataInputStream(is);
-
-        byte[] buffer = new byte[1024];
-        int length;
-        long total = 0;
-
-        FileOutputStream fos = new FileOutputStream(tempFile);
-        while ((length = dis.read(buffer)) > 0) {
-            total += length;
-            progressHandler.onDownloadProgress(
-                    (int)((total * 100.0f) / lengthOfFile),
-                    lengthOfFile,
-                    total);
-            fos.write(buffer, 0, length);
-        }
-        fos.flush();
-        fos.close();
-
-        dis.close();
-
-        return tempFile;
-    }
-
-    private static String getFileName(String strUrl) {
-        return strUrl.substring(strUrl.lastIndexOf("/"));
-    }
-
-    public interface InstallErrorHandler {
-        public void onInstallError();
-    }
-
-    public static void silentInstallApplication(Context context, File file, String packageName, InstallErrorHandler errorHandler) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            return;
-        }
-
-        if (file.getName().endsWith(".xapk")) {
-            XapkUtils.install(context, XapkUtils.extract(context, file), packageName, errorHandler);
-            return;
-        }
-
-        try {
-            Log.i(Const.LOG_TAG, "Installing " + packageName);
-            FileInputStream in = new FileInputStream(file);
-            PackageInstaller packageInstaller = context.getPackageManager().getPackageInstaller();
-            PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(
-                    PackageInstaller.SessionParams.MODE_FULL_INSTALL);
-            params.setAppPackageName(packageName);
-            // set params
-            int sessionId = packageInstaller.createSession(params);
-            PackageInstaller.Session session = packageInstaller.openSession(sessionId);
-            OutputStream out = session.openWrite("COSU", 0, -1);
-            byte[] buffer = new byte[65536];
-            int c;
-            while ((c = in.read(buffer)) != -1) {
-                out.write(buffer, 0, c);
-            }
-            session.fsync(out);
-            in.close();
-            out.close();
-
-            session.commit(createIntentSender(context, sessionId, packageName));
-            Log.i(Const.LOG_TAG, "Installation session committed");
-
-        } catch (Exception e) {
-            errorHandler.onInstallError();
-        }
-    }
-
-    public static IntentSender createIntentSender(Context context, int sessionId, String packageName) {
-        Intent intent = new Intent(Const.ACTION_INSTALL_COMPLETE);
-        if (packageName != null) {
-            intent.putExtra(Const.PACKAGE_NAME, packageName);
-        }
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                context,
-                sessionId,
-                intent,
-                0);
-        return pendingIntent.getIntentSender();
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public static void silentUninstallApplication(Context context, String packageName) {
-        PackageInstaller packageInstaller = context.getPackageManager().getPackageInstaller();
-        try {
-            packageInstaller.uninstall(packageName, createIntentSender(context, 0, null));
-        } catch (Exception e) {
-            // If we're trying to remove an unexistent app, it causes an exception so just ignore it
-        }
-    }
-
-    public static void requestInstallApplication(Context context, File file, InstallErrorHandler errorHandler) {
-        if (file.getName().endsWith(".xapk")) {
-            XapkUtils.install(context, XapkUtils.extract(context, file), null, errorHandler);
-            return;
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            Uri uri = FileProvider.getUriForFile( context,
-                    context.getApplicationContext().getPackageName() + ".provider",
-                    file );
-            intent.setDataAndType( uri, "application/vnd.android.package-archive" );
-            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            context.startActivity(intent);
-        } else {
-            Uri apkUri = Uri.fromFile( file );
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
-        }
-    }
-
-    public static void requestUninstallApplication(Context context, String packageName) {
-        Uri packageUri = Uri.parse("package:" + packageName);
-        context.startActivity(new Intent(Intent.ACTION_UNINSTALL_PACKAGE, packageUri));
     }
 
     // Automatically get dangerous permissions
@@ -235,6 +65,7 @@ public class Utils {
                 return false;
             }
         }
+        Log.i(Const.LOG_TAG, "Permissions automatically granted");
         return true;
     }
 

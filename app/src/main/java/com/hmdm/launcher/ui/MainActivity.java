@@ -29,7 +29,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -42,6 +41,7 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.provider.Settings;
 import android.util.Log;
@@ -81,10 +81,13 @@ import com.hmdm.launcher.databinding.DialogOverlaySettingsBinding;
 import com.hmdm.launcher.databinding.DialogPermissionsBinding;
 import com.hmdm.launcher.databinding.DialogSystemSettingsBinding;
 import com.hmdm.launcher.databinding.DialogUnknownSourcesBinding;
+import com.hmdm.launcher.db.DatabaseHelper;
+import com.hmdm.launcher.db.RemoteFileTable;
 import com.hmdm.launcher.helper.CryptoHelper;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.DeviceInfo;
+import com.hmdm.launcher.json.RemoteFile;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.pro.service.CheckForegroundAppAccessibilityService;
@@ -99,15 +102,18 @@ import com.hmdm.launcher.task.GetServerConfigTask;
 import com.hmdm.launcher.task.SendDeviceInfoTask;
 import com.hmdm.launcher.util.AppInfo;
 import com.hmdm.launcher.util.DeviceInfoProvider;
+import com.hmdm.launcher.util.InstallUtils;
 import com.hmdm.launcher.util.PushNotificationMqttWrapper;
 import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.Utils;
 import com.hmdm.launcher.worker.PushNotificationWorker;
 import com.squareup.picasso.Picasso;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.net.URL;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -119,7 +125,6 @@ public class MainActivity
         extends BaseActivity
         implements View.OnLongClickListener, AppListAdapter.OnAppChooseListener, View.OnClickListener {
 
-    private static final String LOG_TAG = "HeadwindMDM";
     private static final int PERMISSIONS_REQUEST = 1000;
 
     private ActivityMainBinding binding;
@@ -165,10 +170,14 @@ public class MainActivity
     private static boolean interruptResumeFlow = false;
     private static List< Application > applicationsForInstall = new LinkedList();
     private static List< Application > applicationsForRun = new LinkedList();
+    private static List< RemoteFile > filesForInstall = new LinkedList();
     private static final int PAUSE_BETWEEN_AUTORUNS_SEC = 5;
     private static final int SEND_DEVICE_INFO_PERIOD_MINS = 15;
     private static final String WORK_TAG_DEVICEINFO = "com.hmdm.launcher.WORK_TAG_DEVICEINFO";
     private boolean sendDeviceInfoScheduled = false;
+    // This flag notifies "download error" dialog what we're downloading: application or file
+    // We cannot send this flag as the method parameter because dialog calls MainActivity methods
+    private boolean downloadingFile = false;
 
     private int kioskUnlockCounter = 0;
 
@@ -316,7 +325,7 @@ public class MainActivity
                         // TODO: in the future, the rights must be configurable on the server
                         String packageName = intent.getStringExtra(Const.PACKAGE_NAME);
                         if (packageName != null) {
-                            Log.i(LOG_TAG, "Install complete: " + packageName);
+                            Log.i(Const.LOG_TAG, "Install complete: " + packageName);
                             Utils.autoGrantRequestedPermissions(MainActivity.this, packageName);
                         }
                     }
@@ -383,6 +392,13 @@ public class MainActivity
     public void onRequestPermissionsResult(int requestCode,
                                            String[] permissions, int[] grantResults) {
         if (requestCode == PERMISSIONS_REQUEST) {
+            if (Utils.isDeviceOwner(this)) {
+                // This may be called on Android 10, not sure why; just continue the flow
+                Log.i(Const.LOG_TAG, "Called onRequestPermissionsResult: permissions=" + Arrays.toString(permissions) +
+                        ", grantResults=" + Arrays.toString(grantResults));
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                return;
+            }
             boolean noPermissions = false;
             for (int n = 0; n < permissions.length; n++) {
                 if (permissions[n].equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -604,7 +620,7 @@ public class MainActivity
             loadAndInstallApplications();
         } else if ( !checkPermissions(true)) {
             // Permissions are requested inside checkPermissions, so do nothing here
-            Log.i(LOG_TAG, "startLauncher: requesting permissions");
+            Log.i(Const.LOG_TAG, "startLauncher: requesting permissions");
         } else if (!Utils.isDeviceOwner(this) && !settingsHelper.isBaseUrlSet() &&
                 (BuildConfig.FLAVOR.equals("master") || BuildConfig.FLAVOR.equals("opensource"))) {
             // For common public version, here's an option to change the server in non-MDM mode
@@ -612,17 +628,17 @@ public class MainActivity
         } else if ( settingsHelper.getDeviceId().length() == 0 ) {
             createAndShowEnterDeviceIdDialog( false, null );
         } else if ( ! configInitialized ) {
-            Log.i(LOG_TAG, "Updating configuration in startLauncher()");
+            Log.i(Const.LOG_TAG, "Updating configuration in startLauncher()");
             if (settingsHelper.getConfig() != null) {
                 // If it's not the first start, let's update in the background, show the content first!
                 showContent(settingsHelper.getConfig());
             }
             updateConfig( false );
         } else if ( ! configInitializing ) {
-            Log.i(LOG_TAG, "Showing content");
+            Log.i(Const.LOG_TAG, "Showing content");
             showContent( settingsHelper.getConfig() );
         } else {
-            Log.i(LOG_TAG, "Do nothing in startLauncher: configInitializing=true");
+            Log.i(Const.LOG_TAG, "Do nothing in startLauncher: configInitializing=true");
         }
     }
 
@@ -810,11 +826,11 @@ public class MainActivity
 
     private void updateConfig( final boolean force ) {
         if ( configInitializing ) {
-            Log.i(LOG_TAG, "updateConfig(): configInitializing=true, exiting");
+            Log.i(Const.LOG_TAG, "updateConfig(): configInitializing=true, exiting");
             return;
         }
 
-        Log.i(LOG_TAG, "updateConfig(): set configInitializing=true");
+        Log.i(Const.LOG_TAG, "updateConfig(): set configInitializing=true");
         configInitializing = true;
         DetailedInfoWorker.requestConfigUpdate(this);
 
@@ -827,7 +843,7 @@ public class MainActivity
             protected void onPostExecute( Integer result ) {
                 super.onPostExecute( result );
                 configInitializing = false;
-                Log.i(LOG_TAG, "updateConfig(): set configInitializing=false after getting config");
+                Log.i(Const.LOG_TAG, "updateConfig(): set configInitializing=false after getting config");
 
                 switch ( result ) {
                     case Const.TASK_SUCCESS:
@@ -846,7 +862,7 @@ public class MainActivity
                         if ( settingsHelper.getConfig() != null && !force ) {
                             updateRemoteLogConfig();
                         } else {
-                            createAndShowNetworkErrorDialog();
+                            createAndShowNetworkErrorDialog(settingsHelper.getBaseUrl(), settingsHelper.getServerProject());
                         }
                         break;
                 }
@@ -856,13 +872,13 @@ public class MainActivity
     }
 
     private void updateRemoteLogConfig() {
-        Log.i(LOG_TAG, "updateRemoteLogConfig(): get logging configuration");
+        Log.i(Const.LOG_TAG, "updateRemoteLogConfig(): get logging configuration");
 
         GetRemoteLogConfigTask task = new GetRemoteLogConfigTask( this ) {
             @Override
             protected void onPostExecute( Integer result ) {
                 super.onPostExecute( result );
-                Log.i(LOG_TAG, "updateRemoteLogConfig(): result=" + result);
+                Log.i(Const.LOG_TAG, "updateRemoteLogConfig(): result=" + result);
                 setupPushService();
             }
         };
@@ -920,7 +936,134 @@ public class MainActivity
 
     private void updateLocationService() {
         startLocationServiceWithRetry();
-        checkAndUpdateApplications();
+        checkAndUpdateFiles();
+    }
+
+    private class RemoteFileStatus {
+        public RemoteFile remoteFile;
+        public boolean installed;
+    }
+
+    private void checkAndUpdateFiles() {
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                ServerConfig config = settingsHelper.getConfig();
+                // This may be a long procedure due to checksum calculation so execute it in the background thread
+                InstallUtils.generateFilesForInstallList(MainActivity.this, config.getFiles(), filesForInstall);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void v) {
+                loadAndInstallFiles();
+            }
+        }.execute();
+    }
+
+    private void loadAndInstallFiles() {
+        if ( filesForInstall.size() > 0 ) {
+            RemoteFile remoteFile = filesForInstall.remove(0);
+
+            new AsyncTask<RemoteFile, Void, RemoteFileStatus>() {
+
+                @Override
+                protected RemoteFileStatus doInBackground(RemoteFile... remoteFiles) {
+                    final RemoteFile remoteFile = remoteFiles[0];
+                    RemoteFileStatus remoteFileStatus = null;
+
+                    if (remoteFile.isRemove()) {
+                        RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Removing file: " + remoteFile.getPath());
+                        File file = new File(Environment.getExternalStorageDirectory(), remoteFile.getPath());
+                        try {
+                            file.delete();
+                            RemoteFileTable.deleteByPath(DatabaseHelper.instance(MainActivity.this).getWritableDatabase(), remoteFile.getPath());
+                        } catch (Exception e) {
+                            RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Failed to remove file: " +
+                                    remoteFile.getPath() + ": " + e.getMessage());
+                            e.printStackTrace();
+                        }
+
+                    } else if (remoteFile.getUrl() != null) {
+                        updateMessageForFileDownloading(remoteFile.getPath());
+
+                        File file = null;
+                        try {
+                            RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Downloading file: " + remoteFile.getPath());
+                            file = InstallUtils.downloadFile(MainActivity.this, remoteFile.getUrl(),
+                                    new InstallUtils.DownloadProgress() {
+                                        @Override
+                                        public void onDownloadProgress(final int progress, final long total, final long current) {
+                                            handler.post(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    binding.progress.setMax(100);
+                                                    binding.progress.setProgress(progress);
+
+                                                    binding.setFileLength(total);
+                                                    binding.setDownloadedLength(current);
+                                                }
+                                            });
+                                        }
+                                    });
+                        } catch (Exception e) {
+                            RemoteLogger.log(MainActivity.this, Const.LOG_WARN,
+                                    "Failed to download file " + file.getPath() + ": " + e.getMessage());
+                            e.printStackTrace();
+                        }
+
+                        remoteFileStatus = new RemoteFileStatus();
+                        remoteFileStatus.remoteFile = remoteFile;
+                        if (file != null) {
+                            File finalFile = new File(Environment.getExternalStorageDirectory(), remoteFile.getPath());
+                            try {
+                                if (finalFile.exists()) {
+                                    finalFile.delete();
+                                }
+                                FileUtils.moveFile(file, finalFile);
+                                RemoteFileTable.insert(DatabaseHelper.instance(MainActivity.this).getWritableDatabase(), remoteFile);
+                                remoteFileStatus.installed = true;
+                            } catch (Exception e) {
+                                RemoteLogger.log(MainActivity.this, Const.LOG_WARN,
+                                        "Failed to create file " + remoteFile.getPath() + ": " + e.getMessage());
+                                e.printStackTrace();
+                                remoteFileStatus.installed = false;
+                            }
+                        } else {
+                            remoteFileStatus.installed = false;
+                        }
+                    }
+
+                    return remoteFileStatus;
+                }
+
+                @Override
+                protected void onPostExecute(RemoteFileStatus fileStatus) {
+                    if (fileStatus != null) {
+                        if (!fileStatus.installed) {
+                            filesForInstall.add( 0, fileStatus.remoteFile );
+                            if (!ProUtils.kioskModeRequired(MainActivity.this)) {
+                                // Notify the error dialog that we're downloading a file, not an app
+                                downloadingFile = true;
+                                createAndShowFileNotDownloadedDialog(fileStatus.remoteFile.getUrl());
+                                binding.setDownloading( false );
+                            } else {
+                                // Avoid user interaction in kiosk mode, just ignore download error and keep the old version
+                                // Note: view is not used in this method so just pass null there
+                                confirmDownloadFailureClicked(null);
+                            }
+                            return;
+                        }
+                    }
+                    Log.i(Const.LOG_TAG, "loadAndInstallFiles(): proceed to next file");
+                    loadAndInstallFiles();
+                }
+
+            }.execute(remoteFile);
+        } else {
+            Log.i(Const.LOG_TAG, "Proceed to application update");
+            checkAndUpdateApplications();
+        }
     }
 
     // Workaround against crash "App is in background" on Android 9: this is an Android OS bug
@@ -954,85 +1097,18 @@ public class MainActivity
     }
 
     private void checkAndUpdateApplications() {
-        Log.i(LOG_TAG, "checkAndUpdateApplications(): starting update applications");
+        Log.i(Const.LOG_TAG, "checkAndUpdateApplications(): starting update applications");
         binding.setMessage( getString( R.string.main_activity_applications_update ) );
 
         configInitialized = true;
         configInitializing = false;
 
         ServerConfig config = settingsHelper.getConfig();
-        generateApplicationsForInstallList( config.getApplications() );
+        InstallUtils.generateApplicationsForInstallList(this, config.getApplications(), applicationsForInstall);
 
-        Log.i(LOG_TAG, "checkAndUpdateApplications(): list size=" + applicationsForInstall.size());
+        Log.i(Const.LOG_TAG, "checkAndUpdateApplications(): list size=" + applicationsForInstall.size());
 
         loadAndInstallApplications();
-    }
-
-    private void generateApplicationsForInstallList( List< Application > applications ) {
-        PackageManager packageManager = getPackageManager();
-
-        // First handle apps to be removed, then apps to be installed
-        // We process only applications of type "app" (default) and skip web links and others
-        for (Application a : applications) {
-            if ((a.getType() == null || a.getType().equals(Application.TYPE_APP)) && a.isRemove()) {
-                Log.d(LOG_TAG, "checkAndUpdateApplications(): marking app " + a.getPkg() + " to remove");
-                applicationsForInstall.add(a);
-            }
-        }
-        for (Application a : applications) {
-            if ((a.getType() == null || a.getType().equals(Application.TYPE_APP)) && !a.isRemove()) {
-                Log.d(LOG_TAG, "checkAndUpdateApplications(): marking app " + a.getPkg() + " to install");
-                applicationsForInstall.add(a);
-            }
-        }
-        Iterator< Application > it = applicationsForInstall.iterator();
-
-        while ( it.hasNext() ) {
-            Application application = it.next();
-            if ( (application.getUrl() == null || application.getUrl().trim().equals("")) && !application.isRemove() ) {
-                // An app without URL is a system app which doesn't require installation
-                Log.d(LOG_TAG, "checkAndUpdateApplications(): app " + application.getPkg() + " is system, skipping");
-                it.remove();
-                continue;
-            }
-
-            try {
-                PackageInfo packageInfo = packageManager.getPackageInfo( application.getPkg(), 0 );
-
-                if (application.isRemove() && !application.getVersion().equals("0") &&
-                        !areVersionsEqual(packageInfo.versionName, application.getVersion())) {
-                    // If a removal is required, but the app version doesn't match, do not remove
-                    Log.d(LOG_TAG, "checkAndUpdateApplications(): app " + application.getPkg() + " version not match: "
-                            + application.getVersion() + " " + packageInfo.versionName + ", skipping");
-                    it.remove();
-                    continue;
-                }
-
-                if (!application.isRemove() &&
-                        (application.isSkipVersion() || application.getVersion().equals("0") || areVersionsEqual(packageInfo.versionName, application.getVersion()))) {
-                    // If installation is required, but the app of the same version already installed, do not install
-                    Log.d(LOG_TAG, "checkAndUpdateApplications(): app " + application.getPkg() + " versions match: "
-                            + application.getVersion() + " " + packageInfo.versionName + ", skipping");
-                    it.remove();
-                    continue;
-                }
-            } catch ( PackageManager.NameNotFoundException e ) {
-                // The app isn't installed, let's keep it in the "To be installed" list
-                if (application.isRemove()) {
-                    // The app requires removal but already removed, remove from the list so do nothing with the app
-                    Log.d(LOG_TAG, "checkAndUpdateApplications(): app " + application.getPkg() + " not found, nothing to remove");
-                    it.remove();
-                    continue;
-                }
-            }
-        }
-    }
-
-    private boolean areVersionsEqual(String v1, String v2) {
-        // Compare only digits (in Android 9 EMUI on Huawei Honor 8A, getPackageInfo doesn't get letters!)
-        String v1d = v1.replaceAll("[^\\d.]", "");
-        String v2d = v2.replaceAll("[^\\d.]", "");
-        return v1d.equals(v2d);
     }
 
     private class ApplicationStatus {
@@ -1064,8 +1140,8 @@ public class MainActivity
                         File file = null;
                         try {
                             RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Downloading app: " + application.getPkg());
-                            file = Utils.downloadApplication(MainActivity.this, application.getUrl(),
-                                    new Utils.DownloadApplicationProgress() {
+                            file = InstallUtils.downloadFile(MainActivity.this, application.getUrl(),
+                                    new InstallUtils.DownloadProgress() {
                                         @Override
                                         public void onDownloadProgress(final int progress, final long total, final long current) {
                                             handler.post(new Runnable() {
@@ -1104,7 +1180,7 @@ public class MainActivity
                         handler.post( new Runnable() {
                             @Override
                             public void run() {
-                                Log.i(LOG_TAG, "loadAndInstallApplications(): proceed to next app");
+                                Log.i(Const.LOG_TAG, "loadAndInstallApplications(): proceed to next app");
                                 loadAndInstallApplications();
                             }
                         } );
@@ -1123,7 +1199,9 @@ public class MainActivity
                         } else {
                             applicationsForInstall.add( 0, applicationStatus.application );
                             if (!ProUtils.kioskModeRequired(MainActivity.this)) {
-                                createAndShowFileNotDownloadedDialog(applicationStatus.application);
+                                // Notify the error dialog that we're downloading an app
+                                downloadingFile = false;
+                                createAndShowFileNotDownloadedDialog(applicationStatus.application.getName());
                                 binding.setDownloading( false );
                             } else {
                                 // Avoid user interaction in kiosk mode, just ignore download error and keep the old version
@@ -1137,91 +1215,9 @@ public class MainActivity
             }.execute(application);
         } else {
             RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Configuration updated");
-            Log.i(LOG_TAG, "Showing content from loadAndInstallApplications()");
+            Log.i(Const.LOG_TAG, "Showing content from loadAndInstallApplications()");
             showContent( settingsHelper.getConfig() );
         }
-
-        /*
-                AsyncTask.execute( new Runnable() {
-            @Override
-            public void run() {
-                if ( applicationsForInstall.size() > 0 ) {
-                    final Application application = applicationsForInstall.remove( 0 );
-
-                    if (application.isRemove()) {
-                        // Remove the app
-                        RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Removing app: " + application.getPkg());
-                        Log.i(LOG_TAG, "loadAndInstallApplications(): remove app " + application.getPkg());
-                        updateMessageForApplicationRemoving( application.getName() );
-                        uninstallApplication(application.getPkg());
-
-                    } else if ( application.getUrl() != null ) {
-                        updateMessageForApplicationDownloading( application.getName() );
-
-                        File file = null;
-                        try {
-                            RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Downloading app: " + application.getPkg());
-                            Log.i(LOG_TAG, "loadAndInstallApplications(): downloading app " + application.getPkg());
-                            file = Utils.downloadApplication(application.getUrl(),
-                                    new Utils.DownloadApplicationProgress() {
-                                        @Override
-                                        public void onDownloadProgress(final int progress, final long total, final long current) {
-                                                handler.post( new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        binding.progress.setMax( 100 );
-                                                        binding.progress.setProgress( progress );
-
-                                                        binding.setFileLength( total );
-                                                        binding.setDownloadedLength( current );
-                                                    }
-                                                } );
-                                            }
-                                    });
-                        } catch ( Exception e ) {
-                            RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Failed to download app " + application.getPkg() + ": " + e.getMessage());
-                            Log.i(LOG_TAG, "loadAndInstallApplications(): failed to download app " + application.getPkg() + ": " + e.getMessage());
-                            e.printStackTrace();
-                        }
-
-                        if ( file != null ) {
-                            updateMessageForApplicationInstalling( application.getName() );
-                            installApplication( file, application.getPkg() );
-                            if (application.isRunAfterInstall()) {
-                                applicationsForRun.add(application);
-                            }
-                        } else {
-                            applicationsForInstall.add( 0, application );
-                            handler.post( new Runnable() {
-                                @Override
-                                public void run() {
-                                    createAndShowFileNotDownloadedDialog( application );
-                                    binding.setDownloading( false );
-                                }
-                            } );
-                        }
-                    } else {
-                        handler.post( new Runnable() {
-                            @Override
-                            public void run() {
-                                Log.i(LOG_TAG, "loadAndInstallApplications(): proceed to next app");
-                                loadAndInstallApplications();
-                            }
-                        } );
-                    }
-                } else {
-                    handler.post( new Runnable() {
-                        @Override
-                        public void run() {
-                            Log.i(LOG_TAG, "Showing content from loadAndInstallApplications()");
-                            showContent( settingsHelper.getConfig() );
-                        }
-                    } );
-                }
-            }
-        } );
-
-         */
     }
 
     private void installApplicationFromPlayMarket(final String uri, final String packageName) {
@@ -1240,10 +1236,10 @@ public class MainActivity
         }
         if (Utils.isDeviceOwner(this)) {
                 RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Silently installing app " + packageName);
-                Utils.silentInstallApplication(this, file, packageName, new Utils.InstallErrorHandler() {
+            InstallUtils.silentInstallApplication(this, file, packageName, new InstallUtils.InstallErrorHandler() {
                     @Override
                     public void onInstallError() {
-                        Log.i(LOG_TAG, "installApplication(): error installing app " + packageName);
+                        Log.i(Const.LOG_TAG, "installApplication(): error installing app " + packageName);
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
@@ -1263,7 +1259,7 @@ public class MainActivity
                 });
         } else {
             RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Asking user to install app " + packageName);
-            Utils.requestInstallApplication(MainActivity.this, file, new Utils.InstallErrorHandler() {
+            InstallUtils.requestInstallApplication(MainActivity.this, file, new InstallUtils.InstallErrorHandler() {
                 @Override
                 public void onInstallError() {
                     handler.post(new Runnable() {
@@ -1280,10 +1276,10 @@ public class MainActivity
     private void uninstallApplication(final String packageName) {
         if (Utils.isDeviceOwner(this)) {
             RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Silently uninstall app " + packageName);
-            Utils.silentUninstallApplication(this, packageName);
+            InstallUtils.silentUninstallApplication(this, packageName);
         } else {
             RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Asking user to uninstall app " + packageName);
-            Utils.requestUninstallApplication(this, packageName);
+            InstallUtils.requestUninstallApplication(this, packageName);
         }
     }
 
@@ -1293,6 +1289,16 @@ public class MainActivity
             public void run() {
                 binding.setMessage( getString(R.string.main_app_installing) + " " + name );
                 binding.setDownloading( false );
+            }
+        } );
+    }
+
+    private void updateMessageForFileDownloading( final String name ) {
+        handler.post( new Runnable() {
+            @Override
+            public void run() {
+                binding.setMessage( getString(R.string.main_file_downloading) + " " + name );
+                binding.setDownloading( true );
             }
         } );
     }
@@ -1675,7 +1681,7 @@ public class MainActivity
         startActivity(intent);
     }
 
-    private void createAndShowFileNotDownloadedDialog( Application application ) {
+    private void createAndShowFileNotDownloadedDialog(String fileName) {
         dismissDialog(fileNotDownloadedDialog);
         fileNotDownloadedDialog = new Dialog( this );
         dialogFileDownloadingFailedBinding = DataBindingUtil.inflate(
@@ -1683,7 +1689,8 @@ public class MainActivity
                 R.layout.dialog_file_downloading_failed,
                 null,
                 false );
-        dialogFileDownloadingFailedBinding.title.setText( getString(R.string.main_app_downloading_error) + " " + application.getName() );
+        int errorTextResource = this.downloadingFile ? R.string.main_file_downloading_error : R.string.main_app_downloading_error;
+        dialogFileDownloadingFailedBinding.title.setText( getString(errorTextResource) + " " + fileName );
         fileNotDownloadedDialog.setCancelable( false );
         fileNotDownloadedDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
 
@@ -1697,17 +1704,29 @@ public class MainActivity
 
     public void repeatDownloadClicked( View view ) {
         dismissDialog(fileNotDownloadedDialog);
-        loadAndInstallApplications();
+        if (downloadingFile) {
+            loadAndInstallFiles();
+        } else {
+            loadAndInstallApplications();
+        }
     }
 
     public void confirmDownloadFailureClicked( View view ) {
-        if (applicationsForInstall.size() > 0) {
-            Application application = applicationsForInstall.remove( 0 );
-            settingsHelper.removeApplication( application );
-        }
-
         dismissDialog(fileNotDownloadedDialog);
-        loadAndInstallApplications();
+
+        if (downloadingFile) {
+            if (filesForInstall.size() > 0) {
+                RemoteFile remoteFile = filesForInstall.remove(0);
+                settingsHelper.removeRemoteFile(remoteFile);
+            }
+            loadAndInstallFiles();
+        } else {
+            if (applicationsForInstall.size() > 0) {
+                Application application = applicationsForInstall.remove(0);
+                settingsHelper.removeApplication(application);
+            }
+            loadAndInstallApplications();
+        }
     }
 
     private void createAndShowHistorySettingsDialog() {
@@ -1786,7 +1805,7 @@ public class MainActivity
             dismissDialog(enterDeviceIdDialog);
 
             if ( checkPermissions( true ) ) {
-                Log.i(LOG_TAG, "saveDeviceId(): calling updateConfig()");
+                Log.i(Const.LOG_TAG, "saveDeviceId(): calling updateConfig()");
                 updateConfig( false );
             }
         }
@@ -1803,25 +1822,36 @@ public class MainActivity
     public void networkErrorRepeatClicked( View view ) {
         dismissDialog(networkErrorDialog);
 
-        Log.i(LOG_TAG, "networkErrorRepeatClicked(): calling updateConfig()");
+        Log.i(Const.LOG_TAG, "networkErrorRepeatClicked(): calling updateConfig()");
         updateConfig( false );
+    }
+
+    public void networkErrorResetClicked( View view ) {
+        dismissDialog(networkErrorDialog);
+
+        Log.i(Const.LOG_TAG, "networkErrorResetClicked(): calling updateConfig()");
+        settingsHelper.setDeviceId("");
+        settingsHelper.setBaseUrl("");
+        settingsHelper.setSecondaryBaseUrl("");
+        settingsHelper.setServerProject("");
+        createAndShowServerDialog(false, settingsHelper.getBaseUrl(), settingsHelper.getServerProject());
     }
 
     public void networkErrorCancelClicked(View view) {
         dismissDialog(networkErrorDialog);
 
         if (configFault) {
-            Log.i(LOG_TAG, "networkErrorCancelClicked(): no configuration available, quit");
+            Log.i(Const.LOG_TAG, "networkErrorCancelClicked(): no configuration available, quit");
             Toast.makeText(this, R.string.critical_server_failure, Toast.LENGTH_LONG).show();
             finish();
             return;
         }
 
-        Log.i(LOG_TAG, "networkErrorCancelClicked()");
+        Log.i(Const.LOG_TAG, "networkErrorCancelClicked()");
         if ( settingsHelper.getConfig() != null ) {
             showContent( settingsHelper.getConfig() );
         } else {
-            Log.i(LOG_TAG, "networkErrorCancelClicked(): no configuration available, retrying");
+            Log.i(Const.LOG_TAG, "networkErrorCancelClicked(): no configuration available, retrying");
             Toast.makeText(this, R.string.empty_configuration, Toast.LENGTH_LONG).show();
             configFault = true;
             updateConfig( false );
@@ -1836,6 +1866,12 @@ public class MainActivity
         // If the user didn't grant permissions, let him know and do not request until he confirms he want to retry
         if (permissionsDialog != null && permissionsDialog.isShowing()) {
             return false;
+        }
+
+        if (Utils.isDeviceOwner(this)) {
+            // Do not request permissions if we're the device owner
+            // They are added automatically
+            return true;
         }
 
         if (preferences.getInt(Const.PREFERENCES_DISABLE_LOCATION, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
@@ -2004,10 +2040,10 @@ public class MainActivity
             createAndShowInfoDialog();
         } else if (v.equals(updateView)) {
             if (enterDeviceIdDialog != null && enterDeviceIdDialog.isShowing()) {
-                Log.i(LOG_TAG, "Occasional update request when device info is entered, ignoring!");
+                Log.i(Const.LOG_TAG, "Occasional update request when device info is entered, ignoring!");
                 return;
             }
-            Log.i(LOG_TAG, "updating config on request");
+            Log.i(Const.LOG_TAG, "updating config on request");
             binding.setShowContent(false);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             updateConfig( true );

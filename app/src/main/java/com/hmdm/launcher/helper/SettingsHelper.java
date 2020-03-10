@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.ApplicationSetting;
+import com.hmdm.launcher.json.RemoteFile;
 import com.hmdm.launcher.json.ServerConfig;
 
 import java.util.HashMap;
@@ -132,13 +133,25 @@ public class SettingsHelper {
         return config;
     }
 
-    public void removeApplication( Application application ) {
-        Iterator< Application > it = config.getApplications().iterator();
-        while ( it.hasNext() ) {
-            Application app = it.next();
-            if ( app.getPkg().equals( application.getPkg() ) ) {
+    public void removeRemoteFile(RemoteFile remoteFile) {
+        Iterator<RemoteFile> it = config.getFiles().iterator();
+        while (it.hasNext()) {
+            RemoteFile file = it.next();
+            if ( file.getPath().equals( remoteFile.getPath() ) ) {
                 it.remove();
-                updateConfig( config );
+                updateConfig(config);
+                return;
+            }
+        }
+    }
+
+    public void removeApplication(Application application) {
+        Iterator<Application> it = config.getApplications().iterator();
+        while (it.hasNext()) {
+            Application app = it.next();
+            if (app.getPkg().equals(application.getPkg())) {
+                it.remove();
+                updateConfig(config);
                 return;
             }
         }

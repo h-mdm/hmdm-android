@@ -39,11 +39,14 @@
     <string name="main_app_downloading">Downloading application</string>
     <string name="main_app_downloading_error">Failed to download the package</string>
     <string name="main_app_removing">Uninstalling application</string>
+    <string name="main_file_downloading">Downloading file</string>
+    <string name="main_file_downloading_error">Failed to download the file</string>
     <string name="main_activity_repeat">Retry</string>
+    <string name="main_activity_reset">Reset</string>
     <string name="main_activity_cancel">Cancel</string>
     <string name="main_activity_details">Details</string>
     <string name="select_system_launcher">Select Headwind MDM as a default launcher and check \'Always\':</string>
-    <string name="dialog_network_error_title">Server connection error. Please check the Internet connection and try again.</string>
+    <string name="dialog_network_error_title">Error connecting to %s. Please check the Internet connection and try again.</string>
     <string name="main_activity_update_config">Requesting configuration file from server</string>
     <string name="main_activity_applications_update">Updating applications</string>
     <string name="dialog_overlay_settings_title">Please allow the app to draw over other windows. A settings sheet will now be opened. Find the \"Headwind MDM\" item, allow to draw over other windows, and tap \"Back\". If you can\'t find the setting, tap \"Skip\" (the app may not work as expected!)</string>

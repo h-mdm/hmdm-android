@@ -37,7 +37,9 @@ import android.os.IBinder;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
+import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
+import com.hmdm.launcher.util.RemoteLogger;
 
 public class LocationService extends Service {
     private LocationManager locationManager;
@@ -61,6 +63,8 @@ public class LocationService extends Service {
         public void onLocationChanged(Location location) {
             // Do nothing here: we use getLastKnownLocation() to determine the location!
             //Toast.makeText(LocationService.this, "Location updated from GPS", Toast.LENGTH_SHORT).show();
+            RemoteLogger.log(LocationService.this, Const.LOG_DEBUG, "GPS location update: lat="
+                    + location.getLatitude() + ", lon=" + location.getLongitude());
         }
 
         @Override
@@ -80,6 +84,8 @@ public class LocationService extends Service {
         public void onLocationChanged(Location location) {
             // Do nothing here: we use getLastKnownLocation() to determine the location!
             //Toast.makeText(LocationService.this, "Location updated from Network", Toast.LENGTH_SHORT).show();
+            RemoteLogger.log(LocationService.this, Const.LOG_DEBUG, "Network location update: lat="
+                    + location.getLatitude() + ", lon=" + location.getLongitude());
         }
 
         @Override
@@ -131,6 +137,13 @@ public class LocationService extends Service {
             // No permission, so give up!
             return false;
         }
+
+        boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean networkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        boolean passiveEnabled = locationManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER);
+        RemoteLogger.log(this, Const.LOG_DEBUG,
+                "Request location updates. gps=" + gpsEnabled + ", network=" + networkEnabled + ", passive=" + passiveEnabled);
+
         locationManager.removeUpdates(networkLocationListener);
         locationManager.removeUpdates(gpsLocationListener);
         try {

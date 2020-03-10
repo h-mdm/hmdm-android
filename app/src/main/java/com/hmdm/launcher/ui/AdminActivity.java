@@ -155,7 +155,7 @@ public class AdminActivity extends BaseActivity {
 
             dismissDialog(enterDeviceIdDialog);
 
-            Log.i(LOG_TAG, "saveDeviceId(): calling updateConfig()");
+            Log.i(Const.LOG_TAG, "saveDeviceId(): calling updateConfig()");
             updateConfig(view);
         }
     }

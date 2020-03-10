@@ -33,6 +33,7 @@
           tools:context="com.hmdm.launcher.ui.MainActivity">
 
         <TextView
+            android:id="@+id/title"
             android:layout_width="@dimen/dialog_enter_device_id_width"
             android:layout_height="wrap_content"
             android:text="@string/dialog_network_error_title"
@@ -57,7 +58,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginLeft="8dp"
+                android:text="@string/main_activity_reset"
+                android:onClick="networkErrorResetClicked"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:text="@string/main_activity_cancel"
                 android:onClick="networkErrorCancelClicked"/>
 

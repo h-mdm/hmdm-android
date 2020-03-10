@@ -58,8 +58,6 @@ import java.util.List;
 
 public class BaseActivity extends AppCompatActivity {
 
-    protected final static String LOG_TAG = "HeadwindMdm";
-
     protected ProgressDialog progressDialog;
 
     protected Dialog enterServerDialog;
@@ -203,7 +201,7 @@ public class BaseActivity extends AppCompatActivity {
         System.exit(0);
     }
 
-    protected void createAndShowNetworkErrorDialog() {
+    protected void createAndShowNetworkErrorDialog(String serverName, String serverPath) {
         dismissDialog(networkErrorDialog);
         networkErrorDialog = new Dialog( this );
         dialogNetworkErrorBinding = DataBindingUtil.inflate(
@@ -213,6 +211,13 @@ public class BaseActivity extends AppCompatActivity {
                 false );
         networkErrorDialog.setCancelable( false );
         networkErrorDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
+
+        String serverUrl = serverName;
+        if (serverPath != null && serverPath.length() > 0) {
+            serverUrl += "/";
+            serverUrl += serverPath;
+        }
+        dialogNetworkErrorBinding.title.setText(getString(R.string.dialog_network_error_title, serverUrl));
 
         networkErrorDialog.setContentView( dialogNetworkErrorBinding.getRoot() );
         networkErrorDialog.show();
@@ -276,7 +281,7 @@ public class BaseActivity extends AppCompatActivity {
 
             dismissDialog(enterServerDialog);
 
-            Log.i(LOG_TAG, "saveServerUrl(): calling updateConfig()");
+            Log.i(Const.LOG_TAG, "saveServerUrl(): calling updateConfig()");
             return true;
         }
     }

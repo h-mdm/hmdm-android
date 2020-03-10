@@ -42,9 +42,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 public class DeviceInfoProvider {
-
-    private final static String LOG_TAG = "HeadwindMdm";
-
     public static DeviceInfo getDeviceInfo(Context context, boolean queryPermissions, boolean queryApps) {
         DeviceInfo deviceInfo = new DeviceInfo();
         List<Integer> permissions = deviceInfo.getPermissions();

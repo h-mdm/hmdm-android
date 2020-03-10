@@ -61,9 +61,11 @@ public class ServerConfig {
     private Integer timeout;
     private Boolean lockVolume;
 
-    private List< Application > applications = new LinkedList();
+    private List<Application> applications = new LinkedList();
 
-    private List< ApplicationSetting > applicationSettings = new LinkedList();
+    private List<ApplicationSetting> applicationSettings = new LinkedList();
+
+    private List<RemoteFile> files = new LinkedList();
 
     public static final String TITLE_NONE = "none";
     public static final String TITLE_DEVICE_ID = "deviceId";
@@ -310,5 +312,13 @@ public class ServerConfig {
 
     public void setLockVolume(Boolean lockVolume) {
         this.lockVolume = lockVolume;
+    }
+
+    public List<RemoteFile> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<RemoteFile> files) {
+        this.files = files;
     }
 }
