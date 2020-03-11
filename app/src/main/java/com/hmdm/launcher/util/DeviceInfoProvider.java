@@ -29,15 +29,22 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.BatteryManager;
 import android.os.Build;
+import android.os.Environment;
 import android.telephony.TelephonyManager;
 
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
+import com.hmdm.launcher.db.DatabaseHelper;
+import com.hmdm.launcher.db.RemoteFileTable;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.DeviceInfo;
+import com.hmdm.launcher.json.RemoteFile;
 import com.hmdm.launcher.pro.ProUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -46,6 +53,7 @@ public class DeviceInfoProvider {
         DeviceInfo deviceInfo = new DeviceInfo();
         List<Integer> permissions = deviceInfo.getPermissions();
         List<Application> applications = deviceInfo.getApplications();
+        List<RemoteFile> files = deviceInfo.getFiles();
 
         deviceInfo.setModel(Build.MODEL);
 
@@ -85,6 +93,27 @@ public class DeviceInfoProvider {
                         }
                     } catch (PackageManager.NameNotFoundException e) {
                         // Application not installed
+                    }
+                }
+
+                List<RemoteFile> requiredFiles = SettingsHelper.getInstance(context).getConfig().getFiles();
+                for (RemoteFile remoteFile : requiredFiles) {
+                    File file = new File(Environment.getExternalStorageDirectory(), remoteFile.getPath());
+                    if (file.exists()) {
+                        RemoteFile remoteFileDb = RemoteFileTable.selectByPath(DatabaseHelper.instance(context).getReadableDatabase(),
+                                remoteFile.getPath());
+                        if (remoteFileDb != null) {
+                            files.add(remoteFileDb);
+                        } else {
+                            // How could that happen? The database entry should exist for each file
+                            // Let's recalculate the checksum to check if the file matches
+                            try {
+                                RemoteFile copy = new RemoteFile(remoteFile);
+                                copy.setChecksum(CryptoUtils.calculateChecksum(new FileInputStream(file)));
+                                files.add(copy);
+                            } catch (FileNotFoundException e) {
+                            }
+                        }
                     }
                 }
             }

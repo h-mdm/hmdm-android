@@ -34,6 +34,18 @@ public class RemoteFile {
     private String path;
     private String description;
 
+    public RemoteFile() {}
+
+    public RemoteFile(RemoteFile remoteFile) {
+        _id = remoteFile._id;
+        lastUpdate = remoteFile.lastUpdate;
+        url = remoteFile.url;
+        checksum = remoteFile.checksum;
+        remove = remoteFile.remove;
+        path = remoteFile.path;
+        description = remoteFile.description;
+    }
+
     @JsonIgnore
     public long getId() {
         return _id;

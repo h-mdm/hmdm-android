@@ -30,8 +30,9 @@ import java.util.List;
 public class DeviceInfo {
 
     private String model;
-    private List< Integer > permissions = new LinkedList();
-    private List< Application > applications = new LinkedList();
+    private List<Integer> permissions = new LinkedList();
+    private List<Application> applications = new LinkedList();
+    private List<RemoteFile> files = new LinkedList();
     private String deviceId;
     private String phone;
     private String imei;
@@ -79,24 +80,32 @@ public class DeviceInfo {
         return model;
     }
 
-    public void setModel( String model ) {
+    public void setModel(String model) {
         this.model = model;
     }
 
-    public List< Integer > getPermissions() {
+    public List<Integer> getPermissions() {
         return permissions;
     }
 
-    public void setPermissions( List< Integer > permissions ) {
+    public void setPermissions(List<Integer> permissions) {
         this.permissions = permissions;
     }
 
-    public List< Application > getApplications() {
+    public List<Application> getApplications() {
         return applications;
     }
 
-    public void setApplications( List< Application > applications ) {
+    public void setApplications(List<Application> applications) {
         this.applications = applications;
+    }
+
+    public List<RemoteFile> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<RemoteFile> files) {
+        this.files = files;
     }
 
     public String getDeviceId() {
