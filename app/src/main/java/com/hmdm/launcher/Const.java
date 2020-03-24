@@ -113,4 +113,9 @@ public class Const {
     public static final int LOG_INFO = 3;
     public static final int LOG_DEBUG = 4;
     public static final int LOG_VERBOSE = 5;
+
+    public static final String PASSWORD_QUALITY_PRESENT = "present";
+    public static final String PASSWORD_QUALITY_EASY = "easy";
+    public static final String PASSWORD_QUALITY_MODERATE = "moderate";
+    public static final String PASSWORD_QUALITY_STRONG = "strong";
 }

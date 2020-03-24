@@ -20,15 +20,16 @@
 package com.hmdm.launcher.worker;
 
 import android.content.Context;
+import android.content.Intent;
 
 import androidx.annotation.NonNull;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.PushMessage;
@@ -36,10 +37,8 @@ import com.hmdm.launcher.json.PushResponse;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
-import com.hmdm.launcher.util.PushNotificationMqttWrapper;
 import com.hmdm.launcher.util.RemoteLogger;
 
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +49,9 @@ public class PushNotificationWorker extends Worker {
 
     // Minimal interval is 15 minutes as per docs
     public static final int FIRE_PERIOD_MINS = 15;
+
+    // Interval to update configuration to avoid losing device due to push failure
+    public static final long CONFIG_UPDATE_INTERVAL = 6 * 3600000l;
 
     private static final String WORK_TAG_PERIODIC = "com.hmdm.launcher.WORK_TAG_PUSH_PERIODIC";
 
@@ -65,12 +67,15 @@ public class PushNotificationWorker extends Worker {
     private Context context;
     private SettingsHelper settingsHelper;
 
+    private long lastStartTimestamp;
+
     public PushNotificationWorker(
             @NonNull final Context context,
             @NonNull WorkerParameters params) {
         super(context, params);
         this.context = context;
         settingsHelper = SettingsHelper.getInstance(context);
+        lastStartTimestamp = System.currentTimeMillis();
     }
 
     @Override
@@ -84,10 +89,12 @@ public class PushNotificationWorker extends Worker {
 
         if (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER) ||
                 pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM)) {
-            // Note: MQTT client is automatically reconnected, and re-initializing it may cause looped errors
-            // So by now, this option is not used and we do nothing here.
-            //return doMqttWork();
-            return Result.success();
+            // Note: MQTT client is automatically reconnected if connection is broken during launcher running,
+            // and re-initializing it may cause looped errors
+            // In particular, MQTT client is reconnected after turning Wi-Fi off and back on.
+            // Re-connection of MQTT client at Headwind MDM startup is implemented in MainActivity
+            // So by now, just request configuration update some times per day to avoid "device lost" issues
+            return doMqttWork();
         } else {
             // PUSH_OPTIONS_POLLING by default
             return doPollingWork();
@@ -140,20 +147,16 @@ public class PushNotificationWorker extends Worker {
         return Result.failure();
     }
 
-    // Periodic check if MQTT service is connected
-    // This will reconnect the service in case when the connection wasn't initially established or occasionally fails
-    // Note: MQTT client is automatically reconnected, and re-initializing it may cause looped errors
-    // This option is not used by now. To make it working properly, we need first to make sure that network and server is available
-    // but the MQTT client doesn't work, and re-initialize it only in this case!
-    // In general, MQTT client must reconnect after turning Wi-Fi off and back on.
+    // Periodic configuration update requests
     private Result doMqttWork() {
-        try {
-            URL url = new URL(settingsHelper.getBaseUrl());
-            PushNotificationMqttWrapper.getInstance().connect(context, url.getHost(), BuildConfig.MQTT_PORT,
-                    settingsHelper.getConfig().getPushOptions(), settingsHelper.getDeviceId(), null, null);
-        } catch (Exception e) {
-            e.printStackTrace();
+        long now = System.currentTimeMillis();
+        if (lastStartTimestamp + CONFIG_UPDATE_INTERVAL > now) {
+            return Result.success();
         }
+        RemoteLogger.log(context, Const.LOG_DEBUG, "Forcing configuration update");
+        lastStartTimestamp = now;
+        LocalBroadcastManager.getInstance(context).
+                sendBroadcast(new Intent(Const.ACTION_UPDATE_CONFIGURATION));
         return Result.success();
     }
 }

@@ -317,4 +317,28 @@ public class InstallUtils {
         context.startActivity(new Intent(Intent.ACTION_UNINSTALL_PACKAGE, packageUri));
     }
 
+    public static String getPackageInstallerStatusMessage(int status) {
+        switch (status) {
+            case PackageInstaller.STATUS_PENDING_USER_ACTION:
+                return "PENDING_USER_ACTION";
+            case PackageInstaller.STATUS_SUCCESS:
+                return "SUCCESS";
+            case PackageInstaller.STATUS_FAILURE:
+                return "FAILURE_UNKNOWN";
+            case PackageInstaller.STATUS_FAILURE_BLOCKED:
+                return "BLOCKED";
+            case PackageInstaller.STATUS_FAILURE_ABORTED:
+                return "ABORTED";
+            case PackageInstaller.STATUS_FAILURE_INVALID:
+                return "INVALID";
+            case PackageInstaller.STATUS_FAILURE_CONFLICT:
+                return "CONFLICT";
+            case PackageInstaller.STATUS_FAILURE_STORAGE:
+                return "STORAGE";
+            case PackageInstaller.STATUS_FAILURE_INCOMPATIBLE:
+                return "INCOMPATIBLE";
+        }
+        return "UNKNOWN";
+    }
+
 }

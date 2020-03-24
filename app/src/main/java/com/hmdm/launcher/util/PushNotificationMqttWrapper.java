@@ -27,7 +27,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.work.Data;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
 
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.json.PushMessageJson;
@@ -45,6 +52,8 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.json.JSONObject;
 
+import java.util.concurrent.TimeUnit;
+
 public class PushNotificationMqttWrapper {
     private static PushNotificationMqttWrapper instance;
 
@@ -53,6 +62,9 @@ public class PushNotificationMqttWrapper {
     private BroadcastReceiver debugReceiver;
     private Context context;
     private boolean needProcessConnectExtended;
+
+    private static final String WORKER_TAG_MQTT_RECONNECT = "com.hmdm.launcher.WORK_TAG_MQTT_RECONNECT";
+    private static final int MQTT_RECONNECT_INTERVAL_SEC = 900;
 
     private PushNotificationMqttWrapper() {
     }
@@ -65,6 +77,7 @@ public class PushNotificationMqttWrapper {
     }
 
     public void connect(final Context context, String host, int port, String pushType, final String deviceId, final Runnable onSuccess, final Runnable onFailure) {
+        cancelReconnectionAfterFailure(context);
         handler = new Handler(Looper.getMainLooper());
         if (client != null && client.isConnected()) {
             if (onSuccess != null) {
@@ -81,6 +94,14 @@ public class PushNotificationMqttWrapper {
                         MqttAndroidConnectOptions.PING_WORKER :
                         MqttAndroidConnectOptions.PING_ALARM);
         String serverUri = "tcp://" + host + ":" + port;
+
+        if (client != null) {
+            // Here we go after reconnection.
+            // Previous client is disconnected and in "Failure" state, but it listens for broadcasts
+            // We need to clean it up before registering a new client
+            client.unregisterResources();
+        }
+
         client = new MqttAndroidClient(context, serverUri, deviceId);
         client.setTraceEnabled(true);
         client.setDefaultMessageListener(mqttMessageListener);
@@ -123,6 +144,7 @@ public class PushNotificationMqttWrapper {
                 public void onFailure(IMqttToken asyncActionToken, Throwable e) {
                     e.printStackTrace();
                     RemoteLogger.log(context, Const.LOG_WARN, "MQTT connection failure");
+                    scheduleReconnectionAfterFailure(context, host, port, pushType, deviceId);
                     // We fail here but Mqtt client tries to reconnect and we need to subscribe
                     // after connection succeeds. This is done in the extended callback client.
                     // The flag needProcessConnectExtended prevents duplicate subscribe after
@@ -195,6 +217,7 @@ public class PushNotificationMqttWrapper {
 
     public void disconnect(Context context) {
         try {
+            cancelReconnectionAfterFailure(context);
             RemoteLogger.log(context, Const.LOG_DEBUG, "MQTT client disconnected by user request");
             client.disconnect();
         } catch (Exception e) {
@@ -204,4 +227,50 @@ public class PushNotificationMqttWrapper {
         LocalBroadcastManager.getInstance(context).unregisterReceiver(debugReceiver);
         debugReceiver = null;
     }
+
+    private void cancelReconnectionAfterFailure(Context context) {
+        WorkManager.getInstance(context.getApplicationContext()).cancelUniqueWork(WORKER_TAG_MQTT_RECONNECT);
+    }
+
+    private void scheduleReconnectionAfterFailure(Context context, String host, int port, String pushType, final String deviceId) {
+        RemoteLogger.log(context, Const.LOG_INFO, "Scheduling MQTT reconnection in " + MQTT_RECONNECT_INTERVAL_SEC + " sec");
+        Data data = new Data.Builder()
+                .putString("host", host)
+                .putInt("port", port)
+                .putString("pushType", pushType)
+                .putString("deviceId", deviceId)
+                .build();
+        OneTimeWorkRequest queryRequest =
+                new OneTimeWorkRequest.Builder(PushNotificationMqttWrapper.ReconnectAfterFailureWorker.class)
+                        .addTag(Const.WORK_TAG_COMMON)
+                        .setInitialDelay(MQTT_RECONNECT_INTERVAL_SEC, TimeUnit.SECONDS)
+                        .setInputData(data)
+                        .build();
+        WorkManager.getInstance(context.getApplicationContext()).enqueueUniqueWork(WORKER_TAG_MQTT_RECONNECT,
+                ExistingWorkPolicy.REPLACE, queryRequest);
+    }
+
+    public static class ReconnectAfterFailureWorker extends Worker {
+
+        private Context context;
+
+        public ReconnectAfterFailureWorker(
+                @NonNull final Context context,
+                @NonNull WorkerParameters params) {
+            super(context, params);
+            this.context = context;
+        }
+
+        @NonNull
+        @Override
+        public Result doWork() {
+            Data data = getInputData();
+            PushNotificationMqttWrapper.getInstance().connect(context, data.getString("host"),
+                    data.getInt("port", 0), data.getString("pushType"), data.getString("deviceId"),
+                    null, null);
+            return Result.success();
+        }
+    }
+
+
 }

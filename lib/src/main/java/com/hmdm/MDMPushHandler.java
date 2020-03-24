@@ -47,7 +47,7 @@ public abstract class MDMPushHandler {
             @Override
             public void onReceive(Context context, Intent intent) {
                 try {
-                    MDMPushMessage message = new MDMPushMessage(intent.getAction(), intent.getBundleExtra(Const.INTENT_PUSH_NOTIFICATION_EXTRA));
+                    MDMPushMessage message = new MDMPushMessage(intent.getAction(), intent.getExtras());
                     onMessageReceived(message);
                 } catch (MDMException e) {
                     e.printStackTrace();

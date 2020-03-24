@@ -35,12 +35,14 @@ public class MDMPushMessage {
             throw new MDMException(MDMError.ERROR_INVALID_PARAMETER);
         }
         type = action.substring(Const.INTENT_PUSH_NOTIFICATION_PREFIX.length());
-        String packedPayload = bundle.getString(Const.INTENT_PUSH_NOTIFICATION_EXTRA);
-        if (packedPayload != null) {
-            try {
-                data = new JSONObject(packedPayload);
-            } catch (JSONException e) {
-                throw new MDMException(MDMError.ERROR_INVALID_PARAMETER);
+        if (bundle != null) {
+            String packedPayload = bundle.getString(Const.INTENT_PUSH_NOTIFICATION_EXTRA);
+            if (packedPayload != null) {
+                try {
+                    data = new JSONObject(packedPayload);
+                } catch (JSONException e) {
+                    throw new MDMException(MDMError.ERROR_INVALID_PARAMETER);
+                }
             }
         }
     }

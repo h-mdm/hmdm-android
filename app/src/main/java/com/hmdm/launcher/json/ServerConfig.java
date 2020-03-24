@@ -50,6 +50,9 @@ public class ServerConfig {
     private String systemUpdateTo;
 
     private Boolean factoryReset;
+    private Boolean reboot;
+    private Boolean lock;
+    private String lockMessage;
 
     private String pushOptions;
     private String requestUpdates;
@@ -60,6 +63,7 @@ public class ServerConfig {
     private Boolean manageTimeout;
     private Integer timeout;
     private Boolean lockVolume;
+    private String passwordMode;
 
     private List<Application> applications = new LinkedList();
 
@@ -250,6 +254,30 @@ public class ServerConfig {
         this.factoryReset = factoryReset;
     }
 
+    public Boolean getReboot() {
+        return reboot;
+    }
+
+    public void setReboot(Boolean reboot) {
+        this.reboot = reboot;
+    }
+
+    public Boolean getLock() {
+        return lock;
+    }
+
+    public void setLock(Boolean lock) {
+        this.lock = lock;
+    }
+
+    public String getLockMessage() {
+        return lockMessage;
+    }
+
+    public void setLockMessage(String lockMessage) {
+        this.lockMessage = lockMessage;
+    }
+
     public String getPushOptions() {
         return pushOptions;
     }
@@ -312,6 +340,14 @@ public class ServerConfig {
 
     public void setLockVolume(Boolean lockVolume) {
         this.lockVolume = lockVolume;
+    }
+
+    public String getPasswordMode() {
+        return passwordMode;
+    }
+
+    public void setPasswordMode(String passwordMode) {
+        this.passwordMode = passwordMode;
     }
 
     public List<RemoteFile> getFiles() {

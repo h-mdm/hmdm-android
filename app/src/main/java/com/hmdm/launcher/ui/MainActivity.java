@@ -22,6 +22,7 @@ package com.hmdm.launcher.ui;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.admin.DevicePolicyManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -97,6 +98,8 @@ import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
 import com.hmdm.launcher.service.LocationService;
 import com.hmdm.launcher.service.PluginApiService;
+import com.hmdm.launcher.task.ConfirmDeviceResetTask;
+import com.hmdm.launcher.task.ConfirmRebootTask;
 import com.hmdm.launcher.task.GetRemoteLogConfigTask;
 import com.hmdm.launcher.task.GetServerConfigTask;
 import com.hmdm.launcher.task.SendDeviceInfoTask;
@@ -162,6 +165,7 @@ public class MainActivity
 
     private Handler handler = new Handler();
     private View applicationNotAllowed;
+    private View lockScreen;
 
     private SharedPreferences preferences;
 
@@ -183,6 +187,8 @@ public class MainActivity
 
     private boolean configFault = false;
 
+    private boolean needSendDeviceInfoAfterReconfigure = false;
+
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive( Context context, Intent intent ) {
@@ -192,7 +198,11 @@ public class MainActivity
                     updateConfig(false);
                     break;
                 case Const.ACTION_HIDE_SCREEN:
-                    if ( applicationNotAllowed != null &&
+                    ServerConfig serverConfig = SettingsHelper.getInstance(MainActivity.this).getConfig();
+                    if (serverConfig.getLock() != null && serverConfig.getLock()) {
+                        // Device is locked by the server administrator!
+                        showLockScreen();
+                    } else if ( applicationNotAllowed != null &&
                             (!ProUtils.kioskModeRequired(MainActivity.this) || !ProUtils.isKioskAppInstalled(MainActivity.this)) ) {
                         TextView textView = ( TextView ) applicationNotAllowed.findViewById( R.id.message );
                         textView.setText( String.format( getString(R.string.access_to_app_denied),
@@ -307,27 +317,44 @@ public class MainActivity
         LocalBroadcastManager.getInstance( this ).registerReceiver( receiver, intentFilter );
 
         // Here we handle the completion of the silent app installation in the device owner mode
-        // For some reason, it doesn't work in a common broadcast receiver
+        // These intents are not delivered to LocalBroadcastManager
         registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(Const.ACTION_INSTALL_COMPLETE)) {
                     int status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, 0);
-                    if (status == PackageInstaller.STATUS_PENDING_USER_ACTION) {
-                        Intent confirmationIntent = intent.getParcelableExtra(Intent.EXTRA_INTENT);
-                        confirmationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        try {
-                            startActivity(confirmationIntent);
-                        } catch (Exception e) {
-                        }
-                    } else if (Utils.isDeviceOwner(MainActivity.this)){
-                        // Always grant all dangerous rights to the app
-                        // TODO: in the future, the rights must be configurable on the server
-                        String packageName = intent.getStringExtra(Const.PACKAGE_NAME);
-                        if (packageName != null) {
-                            Log.i(Const.LOG_TAG, "Install complete: " + packageName);
-                            Utils.autoGrantRequestedPermissions(MainActivity.this, packageName);
-                        }
+                    switch (status) {
+                        case PackageInstaller.STATUS_PENDING_USER_ACTION:
+                            RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Request user confirmation to install");
+                            Intent confirmationIntent = intent.getParcelableExtra(Intent.EXTRA_INTENT);
+                            confirmationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            try {
+                                startActivity(confirmationIntent);
+                            } catch (Exception e) {
+                            }
+                            break;
+                        case PackageInstaller.STATUS_SUCCESS:
+                            RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "App installed successfully");
+                            if (Utils.isDeviceOwner(MainActivity.this)){
+                                // Always grant all dangerous rights to the app
+                                // TODO: in the future, the rights must be configurable on the server
+                                String packageName = intent.getStringExtra(Const.PACKAGE_NAME);
+                                if (packageName != null) {
+                                    Log.i(Const.LOG_TAG, "Install complete: " + packageName);
+                                    Utils.autoGrantRequestedPermissions(MainActivity.this, packageName);
+                                }
+                            }
+                            break;
+                        default:
+                            // Installation failure
+                            String extraMessage = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
+                            String statusMessage = InstallUtils.getPackageInstallerStatusMessage(status);
+                            String logRecord = "Install failed: " + statusMessage;
+                            if (extraMessage != null && extraMessage.length() > 0) {
+                                logRecord += ", extra: " + extraMessage;
+                            }
+                            RemoteLogger.log(MainActivity.this, Const.LOG_ERROR, logRecord);
+                            break;
                     }
                     checkAndStartLauncher();
                 }
@@ -505,6 +532,7 @@ public class MainActivity
         }
 
         createApplicationNotAllowedScreen();
+        createLockScreen();
         startLauncher();
     }
 
@@ -688,21 +716,24 @@ public class MainActivity
         }
     }
 
+    private WindowManager.LayoutParams overlayLockScreenParams() {
+        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+        layoutParams.type = Utils.OverlayWindowType();
+        layoutParams.gravity = Gravity.RIGHT;
+        layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
+
+        layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
+        layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+        layoutParams.format = PixelFormat.TRANSPARENT;
+
+        return layoutParams;
+    }
+
     private void createApplicationNotAllowedScreen() {
         if ( applicationNotAllowed != null ) {
             return;
         }
-
         WindowManager manager = ((WindowManager)getApplicationContext().getSystemService(Context.WINDOW_SERVICE));
-
-        WindowManager.LayoutParams localLayoutParams = new WindowManager.LayoutParams();
-        localLayoutParams.type = Utils.OverlayWindowType();
-        localLayoutParams.gravity = Gravity.RIGHT;
-        localLayoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
-
-        localLayoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
-        localLayoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
-        localLayoutParams.format = PixelFormat.TRANSPARENT;
 
         applicationNotAllowed = LayoutInflater.from( this ).inflate( R.layout.layout_application_not_allowed, null );
         applicationNotAllowed.findViewById( R.id.layout_application_not_allowed_continue ).setOnClickListener( new View.OnClickListener() {
@@ -722,8 +753,45 @@ public class MainActivity
         applicationNotAllowed.setVisibility( View.GONE );
 
         try {
-            manager.addView( applicationNotAllowed, localLayoutParams );
-        } catch ( Exception e ) { e.printStackTrace(); }
+            manager.addView( applicationNotAllowed, overlayLockScreenParams() );
+        } catch ( Exception e ) {
+            // No permission to show overlays; let's try to add view to main view
+            try {
+                RelativeLayout root = findViewById(R.id.activity_main);
+                root.addView(applicationNotAllowed);
+            } catch ( Exception e1 ) {
+                e1.printStackTrace();
+            }
+        }
+    }
+
+    private void createLockScreen() {
+        if ( lockScreen != null ) {
+            return;
+        }
+
+        WindowManager manager = ((WindowManager)getApplicationContext().getSystemService(Context.WINDOW_SERVICE));
+
+        // Reuse existing "Application not allowed" screen but hide buttons
+        lockScreen = LayoutInflater.from( this ).inflate( R.layout.layout_application_not_allowed, null );
+        lockScreen.findViewById( R.id.layout_application_not_allowed_continue ).setVisibility(View.GONE);
+        lockScreen.findViewById( R.id.layout_application_not_allowed_admin ).setVisibility(View.GONE);
+        TextView textView = lockScreen.findViewById( R.id.message );
+        textView.setText(getString(R.string.device_locked));
+
+        lockScreen.setVisibility( View.GONE );
+
+        try {
+            manager.addView( lockScreen, overlayLockScreenParams() );
+        } catch ( Exception e ) {
+            // No permission to show overlays; let's try to add view to main view
+            try {
+                RelativeLayout root = findViewById(R.id.activity_main);
+                root.addView(lockScreen);
+            } catch ( Exception e1 ) {
+                e1.printStackTrace();
+            }
+        }
     }
 
     // This is an overlay button which is not necessary! We need normal buttons in the launcher window.
@@ -760,8 +828,6 @@ public class MainActivity
     } */
 
     private ImageView createManageButton(int imageResource, int imageResourceBlack, int offset) {
-        WindowManager manager = ((WindowManager)getApplicationContext().getSystemService(Context.WINDOW_SERVICE));
-
         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
         layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
@@ -830,6 +896,8 @@ public class MainActivity
             return;
         }
 
+        needSendDeviceInfoAfterReconfigure = true;
+
         Log.i(Const.LOG_TAG, "updateConfig(): set configInitializing=true");
         configInitializing = true;
         DetailedInfoWorker.requestConfigUpdate(this);
@@ -894,11 +962,8 @@ public class MainActivity
                 || pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM))) {
             try {
                 URL url = new URL(settingsHelper.getBaseUrl());
-                Runnable nextRunnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        checkFactoryReset();
-                    }
+                Runnable nextRunnable = () -> {
+                    checkFactoryReset();
                 };
                 PushNotificationMqttWrapper.getInstance().connect(this, url.getHost(), BuildConfig.MQTT_PORT,
                         pushOptions, settingsHelper.getDeviceId(), nextRunnable, nextRunnable);
@@ -915,13 +980,22 @@ public class MainActivity
         ServerConfig config = settingsHelper != null ? settingsHelper.getConfig() : null;
         if (config != null && config.getFactoryReset() != null && config.getFactoryReset()) {
             // We got a factory reset request, let's confirm and erase everything!
-            SendDeviceInfoTask confirmTask = new SendDeviceInfoTask(this) {
+            RemoteLogger.log(this, Const.LOG_INFO, "Device reset by server request");
+            ConfirmDeviceResetTask confirmTask = new ConfirmDeviceResetTask(this) {
                 @Override
                 protected void onPostExecute( Integer result ) {
                     // Do a factory reset if we can
-                    if (Utils.checkAdminMode(MainActivity.this)) {
-                        Utils.factoryReset(MainActivity.this);
+                    if (result == null || result != Const.TASK_SUCCESS ) {
+                        RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Failed to confirm device reset on server");
+                    } else if (Utils.checkAdminMode(MainActivity.this)) {
+                        if (!Utils.factoryReset(MainActivity.this)) {
+                            RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Device reset failed");
+                        }
+                    } else {
+                        RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Device reset failed: no permissions");
                     }
+                    // If we can't, proceed the initialization flow
+                    checkRemoteReboot();
                 }
             };
 
@@ -930,8 +1004,38 @@ public class MainActivity
             confirmTask.execute(deviceInfo);
 
         } else {
+            checkRemoteReboot();
+        }
+    }
+
+    private void checkRemoteReboot() {
+        ServerConfig config = settingsHelper != null ? settingsHelper.getConfig() : null;
+        if (config != null && config.getReboot() != null && config.getReboot()) {
+            // Log and confirm reboot before rebooting
+            RemoteLogger.log(this, Const.LOG_INFO, "Rebooting by server request");
+            ConfirmRebootTask confirmTask = new ConfirmRebootTask(this) {
+                @Override
+                protected void onPostExecute( Integer result ) {
+                    if (result == null || result != Const.TASK_SUCCESS ) {
+                        RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Failed to confirm reboot on server");
+                    } else if (Utils.checkAdminMode(MainActivity.this)) {
+                        if (!Utils.reboot(MainActivity.this)) {
+                            RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Reboot failed");
+                        }
+                    } else {
+                        RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Reboot failed: no permissions");
+                    }
+                    updateLocationService();
+                }
+            };
+
+            DeviceInfo deviceInfo = DeviceInfoProvider.getDeviceInfo(this, true, true);
+            confirmTask.execute(deviceInfo);
+
+        } else {
             updateLocationService();
         }
+
     }
 
     private void updateLocationService() {
@@ -1331,26 +1435,38 @@ public class MainActivity
         }
 
         if (config.getBluetooth() != null) {
-            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-            if (bluetoothAdapter != null) {
-                boolean enabled = bluetoothAdapter.isEnabled();
-                if (config.getBluetooth() && !enabled) {
-                    bluetoothAdapter.enable();
-                } else if (!config.getBluetooth() && enabled) {
-                    bluetoothAdapter.disable();
+            try {
+                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                if (bluetoothAdapter != null) {
+                    boolean enabled = bluetoothAdapter.isEnabled();
+                    if (config.getBluetooth() && !enabled) {
+                        bluetoothAdapter.enable();
+                    } else if (!config.getBluetooth() && enabled) {
+                        bluetoothAdapter.disable();
+                    }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
+        // Note: SecurityException here on Mediatek
+        // Looks like com.mediatek.permission.CTA_ENABLE_WIFI needs to be explicitly granted
+        // or even available to system apps only
+        // By now, let's just ignore this issue
         if (config.getWifi() != null) {
-            WifiManager wifiManager = (WifiManager) this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-            if (wifiManager != null) {
-                boolean enabled = wifiManager.isWifiEnabled();
-                if (config.getWifi() && !enabled) {
-                    wifiManager.setWifiEnabled(true);
-                } else if (!config.getWifi() && enabled) {
-                    wifiManager.setWifiEnabled(false);
+            try {
+                WifiManager wifiManager = (WifiManager) this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                if (wifiManager != null) {
+                    boolean enabled = wifiManager.isWifiEnabled();
+                    if (config.getWifi() && !enabled) {
+                        wifiManager.setWifiEnabled(true);
+                    } else if (!config.getWifi() && enabled) {
+                        wifiManager.setWifiEnabled(false);
+                    }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
@@ -1396,6 +1512,11 @@ public class MainActivity
             }
         }
 
+        if (!Utils.setPasswordMode(config.getPasswordMode(), this)) {
+            Intent updatePasswordIntent = new Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD);
+            postDelayedSystemSettingDialog(getString(R.string.message_set_password), updatePasswordIntent);
+        }
+
         if (config.getUsbStorage() != null) {
             Utils.lockUsbStorage(config.getUsbStorage(), this);
         }
@@ -1421,8 +1542,16 @@ public class MainActivity
             return;
         }
 
+        sendDeviceInfoAfterReconfigure();
         scheduleDeviceInfoSending();
         scheduleInstalledAppsRun();
+
+        if (config.getLock() != null && config.getLock()) {
+            showLockScreen();
+            return;
+        } else {
+            hideLockScreen();
+        }
 
         if (ProUtils.kioskModeRequired(this)) {
             String kioskApp = settingsHelper.getConfig().getMainApp();
@@ -1481,6 +1610,31 @@ public class MainActivity
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
+    private void showLockScreen() {
+        if (lockScreen == null) {
+            createLockScreen();
+            if (lockScreen == null) {
+                // Why cannot we create the lock screen? Give up and return
+                // The locked device will show the launcher, but still cannot run any application
+                return;
+            }
+        }
+        String lockAdminMessage = settingsHelper.getConfig().getLockMessage();
+        String lockMessage = getString(R.string.device_locked);
+        if (lockAdminMessage != null) {
+            lockMessage += " " + lockAdminMessage;
+        }
+        TextView textView = lockScreen.findViewById( R.id.message );
+        textView.setText(lockMessage);
+        lockScreen.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLockScreen() {
+        if (lockScreen != null && lockScreen.getVisibility() == View.VISIBLE) {
+            lockScreen.setVisibility(View.GONE);
+        }
+    }
+
     // Run default launcher (Headwind MDM) as if the user clicked Home button
     private void openDefaultLauncher() {
         Intent intent = new Intent(Intent.ACTION_MAIN);
@@ -1535,6 +1689,16 @@ public class MainActivity
         }
     }
 
+    // If we updated the configuration, let's send the final state to the server
+    private void sendDeviceInfoAfterReconfigure() {
+        if (needSendDeviceInfoAfterReconfigure) {
+            needSendDeviceInfoAfterReconfigure = false;
+            SendDeviceInfoTask sendDeviceInfoTask = new SendDeviceInfoTask(this);
+            DeviceInfo deviceInfo = DeviceInfoProvider.getDeviceInfo(this, true, true);
+            sendDeviceInfoTask.execute(deviceInfo);
+        }
+    }
+
     private void scheduleDeviceInfoSending() {
         if (sendDeviceInfoScheduled) {
             return;
@@ -1543,6 +1707,7 @@ public class MainActivity
         PeriodicWorkRequest request =
                 new PeriodicWorkRequest.Builder(SendDeviceInfoWorker.class, SEND_DEVICE_INFO_PERIOD_MINS, TimeUnit.MINUTES)
                         .addTag(Const.WORK_TAG_COMMON)
+                        .setInitialDelay(SEND_DEVICE_INFO_PERIOD_MINS, TimeUnit.MINUTES)
                         .build();
         WorkManager.getInstance(getApplicationContext()).enqueueUniquePeriodicWork(WORK_TAG_DEVICEINFO, ExistingPeriodicWorkPolicy.REPLACE, request);
     }
@@ -1937,6 +2102,7 @@ public class MainActivity
         dismissDialog(enterPasswordDialog);
         if (ProUtils.kioskModeRequired(this)) {
             checkAndStartLauncher();
+            updateConfig(false);
         }
     }
 
@@ -2118,6 +2284,4 @@ public class MainActivity
         startActivity(intent);
         Log.i("LauncherRestarter", "Calling launcher restarter from the launcher");
     }
-
-
 }

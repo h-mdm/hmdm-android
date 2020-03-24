@@ -21,5 +21,6 @@
 <device-admin xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-policies>
         <wipe-data />
+        <limit-password />
     </uses-policies>
 </device-admin>

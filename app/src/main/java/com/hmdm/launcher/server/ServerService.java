@@ -64,4 +64,13 @@ public interface ServerService {
 
     @GET( "{project}/rest/plugins/deviceinfo/deviceinfo-plugin-settings/device/{number}" )
     Call<DetailedInfoConfigResponse> getDetailedInfoConfig(@Path("project") String project, @Path("number") String number);
+
+    @POST("{project}/rest/plugins/devicereset/public/{number}")
+    @Headers("Content-Type: application/json")
+    Call<ResponseBody> confirmDeviceReset(@Path("project") String project, @Path("number") String number, @Body DeviceInfo deviceInfo);
+
+    @POST("{project}/rest/plugins/devicereset/public/reboot/{number}")
+    @Headers("Content-Type: application/json")
+    Call<ResponseBody> confirmReboot(@Path("project") String project, @Path("number") String number, @Body DeviceInfo deviceInfo);
+
 }

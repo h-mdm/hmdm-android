@@ -210,11 +210,27 @@ public class Utils {
         }
     }
 
-    public static void factoryReset(Context context) {
+    public static boolean factoryReset(Context context) {
         try {
             DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
             dpm.wipeData(0);
+            return true;
         } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static boolean reboot(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            return false;
+        }
+        try {
+            DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+            dpm.reboot(adminComponentName);
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 
@@ -385,5 +401,43 @@ public class Utils {
             return false;
         }
         return true;
+    }
+
+    // Returns true if the current password is good enough, or false elsewhere
+    public static boolean setPasswordMode(String passwordMode, Context context) {
+        if (!Utils.isDeviceOwner(context)) {
+            return true;
+        }
+
+        try {
+            DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(
+                    Context.DEVICE_POLICY_SERVICE);
+            ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+
+            if (passwordMode == null) {
+                devicePolicyManager.setPasswordQuality(adminComponentName, DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
+            } if (passwordMode.equals(Const.PASSWORD_QUALITY_PRESENT)) {
+                devicePolicyManager.setPasswordQuality(adminComponentName, DevicePolicyManager.PASSWORD_QUALITY_SOMETHING);
+                devicePolicyManager.setPasswordMinimumLength(adminComponentName, 1);
+            } else if (passwordMode.equals(Const.PASSWORD_QUALITY_EASY)) {
+                devicePolicyManager.setPasswordQuality(adminComponentName, DevicePolicyManager.PASSWORD_QUALITY_SOMETHING);
+                devicePolicyManager.setPasswordMinimumLength(adminComponentName, 6);
+            } else if (passwordMode.equals(Const.PASSWORD_QUALITY_MODERATE)) {
+                devicePolicyManager.setPasswordQuality(adminComponentName, DevicePolicyManager.PASSWORD_QUALITY_ALPHANUMERIC);
+                devicePolicyManager.setPasswordMinimumLength(adminComponentName, 8);
+            } else if (passwordMode.equals(Const.PASSWORD_QUALITY_STRONG)) {
+                devicePolicyManager.setPasswordQuality(adminComponentName, DevicePolicyManager.PASSWORD_QUALITY_COMPLEX);
+                devicePolicyManager.setPasswordMinimumLowerCase(adminComponentName, 1);
+                devicePolicyManager.setPasswordMinimumUpperCase(adminComponentName, 1);
+                devicePolicyManager.setPasswordMinimumNumeric(adminComponentName, 1);
+                devicePolicyManager.setPasswordMinimumSymbols(adminComponentName, 1);
+                devicePolicyManager.setPasswordMinimumLength(adminComponentName, 8);
+            }
+            return devicePolicyManager.isActivePasswordSufficient();
+        } catch (Exception e) {
+            e.printStackTrace();
+            // If the app doesn't have enough rights, let's leave password quality as is
+            return true;
+        }
     }
 }

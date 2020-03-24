@@ -85,6 +85,7 @@
     <string name="message_turn_off_gps">Сейчас откроется экран настроек. Пожалуйста, ВЫКЛЮЧИТЕ на нем точное определение метоположения по GPS.</string>
     <string name="message_turn_on_mobile_data">Сейчас откроется экран настроек. Пожалуйста, включите на нем передачу мобильных данных.</string>
     <string name="message_turn_off_mobile_data">Сейчас откроется экран настроек. Пожалуйста, ВЫКЛЮЧИТЕ на нем передачу мобильных данных.</string>
+    <string name="message_set_password">Качество вашего пароля недостаточно. Сейчас откроется экран настроек. Пожалуйста, измените пароль и нажмите Назад.</string>
     <string name="switch_off_blockings">Отключаем блокировку...</string>
     <string name="kiosk_mode_requires_overlays">Режим киоска не включен: не выдано разрешение на отображение поверх других окон.</string>
     <string name="enter_admin_password">Введите пароль администратора</string>
@@ -103,4 +104,5 @@
     <string name="browser_not_found">Невозможно открыть веб-страницу: браузер не найден. Пожалуйста, добавьте приложение-браузер в конфигурацию устройства.</string>
     <string name="location_service_text">Местоположение устройства передается на сервер</string>
     <string name="qrcode_contents_error">Неверное содержимое QR кода. Пожалуйста, сформируйте QR код на сервере Headwind MDM.</string>
+    <string name="device_locked">Это устройство заблокировано администратором.</string>
 </resources>
