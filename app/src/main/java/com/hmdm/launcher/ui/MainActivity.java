@@ -108,6 +108,7 @@ import com.hmdm.launcher.util.DeviceInfoProvider;
 import com.hmdm.launcher.util.InstallUtils;
 import com.hmdm.launcher.util.PushNotificationMqttWrapper;
 import com.hmdm.launcher.util.RemoteLogger;
+import com.hmdm.launcher.util.SystemUtils;
 import com.hmdm.launcher.util.Utils;
 import com.hmdm.launcher.worker.PushNotificationWorker;
 import com.squareup.picasso.Picasso;
@@ -188,6 +189,8 @@ public class MainActivity
     private boolean configFault = false;
 
     private boolean needSendDeviceInfoAfterReconfigure = false;
+
+    private int REQUEST_CODE_GPS_STATE_CHANGE = 1;
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -310,6 +313,15 @@ public class MainActivity
         super.onSaveInstanceState( outState );
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_GPS_STATE_CHANGE) {
+            // User changed GPS state, let's update location service
+            startLocationServiceWithRetry();
+        }
+    }
+
     private void initReceiver() {
         IntentFilter intentFilter = new IntentFilter( Const.ACTION_UPDATE_CONFIGURATION );
         intentFilter.addAction( Const.ACTION_HIDE_SCREEN );
@@ -374,7 +386,11 @@ public class MainActivity
             return;
         }
 
-        checkAndStartLauncher();
+        if (!BuildConfig.SYSTEM_PRIVILEGES) {
+            checkAndStartLauncher();
+        } else {
+            setSelfAsDeviceOwner();
+        }
     }
 
     // Workaround against crash "App is in background" on Android 9: this is an Android OS bug
@@ -400,6 +416,28 @@ public class MainActivity
                 }
             }, 1000);
         }
+    }
+
+    // Does not seem to work, though. See the comment to Utils.becomeDeviceOwner()
+    private void setSelfAsDeviceOwner() {
+        // We set self as device owner only once
+        if (preferences.getInt(Const.PREFERENCES_DEVICE_OWNER, -1) != -1) {
+            checkAndStartLauncher();
+            return;
+        }
+
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                SystemUtils.becomeDeviceOwner(MainActivity.this);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void v) {
+                checkAndStartLauncher();
+            }
+        }.execute();
     }
 
     private void startServices() {
@@ -947,6 +985,7 @@ public class MainActivity
             protected void onPostExecute( Integer result ) {
                 super.onPostExecute( result );
                 Log.i(Const.LOG_TAG, "updateRemoteLogConfig(): result=" + result);
+                RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Device owner: " + Utils.isDeviceOwner(MainActivity.this));
                 setupPushService();
             }
         };
@@ -1338,7 +1377,7 @@ public class MainActivity
             // Restart self in EMUI: there's no auto restart after update in EMUI, we must use a helper app
             startLauncherRestarter();
         }
-        if (Utils.isDeviceOwner(this)) {
+        if (Utils.isDeviceOwner(this) || BuildConfig.SYSTEM_PRIVILEGES) {
                 RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Silently installing app " + packageName);
             InstallUtils.silentInstallApplication(this, file, packageName, new InstallUtils.InstallErrorHandler() {
                     @Override
@@ -1378,7 +1417,7 @@ public class MainActivity
     }
 
     private void uninstallApplication(final String packageName) {
-        if (Utils.isDeviceOwner(this)) {
+        if (Utils.isDeviceOwner(this) || BuildConfig.SYSTEM_PRIVILEGES) {
             RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Silently uninstall app " + packageName);
             InstallUtils.silentUninstallApplication(this, packageName);
         } else {
@@ -1479,11 +1518,14 @@ public class MainActivity
                 boolean enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
                 if (config.getGps() && !enabled) {
                     dialogWillShow = true;
-                    postDelayedSystemSettingDialog(getString(R.string.message_turn_on_gps), new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    // System settings dialog should return result so we could re-initialize location service
+                    postDelayedSystemSettingDialog(getString(R.string.message_turn_on_gps),
+                            new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), REQUEST_CODE_GPS_STATE_CHANGE);
 
                 } else if (!config.getGps() && enabled) {
                     dialogWillShow = true;
-                    postDelayedSystemSettingDialog(getString(R.string.message_turn_off_gps), new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    postDelayedSystemSettingDialog(getString(R.string.message_turn_off_gps),
+                            new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), REQUEST_CODE_GPS_STATE_CHANGE);
                 }
             }
         }
@@ -1680,6 +1722,7 @@ public class MainActivity
                     response = secondaryServerService.sendDevice(settingsHelper.getServerProject(), deviceInfo).execute();
                 }
                 if ( response.isSuccessful() ) {
+                    SettingsHelper.getInstance(context).setExternalIp(response.headers().get(Const.HEADER_IP_ADDRESS));
                     return Result.success();
                 }
             }
@@ -2217,17 +2260,21 @@ public class MainActivity
     }
 
     private void postDelayedSystemSettingDialog(final String message, final Intent settingsIntent) {
+        postDelayedSystemSettingDialog(message, settingsIntent, null);
+    }
+
+    private void postDelayedSystemSettingDialog(final String message, final Intent settingsIntent, final Integer requestCode) {
         LocalBroadcastManager.getInstance( this ).sendBroadcast( new Intent( Const.ACTION_ENABLE_SETTINGS ) );
         // Delayed start prevents the race of ENABLE_SETTINGS handle and tapping "Next" button
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                createAndShowSystemSettingDialog(message, settingsIntent);
+                createAndShowSystemSettingDialog(message, settingsIntent, requestCode);
             }
         }, 5000);
     }
 
-    private void createAndShowSystemSettingDialog(final String message, final Intent settingsIntent) {
+    private void createAndShowSystemSettingDialog(final String message, final Intent settingsIntent, final Integer requestCode) {
         dismissDialog(systemSettingsDialog);
         systemSettingsDialog = new Dialog( this );
         dialogSystemSettingsBinding = DataBindingUtil.inflate(
@@ -2258,15 +2305,23 @@ public class MainActivity
                     }
                 }, 300);*/
                 try {
-                    startActivity(settingsIntent);
+                    startActivityOptionalResult(settingsIntent, requestCode);
                 } catch (/*ActivityNotFound*/Exception e) {
                     // Open settings by default
-                    startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS));
+                    startActivityOptionalResult(new Intent(android.provider.Settings.ACTION_SETTINGS), requestCode);
                 }
             }
         });
 
         systemSettingsDialog.show();
+    }
+
+    private void startActivityOptionalResult(Intent intent, Integer requestCode) {
+        if (requestCode != null) {
+            startActivityForResult(intent, requestCode);
+        } else {
+            startActivity(intent);
+        }
     }
 
     // The following algorithm of launcher restart works in EMUI:

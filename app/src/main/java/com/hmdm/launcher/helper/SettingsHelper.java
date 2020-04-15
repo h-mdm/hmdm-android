@@ -41,6 +41,7 @@ public class SettingsHelper {
     private static final String PREF_KEY_SERVER_PROJECT = ".helpers.SERVER_PROJECT";
     private static final String PREF_KEY_DEVICE_ID = ".helpers.DEVICE_ID";
     private static final String PREF_KEY_CONFIG = ".helpers.CONFIG";
+    private static final String PREF_KEY_IP_ADDRESS = ".helpers.IP_ADDRESS";
     // This prefix is for the compatibility with a legacy package name
     private static String PACKAGE_NAME;
 
@@ -113,6 +114,17 @@ public class SettingsHelper {
 
     public void setDeviceId( String deviceId ) {
         sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_DEVICE_ID, deviceId ).commit();
+    }
+
+    public String getExternalIp() {
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_IP_ADDRESS, "" );
+    }
+
+    public void setExternalIp( String externalIp ) {
+        if (externalIp == null) {
+            externalIp = "";
+        }
+        sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_IP_ADDRESS, externalIp ).commit();
     }
 
     public void updateConfig( ServerConfig config ) {

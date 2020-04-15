@@ -118,4 +118,6 @@ public class Const {
     public static final String PASSWORD_QUALITY_EASY = "easy";
     public static final String PASSWORD_QUALITY_MODERATE = "moderate";
     public static final String PASSWORD_QUALITY_STRONG = "strong";
+
+    public static final String HEADER_IP_ADDRESS = "X-IP-Address";
 }

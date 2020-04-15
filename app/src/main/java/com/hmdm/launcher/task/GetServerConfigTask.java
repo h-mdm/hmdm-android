@@ -72,6 +72,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
 
             if ( response.isSuccessful() ) {
                 if ( Const.STATUS_OK.equals( response.body().getStatus() ) && response.body().getData() != null ) {
+                    SettingsHelper.getInstance(context).setExternalIp(response.headers().get(Const.HEADER_IP_ADDRESS));
                     settingsHelper.updateConfig( response.body().getData() );
 
                     // Prevent from occasional launch in the kiosk mode without any possibility to exit!

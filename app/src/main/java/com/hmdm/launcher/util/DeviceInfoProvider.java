@@ -200,6 +200,7 @@ public class DeviceInfoProvider {
         return null;
     }
 
+    @SuppressLint("MissingPermission")
     public static String getSerialNumber() {
         String serialNumber = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

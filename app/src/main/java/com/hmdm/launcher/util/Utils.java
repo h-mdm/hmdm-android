@@ -35,6 +35,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.WindowManager;
 
+import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.json.ServerConfig;
 
@@ -183,6 +184,9 @@ public class Utils {
     }
 
     public static boolean canInstallPackages(Context context) {
+        if (BuildConfig.SYSTEM_PRIVILEGES) {
+            return true;
+        }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             // Global setting works for Android 7 and below
             try {
