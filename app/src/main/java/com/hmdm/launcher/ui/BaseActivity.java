@@ -175,11 +175,14 @@ public class BaseActivity extends AppCompatActivity {
             }
 
             String baseUrl = extras.optString(Const.QR_BASE_URL_ATTR, null);
+            String secondaryBaseUrl = extras.optString(Const.QR_SECONDARY_BASE_URL_ATTR, null);
             if (baseUrl != null) {
                 settingsHelper.setBaseUrl(baseUrl);
+                // If we don't set the secondary base URL, it will point to app.h-mdm.com by default which is wrong
+                if (secondaryBaseUrl == null) {
+                    secondaryBaseUrl = baseUrl;
+                }
             }
-
-            String secondaryBaseUrl = extras.optString(Const.QR_SECONDARY_BASE_URL_ATTR, null);
             if (secondaryBaseUrl != null) {
                 settingsHelper.setSecondaryBaseUrl(secondaryBaseUrl);
             }
@@ -201,7 +204,7 @@ public class BaseActivity extends AppCompatActivity {
         System.exit(0);
     }
 
-    protected void createAndShowNetworkErrorDialog(String serverName, String serverPath) {
+    protected void createAndShowNetworkErrorDialog(String serverName, String serverPath, boolean showResetButton) {
         dismissDialog(networkErrorDialog);
         networkErrorDialog = new Dialog( this );
         dialogNetworkErrorBinding = DataBindingUtil.inflate(
@@ -218,6 +221,8 @@ public class BaseActivity extends AppCompatActivity {
             serverUrl += serverPath;
         }
         dialogNetworkErrorBinding.title.setText(getString(R.string.dialog_network_error_title, serverUrl));
+
+        dialogNetworkErrorBinding.resetButton.setVisibility(showResetButton ? View.VISIBLE : View.GONE);
 
         networkErrorDialog.setContentView( dialogNetworkErrorBinding.getRoot() );
         networkErrorDialog.show();

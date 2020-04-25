@@ -545,6 +545,12 @@ public class MainActivity
                         edit().
                         putInt( Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_ON ).
                         commit();
+
+                // If usage statistics is on, there's no need to turn on accessibility services
+                preferences.
+                        edit().
+                        putInt( Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF ).
+                        commit();
             } else {
                 return;
             }
@@ -928,7 +934,7 @@ public class MainActivity
         updateView.setOnClickListener(this);
     }
 
-    private void updateConfig( final boolean force ) {
+    private void updateConfig( final boolean forceShowErrorDialog ) {
         if ( configInitializing ) {
             Log.i(Const.LOG_TAG, "updateConfig(): configInitializing=true, exiting");
             return;
@@ -965,10 +971,13 @@ public class MainActivity
                         break;
                     case Const.TASK_NETWORK_ERROR:
                         RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Failed to update config: network error");
-                        if ( settingsHelper.getConfig() != null && !force ) {
+                        if ( settingsHelper.getConfig() != null && !forceShowErrorDialog ) {
                             updateRemoteLogConfig();
                         } else {
-                            createAndShowNetworkErrorDialog(settingsHelper.getBaseUrl(), settingsHelper.getServerProject());
+                            // Do not show the reset button if the launcher is installed by scanning a QR code
+                            // Only show the reset button on manual setup at first start (when config is not yet loaded)
+                            createAndShowNetworkErrorDialog(settingsHelper.getBaseUrl(), settingsHelper.getServerProject(),
+                                    settingsHelper.getConfig() == null && !settingsHelper.isQrProvisioning());
                         }
                         break;
                 }
@@ -2022,6 +2031,7 @@ public class MainActivity
 
     public void saveServerUrl( View view ) {
         if (saveServerUrlBase()) {
+            ServerServiceKeeper.resetServices();
             checkAndStartLauncher();
         }
     }
@@ -2031,7 +2041,7 @@ public class MainActivity
         dismissDialog(networkErrorDialog);
 
         Log.i(Const.LOG_TAG, "networkErrorRepeatClicked(): calling updateConfig()");
-        updateConfig( false );
+        updateConfig( true );
     }
 
     public void networkErrorResetClicked( View view ) {

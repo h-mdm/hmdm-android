@@ -86,6 +86,10 @@ public class AdminReceiver extends DeviceAdminReceiver {
                 if (baseUrl != null) {
                     if (DEBUG) PreferenceLogger.log(preferences, "BaseURL: " + baseUrl);
                     settingsHelper.setBaseUrl(baseUrl);
+                    // If we don't set the secondary base URL, it will point to app.h-mdm.com by default which is wrong
+                    if (secondaryBaseUrl == null) {
+                        secondaryBaseUrl = baseUrl;
+                    }
                 }
                 if (secondaryBaseUrl != null) {
                     if (DEBUG) PreferenceLogger.log(preferences, "SecondaryBaseURL: " + secondaryBaseUrl);
@@ -95,6 +99,7 @@ public class AdminReceiver extends DeviceAdminReceiver {
                     if (DEBUG) PreferenceLogger.log(preferences, "ServerPath: " + serverProject);
                     settingsHelper.setServerProject(serverProject);
                 }
+                settingsHelper.setQrProvisioning(true);
             }
         } catch (Exception e) {
             // Ignored

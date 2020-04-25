@@ -48,6 +48,7 @@
             android:orientation="horizontal">
 
             <Button
+                android:id="@+id/repeatButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -55,6 +56,7 @@
                 android:onClick="networkErrorRepeatClicked"/>
 
             <Button
+                android:id="@+id/resetButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -62,6 +64,7 @@
                 android:onClick="networkErrorResetClicked"/>
 
             <Button
+                android:id="@+id/cancelButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"

@@ -52,7 +52,13 @@ public class ServerServiceKeeper {
 
     public static ServerService getSecondaryServerServiceInstance(Context context) {
         if ( secondaryServerServiceInstance == null ) {
-            secondaryServerServiceInstance = createServerService( SettingsHelper.getInstance(context).getSecondaryBaseUrl() );
+            try {
+                secondaryServerServiceInstance = createServerService(SettingsHelper.getInstance(context).getSecondaryBaseUrl());
+            } catch (Exception e) {
+                // Here we can go if the secondary base URL is invalid
+                // In this case, just return a copy of the primary instance
+                secondaryServerServiceInstance = getServerServiceInstance(context);
+            }
         }
 
         return secondaryServerServiceInstance;

@@ -42,6 +42,7 @@ public class SettingsHelper {
     private static final String PREF_KEY_DEVICE_ID = ".helpers.DEVICE_ID";
     private static final String PREF_KEY_CONFIG = ".helpers.CONFIG";
     private static final String PREF_KEY_IP_ADDRESS = ".helpers.IP_ADDRESS";
+    private static final String PREF_QR_PROVISIONING = ".helpers.QR_PROVISIONING";
     // This prefix is for the compatibility with a legacy package name
     private static String PACKAGE_NAME;
 
@@ -78,6 +79,15 @@ public class SettingsHelper {
         } catch ( Exception e ) {
             e.printStackTrace();
         }
+    }
+
+    // Warning: this may return false if the launcher has been updated from older version
+    public boolean isQrProvisioning() {
+        return sharedPreferences.getBoolean(PACKAGE_NAME + PREF_QR_PROVISIONING, false);
+    }
+
+    public void setQrProvisioning(boolean value) {
+        sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_QR_PROVISIONING, value).commit();
     }
 
     public boolean isBaseUrlSet() {
