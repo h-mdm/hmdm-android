@@ -238,6 +238,42 @@ public class Utils {
         }
     }
 
+    public static void initPasswordReset(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+                ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+                if (!dpm.setResetPasswordToken(adminComponentName, Const.PASSWORD_RESET_TOKEN.getBytes()) ||
+                    !dpm.isResetPasswordTokenActive(adminComponentName)) {
+                    // This log message won't be sent to server because it is called too early
+                    RemoteLogger.log(context, Const.LOG_WARN, "Failed to setup password reset token, password reset requests will fail");
+                };
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static boolean passwordReset(Context context, String password) {
+        try {
+            DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // This flow doesn't work on Huawei Android 9 for some reason: tokenActive is alvays false,
+                // despite setResetPasswordToken returns true
+                ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+                boolean tokenActive = dpm.isResetPasswordTokenActive(adminComponentName);
+                if (!tokenActive) {
+                    return false;
+                }
+                return dpm.resetPasswordWithToken(adminComponentName, password, Const.PASSWORD_RESET_TOKEN.getBytes(), 0);
+            } else {
+                return dpm.resetPassword(password, 0);
+            }
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public static boolean isMobileDataEnabled(Context context) {
         ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         // A hack: use private API
@@ -420,7 +456,7 @@ public class Utils {
 
             if (passwordMode == null) {
                 devicePolicyManager.setPasswordQuality(adminComponentName, DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
-            } if (passwordMode.equals(Const.PASSWORD_QUALITY_PRESENT)) {
+            } else if (passwordMode.equals(Const.PASSWORD_QUALITY_PRESENT)) {
                 devicePolicyManager.setPasswordQuality(adminComponentName, DevicePolicyManager.PASSWORD_QUALITY_SOMETHING);
                 devicePolicyManager.setPasswordMinimumLength(adminComponentName, 1);
             } else if (passwordMode.equals(Const.PASSWORD_QUALITY_EASY)) {

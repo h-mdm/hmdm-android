@@ -31,6 +31,7 @@ public class Const {
     public static final String ACTION_EXIT = "EXIT";
     public static final String ACTION_HIDE_SCREEN = "HIDE_SCREEN";
     public static final String ACTION_UPDATE_CONFIGURATION = "UPDATE_CONFIGURATION";
+    public static final String ACTION_POLICY_VIOLATION = "ACTION_POLICY_VIOLATION";
     public static final String ACTION_ADMIN = "ADMIN";
     public static final String ACTION_INSTALL_COMPLETE = "INSTALL_COMPLETE";
     public static final String ACTION_DISABLE_BLOCK_WINDOW = "DISABLE_BLOCK_WINDOW";
@@ -39,6 +40,15 @@ public class Const {
     public static final String STATUS_OK = "OK";
     public static final String ORIENTATION = "ORIENTATION";
     public static final String PACKAGE_NAME = "PACKAGE_NAME";
+    public static final String POLICY_VIOLATION_CAUSE = "POLICY_VIOLATION_CAUSE";
+    public static final String RESTORED_ACTIVITY = "RESTORED_ACTIVITY";
+
+    public static final String PASSWORD_RESET_TOKEN = "Ax83bz6235l3Wed3yx7ZB30Kfa6cOln2";
+
+    public static final int GPS_ON_REQUIRED = 1;
+    public static final int GPS_OFF_REQUIRED = 2;
+    public static final int MOBILE_DATA_ON_REQUIRED = 3;
+    public static final int MOBILE_DATA_OFF_REQUIRED = 4;
 
     public static final String PREFERENCES = "PREFERENCES";
 
@@ -61,6 +71,7 @@ public class Const {
 
     public static final String LAUNCHER_RESTARTER_PACKAGE_ID = "com.hmdm.emuilauncherrestarter";
     public static final String LAUNCHER_RESTARTER_OLD_VERSION = "oldVersion";
+    public static final String LAUNCHER_RESTARTER_STOP = "stop";
 
     public static final String SETTINGS_PACKAGE_NAME = "com.android.settings";
     public static final String GSF_PACKAGE_NAME = "com.google.android.gsf";

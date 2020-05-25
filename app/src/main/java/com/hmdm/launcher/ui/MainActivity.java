@@ -44,6 +44,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Display;
@@ -98,12 +99,15 @@ import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
 import com.hmdm.launcher.service.LocationService;
 import com.hmdm.launcher.service.PluginApiService;
+import com.hmdm.launcher.service.StatusControlService;
 import com.hmdm.launcher.task.ConfirmDeviceResetTask;
+import com.hmdm.launcher.task.ConfirmPasswordResetTask;
 import com.hmdm.launcher.task.ConfirmRebootTask;
 import com.hmdm.launcher.task.GetRemoteLogConfigTask;
 import com.hmdm.launcher.task.GetServerConfigTask;
 import com.hmdm.launcher.task.SendDeviceInfoTask;
 import com.hmdm.launcher.util.AppInfo;
+import com.hmdm.launcher.util.CrashLoopProtection;
 import com.hmdm.launcher.util.DeviceInfoProvider;
 import com.hmdm.launcher.util.InstallUtils;
 import com.hmdm.launcher.util.PushNotificationMqttWrapper;
@@ -176,6 +180,7 @@ public class MainActivity
     private static List< Application > applicationsForInstall = new LinkedList();
     private static List< Application > applicationsForRun = new LinkedList();
     private static List< RemoteFile > filesForInstall = new LinkedList();
+    private static final int BOOT_DURATION_SEC = 120;
     private static final int PAUSE_BETWEEN_AUTORUNS_SEC = 5;
     private static final int SEND_DEVICE_INFO_PERIOD_MINS = 15;
     private static final String WORK_TAG_DEVICEINFO = "com.hmdm.launcher.WORK_TAG_DEVICEINFO";
@@ -191,6 +196,9 @@ public class MainActivity
     private boolean needSendDeviceInfoAfterReconfigure = false;
 
     private int REQUEST_CODE_GPS_STATE_CHANGE = 1;
+
+    // This flag is used by the broadcast receiver to determine what to do if it gets a policy violation report
+    private boolean isBackground;
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -230,6 +238,21 @@ public class MainActivity
                 case Const.ACTION_EXIT:
                     finish();
                     break;
+
+                case Const.ACTION_POLICY_VIOLATION:
+                    if (isBackground) {
+                        // If we're in the background, let's bring Headwind MDM to top and the notification will be raised in onResume
+                        Intent restoreLauncherIntent = new Intent(context, MainActivity.class);
+                        restoreLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(restoreLauncherIntent);
+                    } else {
+                        // Calling startActivity always calls onPause / onResume which is not what we want
+                        // So just show dialog if it isn't already shown
+                        if (!systemSettingsDialog.isShowing()) {
+                            notifyPolicyViolation(intent.getIntExtra(Const.POLICY_VIOLATION_CAUSE, 0));
+                        }
+                    }
+                    break;
             }
 
         }
@@ -256,16 +279,25 @@ public class MainActivity
     protected void onCreate( Bundle savedInstanceState ) {
         super.onCreate( savedInstanceState );
 
+        if (CrashLoopProtection.isCrashLoopDetected(this)) {
+            Toast.makeText(MainActivity.this, R.string.fault_loop_detected, Toast.LENGTH_LONG).show();
+            return;
+        }
+
         // Disable crashes to avoid "select a launcher" popup
         // Crashlytics will show an exception anyway!
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread t, Throwable e) {
                 e.printStackTrace();
-                // Restart launcher if there's a launcher restarter
-                Intent intent = getPackageManager().getLaunchIntentForPackage(Const.LAUNCHER_RESTARTER_PACKAGE_ID);
-                if (intent != null) {
-                    startActivity(intent);
+
+                CrashLoopProtection.registerFault(MainActivity.this);
+                // Restart launcher if there's a launcher restarter (and we're not in a crash loop)
+                if (!CrashLoopProtection.isCrashLoopDetected(MainActivity.this)) {
+                    Intent intent = getPackageManager().getLaunchIntentForPackage(Const.LAUNCHER_RESTARTER_PACKAGE_ID);
+                    if (intent != null) {
+                        startActivity(intent);
+                    }
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                     finishAffinity();
@@ -278,6 +310,7 @@ public class MainActivity
         ProUtils.initCrashlytics(this);
 
         Utils.lockSafeBoot(this);
+        Utils.initPasswordReset(this);
 
         DetailedInfoWorker.schedule(MainActivity.this);
         if (BuildConfig.ENABLE_PUSH) {
@@ -303,6 +336,10 @@ public class MainActivity
         intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(stateChangeReceiver, intentFilter);
+
+        if (!getIntent().getBooleanExtra(Const.RESTORED_ACTIVITY, false)) {
+            startAppsAtBoot();
+        }
     }
 
     @Override
@@ -323,10 +360,11 @@ public class MainActivity
     }
 
     private void initReceiver() {
-        IntentFilter intentFilter = new IntentFilter( Const.ACTION_UPDATE_CONFIGURATION );
-        intentFilter.addAction( Const.ACTION_HIDE_SCREEN );
-        intentFilter.addAction( Const.ACTION_EXIT );
-        LocalBroadcastManager.getInstance( this ).registerReceiver( receiver, intentFilter );
+        IntentFilter intentFilter = new IntentFilter(Const.ACTION_UPDATE_CONFIGURATION);
+        intentFilter.addAction(Const.ACTION_HIDE_SCREEN);
+        intentFilter.addAction(Const.ACTION_EXIT);
+        intentFilter.addAction(Const.ACTION_POLICY_VIOLATION);
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilter);
 
         // Here we handle the completion of the silent app installation in the device owner mode
         // These intents are not delivered to LocalBroadcastManager
@@ -379,6 +417,8 @@ public class MainActivity
     protected void onResume() {
         super.onResume();
 
+        isBackground = false;
+
         startServicesWithRetry();
 
         if (interruptResumeFlow) {
@@ -418,6 +458,58 @@ public class MainActivity
         }
     }
 
+    private void startAppsAtBoot() {
+        // Let's assume that we start within two minutes after boot
+        // This should work even for slow devices
+        long uptimeMillis = SystemClock.uptimeMillis();
+        if (uptimeMillis > BOOT_DURATION_SEC * 1000) {
+            return;
+        }
+        final ServerConfig config = settingsHelper.getConfig();
+        if (config == null || config.getApplications() == null) {
+            // First start
+            return;
+        }
+
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                boolean appStarted = false;
+                for (Application application : config.getApplications()) {
+                    if (application.isRunAtBoot()) {
+                        // Delay start of each application to 5 sec
+                        try {
+                            Thread.sleep(PAUSE_BETWEEN_AUTORUNS_SEC * 1000);
+                        } catch (InterruptedException e) {
+                        }
+                        Intent launchIntent = getPackageManager().getLaunchIntentForPackage(application.getPkg());
+                        if (launchIntent != null) {
+                            startActivity(launchIntent);
+                            appStarted = true;
+                        }
+                    }
+                }
+                // Hide apps after start to avoid users confusion
+                if (appStarted) {
+                    try {
+                        Thread.sleep(PAUSE_BETWEEN_AUTORUNS_SEC * 1000);
+                    } catch (InterruptedException e) {
+                    }
+                    // Notice: if MainActivity will be destroyed after running multiple apps at startup,
+                    // we can get the looping here, because startActivity will create a new instance!
+                    // That's why we put a boolean extra preventing apps from start
+                    Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    intent.putExtra(Const.RESTORED_ACTIVITY, true);
+                    startActivity(intent);
+                }
+
+                return null;
+            }
+        }.execute();
+
+    }
+
     // Does not seem to work, though. See the comment to Utils.becomeDeviceOwner()
     private void setSelfAsDeviceOwner() {
         // We set self as device owner only once
@@ -444,6 +536,7 @@ public class MainActivity
         // Foreground apps checks are not available in a free version: services are the stubs
         startService(new Intent(MainActivity.this, CheckForegroundApplicationService.class));
         startService(new Intent(MainActivity.this, CheckForegroundAppAccessibilityService.class));
+        startService(new Intent(MainActivity.this, StatusControlService.class));
 
         // Moved to onResume!
         // https://stackoverflow.com/questions/51863600/java-lang-illegalstateexception-not-allowed-to-start-service-intent-from-activ
@@ -1073,6 +1166,31 @@ public class MainActivity
                     } else {
                         RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Reboot failed: no permissions");
                     }
+                    checkPasswordReset();
+                }
+            };
+
+            DeviceInfo deviceInfo = DeviceInfoProvider.getDeviceInfo(this, true, true);
+            confirmTask.execute(deviceInfo);
+
+        } else {
+            checkPasswordReset();
+        }
+
+    }
+
+    private void checkPasswordReset() {
+        ServerConfig config = settingsHelper != null ? settingsHelper.getConfig() : null;
+        if (config != null && config.getPasswordReset() != null) {
+            if (Utils.passwordReset(this, config.getPasswordReset())) {
+                RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Password successfully changed");
+            } else {
+                RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Failed to reset password");
+            }
+
+            ConfirmPasswordResetTask confirmTask = new ConfirmPasswordResetTask(this) {
+                @Override
+                protected void onPostExecute( Integer result ) {
                     updateLocationService();
                 }
             };
@@ -1085,6 +1203,7 @@ public class MainActivity
         }
 
     }
+
 
     private void updateLocationService() {
         startLocationServiceWithRetry();
@@ -1552,10 +1671,11 @@ public class MainActivity
                     //Intent mobileDataSettingsIntent = new Intent(Intent.ACTION_MAIN);
                     //mobileDataSettingsIntent.setClassName("com.android.phone", "com.android.phone.NetworkSetting");
                     Intent mobileDataSettingsIntent = new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS);
+                    // Mobile data are turned on/off in the status bar! No settings (as the user can go back in settings and do something nasty)
                     if (config.getMobileData() && !enabled) {
-                        postDelayedSystemSettingDialog(getString(R.string.message_turn_on_mobile_data), mobileDataSettingsIntent);
+                        postDelayedSystemSettingDialog(getString(R.string.message_turn_on_mobile_data), /*mobileDataSettingsIntent*/null);
                     } else if (!config.getMobileData() && enabled) {
-                        postDelayedSystemSettingDialog(getString(R.string.message_turn_off_mobile_data), mobileDataSettingsIntent);
+                        postDelayedSystemSettingDialog(getString(R.string.message_turn_off_mobile_data), /*mobileDataSettingsIntent*/null);
                     }
                 } catch (Exception e) {
                     // Some problem accessible private API
@@ -1683,6 +1803,25 @@ public class MainActivity
     private void hideLockScreen() {
         if (lockScreen != null && lockScreen.getVisibility() == View.VISIBLE) {
             lockScreen.setVisibility(View.GONE);
+        }
+    }
+
+    private void notifyPolicyViolation(int cause) {
+        switch (cause) {
+            case Const.GPS_ON_REQUIRED:
+                postDelayedSystemSettingDialog(getString(R.string.message_turn_on_gps),
+                        new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), REQUEST_CODE_GPS_STATE_CHANGE);
+                break;
+            case Const.GPS_OFF_REQUIRED:
+                postDelayedSystemSettingDialog(getString(R.string.message_turn_off_gps),
+                        new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), REQUEST_CODE_GPS_STATE_CHANGE);
+                break;
+            case Const.MOBILE_DATA_ON_REQUIRED:
+                createAndShowSystemSettingDialog(getString(R.string.message_turn_on_mobile_data), null, 0);
+                break;
+            case Const.MOBILE_DATA_OFF_REQUIRED:
+                createAndShowSystemSettingDialog(getString(R.string.message_turn_off_mobile_data), null, 0);
+                break;
         }
     }
 
@@ -1847,6 +1986,8 @@ public class MainActivity
     @Override
     protected void onPause() {
         super.onPause();
+
+        isBackground = true;
 
         dismissDialog(fileNotDownloadedDialog);
         dismissDialog(enterDeviceIdDialog);
@@ -2274,7 +2415,9 @@ public class MainActivity
     }
 
     private void postDelayedSystemSettingDialog(final String message, final Intent settingsIntent, final Integer requestCode) {
-        LocalBroadcastManager.getInstance( this ).sendBroadcast( new Intent( Const.ACTION_ENABLE_SETTINGS ) );
+        if (settingsIntent != null) {
+            LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_ENABLE_SETTINGS));
+        }
         // Delayed start prevents the race of ENABLE_SETTINGS handle and tapping "Next" button
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -2304,6 +2447,9 @@ public class MainActivity
             @Override
             public void onClick(View v) {
                 dismissDialog(systemSettingsDialog);
+                if (settingsIntent == null) {
+                    return;
+                }
                 // Enable settings once again, because the dialog may be shown more than 3 minutes
                 // This is not necessary: the problem is resolved by clicking "Continue" in a popup window
                 /*LocalBroadcastManager.getInstance( MainActivity.this ).sendBroadcast( new Intent( Const.ACTION_ENABLE_SETTINGS ) );

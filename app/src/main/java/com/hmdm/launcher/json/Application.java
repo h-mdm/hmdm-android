@@ -35,6 +35,7 @@ public class Application {
     private boolean showIcon;
     private boolean remove;
     private boolean runAfterInstall;
+    private boolean runAtBoot;
     private boolean skipVersion;
     private String iconText;
     private String icon;
@@ -103,6 +104,14 @@ public class Application {
 
     public void setRunAfterInstall(boolean runAfterInstall) {
         this.runAfterInstall = runAfterInstall;
+    }
+
+    public boolean isRunAtBoot() {
+        return runAtBoot;
+    }
+
+    public void setRunAtBoot(boolean runAtBoot) {
+        this.runAtBoot = runAtBoot;
     }
 
     public boolean isSkipVersion() {

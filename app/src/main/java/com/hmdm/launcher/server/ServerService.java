@@ -73,4 +73,8 @@ public interface ServerService {
     @Headers("Content-Type: application/json")
     Call<ResponseBody> confirmReboot(@Path("project") String project, @Path("number") String number, @Body DeviceInfo deviceInfo);
 
+    @POST("{project}/rest/plugins/devicereset/public/password/{number}")
+    @Headers("Content-Type: application/json")
+    Call<ResponseBody> confirmPasswordReset(@Path("project") String project, @Path("number") String number, @Body DeviceInfo deviceInfo);
+
 }

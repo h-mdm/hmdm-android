@@ -53,6 +53,7 @@ public class ServerConfig {
     private Boolean reboot;
     private Boolean lock;
     private String lockMessage;
+    private String passwordReset;
 
     private String pushOptions;
     private String requestUpdates;
@@ -276,6 +277,14 @@ public class ServerConfig {
 
     public void setLockMessage(String lockMessage) {
         this.lockMessage = lockMessage;
+    }
+
+    public String getPasswordReset() {
+        return passwordReset;
+    }
+
+    public void setPasswordReset(String passwordReset) {
+        this.passwordReset = passwordReset;
     }
 
     public String getPushOptions() {
