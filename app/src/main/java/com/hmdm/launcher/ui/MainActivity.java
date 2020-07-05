@@ -248,7 +248,7 @@ public class MainActivity
                     } else {
                         // Calling startActivity always calls onPause / onResume which is not what we want
                         // So just show dialog if it isn't already shown
-                        if (!systemSettingsDialog.isShowing()) {
+                        if (systemSettingsDialog == null || !systemSettingsDialog.isShowing()) {
                             notifyPolicyViolation(intent.getIntExtra(Const.POLICY_VIOLATION_CAUSE, 0));
                         }
                     }
@@ -534,8 +534,12 @@ public class MainActivity
 
     private void startServices() {
         // Foreground apps checks are not available in a free version: services are the stubs
-        startService(new Intent(MainActivity.this, CheckForegroundApplicationService.class));
-        startService(new Intent(MainActivity.this, CheckForegroundAppAccessibilityService.class));
+        if (preferences.getInt(Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
+            startService(new Intent(MainActivity.this, CheckForegroundApplicationService.class));
+        }
+        if (preferences.getInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
+            startService(new Intent(MainActivity.this, CheckForegroundAppAccessibilityService.class));
+        }
         startService(new Intent(MainActivity.this, StatusControlService.class));
 
         // Moved to onResume!
@@ -585,12 +589,36 @@ public class MainActivity
 
         int miuiPermissionMode = preferences.getInt(Const.PREFERENCES_MIUI_PERMISSIONS, -1);
         if (miuiPermissionMode == -1) {
-            if (checkMiuiPermissions()) {
-                preferences.
-                        edit().
-                        putInt( Const.PREFERENCES_MIUI_PERMISSIONS, Const.PREFERENCES_ON ).
-                        commit();
-            } else {
+            preferences.
+                    edit().
+                    putInt( Const.PREFERENCES_MIUI_PERMISSIONS, Const.PREFERENCES_ON ).
+                    commit();
+            if (checkMiuiPermissions(Const.MIUI_PERMISSIONS)) {
+                // Permissions dialog opened, break the flow!
+                return;
+            }
+        }
+
+        int miuiDeveloperMode = preferences.getInt(Const.PREFERENCES_MIUI_DEVELOPER, -1);
+        if (miuiDeveloperMode == -1) {
+            preferences.
+                    edit().
+                    putInt( Const.PREFERENCES_MIUI_DEVELOPER, Const.PREFERENCES_ON ).
+                    commit();
+            if (checkMiuiPermissions(Const.MIUI_DEVELOPER)) {
+                // Permissions dialog opened, break the flow!
+                return;
+            }
+        }
+
+        int miuiOptimizationMode = preferences.getInt(Const.PREFERENCES_MIUI_OPTIMIZATION, -1);
+        if (miuiOptimizationMode == -1) {
+            preferences.
+                    edit().
+                    putInt( Const.PREFERENCES_MIUI_OPTIMIZATION, Const.PREFERENCES_ON ).
+                    commit();
+            if (checkMiuiPermissions(Const.MIUI_OPTIMIZATION)) {
+                // Permissions dialog opened, break the flow!
                 return;
             }
         }
@@ -787,7 +815,7 @@ public class MainActivity
             // Permissions are requested inside checkPermissions, so do nothing here
             Log.i(Const.LOG_TAG, "startLauncher: requesting permissions");
         } else if (!Utils.isDeviceOwner(this) && !settingsHelper.isBaseUrlSet() &&
-                (BuildConfig.FLAVOR.equals("master") || BuildConfig.FLAVOR.equals("opensource"))) {
+                (BuildConfig.FLAVOR.equals("master") || BuildConfig.FLAVOR.equals("opensource") || BuildConfig.FLAVOR.equals("whitelabel"))) {
             // For common public version, here's an option to change the server in non-MDM mode
             createAndShowServerDialog(false, settingsHelper.getBaseUrl(), settingsHelper.getServerProject());
         } else if ( settingsHelper.getDeviceId().length() == 0 ) {
@@ -833,15 +861,16 @@ public class MainActivity
         }
     }
 
-    private boolean checkMiuiPermissions() {
+    private boolean checkMiuiPermissions(int screen) {
         // Permissions to open popup from background first appears in MIUI 11 (Android 9)
+        // Also a workaround against https://qa.h-mdm.com/3119/
         if (Utils.isMiui(this) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_ENABLE_SETTINGS));
-            createAndShowMiuiPermissionsDialog();
-            // It is not known how to check this permission programmatically, so return true
+            createAndShowMiuiPermissionsDialog(screen);
+            // It is not known how to check this setting programmatically, so return true
             return true;
         }
-        return true;
+        return false;
     }
 
     private boolean checkUnknownSources() {
@@ -1279,7 +1308,7 @@ public class MainActivity
                                     });
                         } catch (Exception e) {
                             RemoteLogger.log(MainActivity.this, Const.LOG_WARN,
-                                    "Failed to download file " + file.getPath() + ": " + e.getMessage());
+                                    "Failed to download file " + remoteFile.getPath() + ": " + e.getMessage());
                             e.printStackTrace();
                         }
 
@@ -1706,7 +1735,7 @@ public class MainActivity
         return true;
     }
 
-    private void showContent( ServerConfig config ) {
+    private void showContent(ServerConfig config ) {
         if (!checkSystemSettings(config)) {
             // Here we go when the settings window is opened;
             // Next time we're here after we returned from the Android settings through onResume()
@@ -1724,11 +1753,16 @@ public class MainActivity
             hideLockScreen();
         }
 
+        Utils.setOrientation(this, config);
+
         if (ProUtils.kioskModeRequired(this)) {
             String kioskApp = settingsHelper.getConfig().getMainApp();
-            // It is not possible to set Headwind MDM as a main app: the logic is then broken
-            if (kioskApp != null && kioskApp.trim().length() > 0 && !kioskApp.equals(getPackageName())) {
+            if (kioskApp != null && kioskApp.trim().length() > 0 &&
+                    // If Headwind MDM itself is set as kiosk app, the kiosk mode is already turned on;
+                    // So here we just proceed to drawing the content
+                    (!kioskApp.equals(getPackageName()) || !ProUtils.isKioskModeRunning(this))) {
                 if (ProUtils.startCosuKioskMode(kioskApp, this)) {
+                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                     return;
                 } else {
                     Log.e(Const.LOG_TAG, "Kiosk mode failed, proceed with the default flow");
@@ -2354,7 +2388,7 @@ public class MainActivity
         }
     }
 
-    private void createAndShowMiuiPermissionsDialog() {
+    private void createAndShowMiuiPermissionsDialog(int screen) {
         dismissDialog(miuiPermissionsDialog);
         miuiPermissionsDialog = new Dialog( this );
         dialogMiuiPermissionsBinding = DataBindingUtil.inflate(
@@ -2365,18 +2399,43 @@ public class MainActivity
         miuiPermissionsDialog.setCancelable( false );
         miuiPermissionsDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
 
+        switch (screen) {
+            case Const.MIUI_PERMISSIONS:
+                dialogMiuiPermissionsBinding.title.setText(R.string.dialog_miui_permissions_title);
+                break;
+            case Const.MIUI_DEVELOPER:
+                dialogMiuiPermissionsBinding.title.setText(R.string.dialog_miui_developer_title);
+                break;
+            case Const.MIUI_OPTIMIZATION:
+                dialogMiuiPermissionsBinding.title.setText(R.string.dialog_miui_optimization_title);
+                break;
+        }
+
         miuiPermissionsDialog.setContentView( dialogMiuiPermissionsBinding.getRoot() );
         miuiPermissionsDialog.show();
     }
 
     public void continueMiuiPermissions( View view ) {
+        String titleText = dialogMiuiPermissionsBinding.title.getText().toString();
         dismissDialog(miuiPermissionsDialog);
 
         LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_ENABLE_SETTINGS));
-        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        Uri uri = Uri.fromParts("package", getPackageName(), null);
-        intent.setData(uri);
-        startActivity(intent);
+        Intent intent;
+        if (titleText.equals(getString(R.string.dialog_miui_permissions_title))) {
+            intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            Uri uri = Uri.fromParts("package", getPackageName(), null);
+            intent.setData(uri);
+        } else if (titleText.equals(getString(R.string.dialog_miui_developer_title))) {
+            intent = new Intent(Settings.ACTION_DEVICE_INFO_SETTINGS);
+        } else {
+            // if (titleText.equals(getString(R.string.dialog_miui_optimization_title))
+            intent = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
+        }
+        try {
+            startActivity(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -2416,7 +2475,12 @@ public class MainActivity
 
     private void postDelayedSystemSettingDialog(final String message, final Intent settingsIntent, final Integer requestCode) {
         if (settingsIntent != null) {
-            LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_ENABLE_SETTINGS));
+            // If settings are controlled by usage stats, safe settings are allowed, so we need to enable settings in accessibility mode only
+            // Accessibility mode is only enabled when usage stats is off
+            if (preferences.getInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
+                LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_ENABLE_SETTINGS));
+            }
+            LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_STOP_CONTROL));
         }
         // Delayed start prevents the race of ENABLE_SETTINGS handle and tapping "Next" button
         new Handler().postDelayed(new Runnable() {

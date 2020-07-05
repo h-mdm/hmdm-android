@@ -39,6 +39,7 @@ public class Application {
     private boolean skipVersion;
     private String iconText;
     private String icon;
+    private Integer screenOrder;
 
     public Application() {}
 
@@ -136,5 +137,13 @@ public class Application {
 
     public void setIcon(String icon) {
         this.icon = icon;
+    }
+
+    public Integer getScreenOrder() {
+        return screenOrder;
+    }
+
+    public void setScreenOrder(Integer screenOrder) {
+        this.screenOrder = screenOrder;
     }
 }

@@ -19,11 +19,14 @@
 
 package com.hmdm.launcher.util;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.admin.DevicePolicyManager;
 import android.app.admin.SystemUpdatePolicy;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PermissionInfo;
@@ -58,13 +61,19 @@ public class Utils {
                 Context.DEVICE_POLICY_SERVICE);
         ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
 
-        List<String> permissions = getRuntimePermissions(context.getPackageManager(), packageName);
-        for (String permission : permissions) {
-            boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
-                    packageName, permission, PERMISSION_GRANT_STATE_GRANTED);
-            if (!success) {
-                return false;
+        try {
+            List<String> permissions = getRuntimePermissions(context.getPackageManager(), packageName);
+            for (String permission : permissions) {
+                boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
+                        packageName, permission, PERMISSION_GRANT_STATE_GRANTED);
+                if (!success) {
+                    return false;
+                }
             }
+        } catch (NoSuchMethodError e) {
+            // This exception is raised on Android 5.1
+            e.printStackTrace();
+            return false;
         }
         Log.i(Const.LOG_TAG, "Permissions automatically granted");
         return true;
@@ -127,7 +136,14 @@ public class Utils {
                 Context.DEVICE_POLICY_SERVICE);
         ComponentName deviceAdmin = LegacyUtils.getAdminComponentName(context);
 
-        SystemUpdatePolicy currentPolicy = devicePolicyManager.getSystemUpdatePolicy();
+        SystemUpdatePolicy currentPolicy = null;
+        try {
+            currentPolicy = devicePolicyManager.getSystemUpdatePolicy();
+        } catch (NoSuchMethodError e) {
+            // This exception is raised on Android 5.1
+            Log.e(Const.LOG_TAG, "Failed to set system update policy: " + e.getMessage());
+            return;
+        }
         if (currentPolicy != null) {
             // Check if policy type shouldn't be changed
             if (systemUpdateType == ServerConfig.SYSTEM_UPDATE_INSTANT && currentPolicy.getPolicyType() == SystemUpdatePolicy.TYPE_INSTALL_AUTOMATIC ||
@@ -478,6 +494,25 @@ public class Utils {
             e.printStackTrace();
             // If the app doesn't have enough rights, let's leave password quality as is
             return true;
+        }
+    }
+
+    @SuppressLint("SourceLockedOrientationActivity")
+    public static void setOrientation(Activity activity, ServerConfig config) {
+        if (config.getOrientation() != null && config.getOrientation() != 0) {
+            switch (config.getOrientation()) {
+                case Const.SCREEN_ORIENTATION_PORTRAIT:
+                    activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                    break;
+                case Const.SCREEN_ORIENTATION_LANDSCAPE:
+                    activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                    break;
+                default:
+                    activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+                    break;
+            }
+        } else {
+            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         }
     }
 }

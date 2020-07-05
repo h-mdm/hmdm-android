@@ -31,6 +31,7 @@ public class AppInfo implements Parcelable {
     public String packageName;
     public String url;
     public String iconUrl;
+    public Integer screenOrder;
 
     public AppInfo(){}
 
@@ -40,6 +41,7 @@ public class AppInfo implements Parcelable {
         packageName = in.readString();
         url = in.readString();
         iconUrl = in.readString();
+        screenOrder = (Integer)in.readSerializable();
     }
 
     @Override
@@ -49,6 +51,7 @@ public class AppInfo implements Parcelable {
         dest.writeString(packageName);
         dest.writeString(url);
         dest.writeString(iconUrl);
+        dest.writeSerializable(screenOrder);
     }
 
     @Override

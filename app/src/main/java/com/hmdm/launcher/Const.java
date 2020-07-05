@@ -28,6 +28,7 @@ public class Const {
     public static final String ACTION_SERVICE_STOP = "SERVICE_STOP";
     public static final String ACTION_SHOW_LAUNCHER = "SHOW_LAUNCHER";
     public static final String ACTION_ENABLE_SETTINGS = "ENABLE_SETTINGS";
+    public static final String ACTION_STOP_CONTROL = "STOP_CONTROL";
     public static final String ACTION_EXIT = "EXIT";
     public static final String ACTION_HIDE_SCREEN = "HIDE_SCREEN";
     public static final String ACTION_UPDATE_CONFIGURATION = "UPDATE_CONFIGURATION";
@@ -63,7 +64,13 @@ public class Const {
     public static final String PREFERENCES_UNKNOWN_SOURCES = "PREFERENCES_UNKNOWN_SOURCES";
     public static final String PREFERENCES_DISABLE_LOCATION = "PREFERENCES_DISABLE_LOCATION";
     public static final String PREFERENCES_MIUI_PERMISSIONS = "PREFERENCES_MIUI_PERMISSIONS";
+    public static final String PREFERENCES_MIUI_DEVELOPER = "PREFERENCES_MIUI_DEVELOPER";
+    public static final String PREFERENCES_MIUI_OPTIMIZATION = "PREFERENCES_MIUI_OPTIMIZATION";
     public static final String PREFERENCES_LOG_STRING = "PREFERENCES_LOG_STRING";
+
+    public static final int MIUI_PERMISSIONS = 0;
+    public static final int MIUI_DEVELOPER = 1;
+    public static final int MIUI_OPTIMIZATION = 2;
 
     public static final String LOG_TAG = "HeadwindMDM";
 
@@ -131,4 +138,7 @@ public class Const {
     public static final String PASSWORD_QUALITY_STRONG = "strong";
 
     public static final String HEADER_IP_ADDRESS = "X-IP-Address";
+
+    public static final int SCREEN_ORIENTATION_PORTRAIT = 1;
+    public static final int SCREEN_ORIENTATION_LANDSCAPE = 2;
 }

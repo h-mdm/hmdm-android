@@ -52,7 +52,7 @@ public class StatusControlService extends Service {
                 case Const.ACTION_SERVICE_STOP:
                     stopSelf();
                     break;
-                case Const.ACTION_ENABLE_SETTINGS:
+                case Const.ACTION_STOP_CONTROL:
                     disableControl();
                     break;
             }
@@ -80,7 +80,7 @@ public class StatusControlService extends Service {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
 
         IntentFilter intentFilter = new IntentFilter(Const.ACTION_SERVICE_STOP);
-        intentFilter.addAction(Const.ACTION_ENABLE_SETTINGS);
+        intentFilter.addAction(Const.ACTION_STOP_CONTROL);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilter);
 
         threadPoolExecutor.shutdownNow();

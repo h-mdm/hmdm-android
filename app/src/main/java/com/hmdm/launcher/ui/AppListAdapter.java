@@ -42,6 +42,8 @@ import com.hmdm.launcher.util.AppInfo;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -164,6 +166,7 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
                 newInfo.name = app.getIconText() != null ? app.getIconText() : p.loadLabel(context.getPackageManager()).toString();
                 newInfo.packageName = p.packageName;
                 newInfo.iconUrl = app.getIcon();
+                newInfo.screenOrder = app.getScreenOrder();
                 appInfos.add(newInfo);
             }
         }
@@ -175,10 +178,30 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
             newInfo.name = entry.getValue().getIconText();
             newInfo.url = entry.getValue().getUrl();
             newInfo.iconUrl = entry.getValue().getIcon();
+            newInfo.screenOrder = entry.getValue().getScreenOrder();
             appInfos.add(newInfo);
         }
 
+        // Apply manually set order
+        Collections.sort(appInfos, new AppInfosComparator());
+
         return appInfos;
+    }
+
+    public class AppInfosComparator implements Comparator<AppInfo> {
+        @Override
+        public int compare(AppInfo o1, AppInfo o2) {
+            if (o1.screenOrder == null) {
+                if (o2.screenOrder == null) {
+                    return 0;
+                }
+                return -1;
+            }
+            if (o2.screenOrder == null) {
+                return 1;
+            }
+            return Integer.compare(o1.screenOrder, o2.screenOrder);
+        }
     }
 
     public interface OnAppChooseListener{

@@ -66,6 +66,13 @@ public class ServerConfig {
     private Boolean lockVolume;
     private String passwordMode;
 
+    private Integer orientation;
+    private Boolean kioskHome;
+    private Boolean kioskRecents;
+    private Boolean kioskNotifications;
+    private Boolean kioskSystemInfo;
+    private Boolean kioskKeyguard;
+
     private List<Application> applications = new LinkedList();
 
     private List<ApplicationSetting> applicationSettings = new LinkedList();
@@ -357,6 +364,54 @@ public class ServerConfig {
 
     public void setPasswordMode(String passwordMode) {
         this.passwordMode = passwordMode;
+    }
+
+    public Integer getOrientation() {
+        return orientation;
+    }
+
+    public void setOrientation(Integer orientation) {
+        this.orientation = orientation;
+    }
+
+    public Boolean getKioskHome() {
+        return kioskHome;
+    }
+
+    public void setKioskHome(Boolean kioskHome) {
+        this.kioskHome = kioskHome;
+    }
+
+    public Boolean getKioskRecents() {
+        return kioskRecents;
+    }
+
+    public void setKioskRecents(Boolean kioskRecents) {
+        this.kioskRecents = kioskRecents;
+    }
+
+    public Boolean getKioskNotifications() {
+        return kioskNotifications;
+    }
+
+    public void setKioskNotifications(Boolean kioskNotifications) {
+        this.kioskNotifications = kioskNotifications;
+    }
+
+    public Boolean getKioskSystemInfo() {
+        return kioskSystemInfo;
+    }
+
+    public void setKioskSystemInfo(Boolean kioskSystemInfo) {
+        this.kioskSystemInfo = kioskSystemInfo;
+    }
+
+    public Boolean getKioskKeyguard() {
+        return kioskKeyguard;
+    }
+
+    public void setKioskKeyguard(Boolean kioskKeyguard) {
+        this.kioskKeyguard = kioskKeyguard;
     }
 
     public List<RemoteFile> getFiles() {

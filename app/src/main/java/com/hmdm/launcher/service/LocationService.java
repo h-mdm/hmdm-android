@@ -179,14 +179,18 @@ public class LocationService extends Service {
     @Override
     public int onStartCommand(Intent inputIntent, int flags, int startId) {
         boolean legacyGpsFlag = updateViaGps;
-        if (inputIntent.getAction().equals(ACTION_STOP)) {
-            // Stop service
-            started = false;
-            stopForeground(true);
-            stopSelf();
-            return Service.START_NOT_STICKY;
-        } else if (inputIntent.getAction().equals(ACTION_UPDATE_GPS)) {
-            updateViaGps = true;
+        if (inputIntent != null && inputIntent.getAction() != null) {
+            if (inputIntent.getAction().equals(ACTION_STOP)) {
+                // Stop service
+                started = false;
+                stopForeground(true);
+                stopSelf();
+                return Service.START_NOT_STICKY;
+            } else if (inputIntent.getAction().equals(ACTION_UPDATE_GPS)) {
+                updateViaGps = true;
+            } else {
+                updateViaGps = false;
+            }
         } else {
             updateViaGps = false;
         }

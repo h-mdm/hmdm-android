@@ -175,6 +175,8 @@ public class AdminActivity extends BaseActivity {
         editor.remove(Const.PREFERENCES_OVERLAY);
         editor.remove(Const.PREFERENCES_USAGE_STATISTICS);
         editor.remove(Const.PREFERENCES_DEVICE_OWNER);
+        editor.remove(Const.PREFERENCES_MIUI_PERMISSIONS);
+        editor.remove(Const.PREFERENCES_MIUI_OPTIMIZATION);
         editor.commit();
         Toast.makeText(this, R.string.permissions_reset_hint, Toast.LENGTH_LONG).show();
     }
