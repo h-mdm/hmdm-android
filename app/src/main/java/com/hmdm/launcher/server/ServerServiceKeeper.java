@@ -22,6 +22,7 @@ package com.hmdm.launcher.server;
 import android.content.Context;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.helper.SettingsHelper;
 
@@ -70,12 +71,16 @@ public class ServerServiceKeeper {
 
     private static Retrofit.Builder createBuilder( String baseUrl ) {
         Retrofit.Builder builder = new Retrofit.Builder();
-        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder().
-                connectTimeout( Const.CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS ).
-                readTimeout( Const.CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS ).
-                writeTimeout( Const.CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS );
 
-        builder.client( clientBuilder.build() );
+        if (BuildConfig.TRUST_ANY_CERTIFICATE) {
+            builder.client(UnsafeOkHttpClient.getUnsafeOkHttpClient());
+        } else {
+            OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder().
+                    connectTimeout( Const.CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS ).
+                    readTimeout( Const.CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS ).
+                    writeTimeout( Const.CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS );
+            builder.client(clientBuilder.build());
+        }
 
         builder.baseUrl( baseUrl )
                 .addConverterFactory( JacksonConverterFactory.create( new ObjectMapper()) );

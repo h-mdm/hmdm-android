@@ -30,8 +30,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
@@ -49,6 +51,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -115,6 +118,7 @@ import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.SystemUtils;
 import com.hmdm.launcher.util.Utils;
 import com.hmdm.launcher.worker.PushNotificationWorker;
+import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
 import org.apache.commons.io.FileUtils;
@@ -173,6 +177,9 @@ public class MainActivity
     private View lockScreen;
 
     private SharedPreferences preferences;
+
+    private AppListAdapter appListAdapter;
+    private int spanCount;
 
     private static boolean configInitialized = false;
     private static boolean configInitializing = false;
@@ -309,6 +316,10 @@ public class MainActivity
         // Crashlytics is not included in the open-source version
         ProUtils.initCrashlytics(this);
 
+        if (BuildConfig.TRUST_ANY_CERTIFICATE) {
+            InstallUtils.initUnsafeTrustManager();
+        }
+
         Utils.lockSafeBoot(this);
         Utils.initPasswordReset(this);
 
@@ -324,11 +335,12 @@ public class MainActivity
         binding.setMessage( getString( R.string.main_start_preparations ) );
         binding.setLoading( true );
 
+        settingsHelper = SettingsHelper.getInstance( this );
+        preferences = getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
+
         // Try to start services in onCreate(), this may fail, we will try again on each onResume.
         startServicesWithRetry();
 
-        settingsHelper = SettingsHelper.getInstance( this );
-        preferences = getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
         initReceiver();
 
         IntentFilter intentFilter = new IntentFilter();
@@ -419,6 +431,10 @@ public class MainActivity
 
         isBackground = false;
 
+        // Lock orientation of progress activity to avoid hangups on rotation while initial configuration
+        setRequestedOrientation(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ?
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+
         startServicesWithRetry();
 
         if (interruptResumeFlow) {
@@ -431,6 +447,14 @@ public class MainActivity
         } else {
             setSelfAsDeviceOwner();
         }
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (appListAdapter != null && event.getAction() == KeyEvent.ACTION_UP) {
+            return appListAdapter.onKey(keyCode);
+        }
+        return super.onKeyUp(keyCode, event);
     }
 
     // Workaround against crash "App is in background" on Android 9: this is an Android OS bug
@@ -793,9 +817,9 @@ public class MainActivity
                     if (kioskUnlockCounter >= Const.KIOSK_UNLOCK_CLICK_COUNT ) {
                         // We are in the main app: let's open launcher activity
                         interruptResumeFlow = true;
-                        Intent restoreLauncherIntent = new Intent( MainActivity.this, MainActivity.class );
-                        restoreLauncherIntent.addFlags( Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT );
-                        startActivity( restoreLauncherIntent );
+                        Intent restoreLauncherIntent = new Intent(MainActivity.this, MainActivity.class);
+                        restoreLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                        startActivity(restoreLauncherIntent);
                         createAndShowEnterPasswordDialog();
                         kioskUnlockCounter = 0;
                     }
@@ -1717,6 +1741,10 @@ public class MainActivity
             postDelayedSystemSettingDialog(getString(R.string.message_set_password), updatePasswordIntent);
         }
 
+        if (config.getTimeZone() != null) {
+            Utils.setTimeZone(config.getTimeZone(), this);
+        }
+
         if (config.getUsbStorage() != null) {
             Utils.lockUsbStorage(config.getUsbStorage(), this);
         }
@@ -1751,6 +1779,13 @@ public class MainActivity
             return;
         } else {
             hideLockScreen();
+        }
+
+        // Run default launcher option
+        if (config.getRunDefaultLauncher() != null && config.getRunDefaultLauncher() &&
+            !getPackageName().equals(Utils.getDefaultLauncher(this)) && !Utils.isLauncherIntent(getIntent())) {
+            openDefaultLauncher();
+            return;
         }
 
         Utils.setOrientation(this, config);
@@ -1792,9 +1827,24 @@ public class MainActivity
         updateTitle(config);
 
         if ( config.getBackgroundImageUrl() != null && config.getBackgroundImageUrl().length() > 0 ) {
-            Picasso.with( this ).
-                    load( config.getBackgroundImageUrl() ).
-                    into( binding.activityMainBackground );
+           Picasso.Builder builder = new Picasso.Builder(this);
+            builder.listener(new Picasso.Listener()
+            {
+                @Override
+                public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception)
+                {
+                    // On fault, get the background image from the cache
+                    // This is a workaround against a bug in Picasso: it doesn't display cached images by default!
+                    Picasso.with(MainActivity.this)
+                            .load(config.getBackgroundImageUrl())
+                            .networkPolicy(NetworkPolicy.OFFLINE)
+                            .into(binding.activityMainBackground);
+                }
+            });
+            builder.build()
+                    .load(config.getBackgroundImageUrl())
+                    .into(binding.activityMainBackground);
+
         } else {
             binding.activityMainBackground.setImageDrawable(null);
         }
@@ -1806,10 +1856,12 @@ public class MainActivity
         int width = size.x;
         int itemWidth = getResources().getDimensionPixelSize( R.dimen.app_list_item_size );
 
-        int spanCount = ( int ) ( width * 1.0f / itemWidth );
+        spanCount = ( int ) ( width * 1.0f / itemWidth );
+        appListAdapter = new AppListAdapter(this, this);
+        appListAdapter.setSpanCount(spanCount);
 
-        binding.activityMainContent.setLayoutManager( new GridLayoutManager( this, spanCount ) );
-        binding.activityMainContent.setAdapter( new AppListAdapter( this, this ) );
+        binding.activityMainContent.setLayoutManager( new GridLayoutManager(this, spanCount));
+        binding.activityMainContent.setAdapter(appListAdapter);
         binding.setShowContent(true);
         // We can now sleep, uh
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

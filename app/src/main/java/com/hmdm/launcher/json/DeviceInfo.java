@@ -43,6 +43,8 @@ public class DeviceInfo {
     private Boolean factoryReset;
     private Location location;
     private String launcherType;
+    private String launcherPackage;
+    private boolean defaultLauncher;
 
     public static class Location {
         private long ts;
@@ -186,5 +188,21 @@ public class DeviceInfo {
 
     public void setLauncherType(String launcherType) {
         this.launcherType = launcherType;
+    }
+
+    public String getLauncherPackage() {
+        return launcherPackage;
+    }
+
+    public void setLauncherPackage(String launcherPackage) {
+        this.launcherPackage = launcherPackage;
+    }
+
+    public boolean isDefaultLauncher() {
+        return defaultLauncher;
+    }
+
+    public void setDefaultLauncher(boolean defaultLauncher) {
+        this.defaultLauncher = defaultLauncher;
     }
 }

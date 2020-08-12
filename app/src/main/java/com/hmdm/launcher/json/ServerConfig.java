@@ -65,6 +65,8 @@ public class ServerConfig {
     private Integer timeout;
     private Boolean lockVolume;
     private String passwordMode;
+    private String timeZone;
+    private String allowedClasses;
 
     private Integer orientation;
     private Boolean kioskHome;
@@ -72,6 +74,8 @@ public class ServerConfig {
     private Boolean kioskNotifications;
     private Boolean kioskSystemInfo;
     private Boolean kioskKeyguard;
+
+    private Boolean runDefaultLauncher;
 
     private List<Application> applications = new LinkedList();
 
@@ -366,6 +370,22 @@ public class ServerConfig {
         this.passwordMode = passwordMode;
     }
 
+    public String getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
+    }
+
+    public String getAllowedClasses() {
+        return allowedClasses;
+    }
+
+    public void setAllowedClasses(String allowedClasses) {
+        this.allowedClasses = allowedClasses;
+    }
+
     public Integer getOrientation() {
         return orientation;
     }
@@ -412,6 +432,14 @@ public class ServerConfig {
 
     public void setKioskKeyguard(Boolean kioskKeyguard) {
         this.kioskKeyguard = kioskKeyguard;
+    }
+
+    public Boolean getRunDefaultLauncher() {
+        return runDefaultLauncher;
+    }
+
+    public void setRunDefaultLauncher(Boolean runDefaultLauncher) {
+        this.runDefaultLauncher = runDefaultLauncher;
     }
 
     public List<RemoteFile> getFiles() {

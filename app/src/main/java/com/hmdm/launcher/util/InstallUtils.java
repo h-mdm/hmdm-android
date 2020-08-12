@@ -34,6 +34,7 @@ import android.util.Log;
 
 import androidx.core.content.FileProvider;
 
+import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.db.DatabaseHelper;
 import com.hmdm.launcher.db.RemoteFileTable;
@@ -49,8 +50,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 public class InstallUtils {
 
@@ -182,7 +192,13 @@ public class InstallUtils {
 
         URL url = new URL(strUrl);
 
-        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+        HttpURLConnection connection;
+        if (BuildConfig.TRUST_ANY_CERTIFICATE && url.getProtocol().toLowerCase().equals("https")) {
+            connection = (HttpsURLConnection) url.openConnection();
+            ((HttpsURLConnection)connection).setHostnameVerifier(DO_NOT_VERIFY);
+        } else {
+            connection = (HttpURLConnection) url.openConnection();
+        }
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Accept-Encoding", "identity");
         connection.setConnectTimeout((int) Const.CONNECTION_TIMEOUT);
@@ -197,7 +213,7 @@ public class InstallUtils {
 
         progressHandler.onDownloadProgress(0, lengthOfFile, 0);
 
-        InputStream is = url.openStream();
+        InputStream is = connection.getInputStream();
         DataInputStream dis = new DataInputStream(is);
 
         byte[] buffer = new byte[1024];
@@ -341,4 +357,41 @@ public class InstallUtils {
         return "UNKNOWN";
     }
 
+    // always verify the host - dont check for certificate
+    final static HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
+        public boolean verify(String hostname, SSLSession session) {
+            return true;
+        }
+    };
+
+    /**
+     * Trust every server - dont check for any certificate
+     * This should be called at the app start if TRUST_ANY_CERTIFICATE is set to true
+     */
+    public static void initUnsafeTrustManager() {
+        // Create a trust manager that does not validate certificate chains
+        TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return new java.security.cert.X509Certificate[] {};
+            }
+
+            public void checkClientTrusted(X509Certificate[] chain,
+                                           String authType) throws CertificateException {
+            }
+
+            public void checkServerTrusted(X509Certificate[] chain,
+                                           String authType) throws CertificateException {
+            }
+        } };
+
+        // Install the all-trusting trust manager
+        try {
+            SSLContext sc = SSLContext.getInstance("TLS");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection
+                    .setDefaultSSLSocketFactory(sc.getSocketFactory());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -162,6 +162,10 @@ public class DeviceInfoProvider {
         deviceInfo.setMdmMode(Utils.isDeviceOwner(context));
         deviceInfo.setLauncherType(BuildConfig.FLAVOR);
 
+        String launcherPackage = Utils.getDefaultLauncher(context);
+        deviceInfo.setLauncherPackage(launcherPackage != null ? launcherPackage : "");
+        deviceInfo.setDefaultLauncher(context.getPackageName().equals(launcherPackage));
+
         return deviceInfo;
     }
 

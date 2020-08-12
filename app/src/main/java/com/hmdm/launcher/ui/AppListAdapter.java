@@ -24,7 +24,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.os.Build;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +42,7 @@ import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.util.AppInfo;
+import com.hmdm.launcher.util.Utils;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -59,6 +63,10 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
     private OnAppChooseListener listener;
     private Context context;
     private SettingsHelper settingsHelper;
+    private int spanCount;
+    private int selectedItem = -1;
+    private RecyclerView.LayoutManager layoutManager;
+    private GradientDrawable selectedItemBorder;
 
     public AppListAdapter(Context context, OnAppChooseListener listener){
         layoutInflater = LayoutInflater.from(context);
@@ -66,6 +74,18 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
         this.listener = listener;
         this.context = context;
         this.settingsHelper = SettingsHelper.getInstance( context );
+
+        boolean isDarkBackground = true;
+        ServerConfig config = settingsHelper.getConfig();
+        if (config != null && config.getBackgroundColor() != null) {
+            try {
+                isDarkBackground = !Utils.isLightColor(Color.parseColor(config.getBackgroundColor()));
+            } catch (Exception e) {
+            }
+        }
+        selectedItemBorder = new GradientDrawable();
+        selectedItemBorder.setColor(0); // transparent background
+        selectedItemBorder.setStroke(2, isDarkBackground ? 0xa0ffffff : 0xa0000000); // white or black border with some transparency
     }
 
     @Override
@@ -111,6 +131,13 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
                         break;
                 }
             }
+
+            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+                holder.itemView.setBackgroundDrawable(position == selectedItem ? selectedItemBorder : null);
+            } else {
+                holder.itemView.setBackground(position == selectedItem ? selectedItemBorder : null);
+            }
+
         } catch (Exception e) {
             // Here we handle PackageManager.NameNotFoundException as well as
             // DeadObjectException (when a device is being turned off)
@@ -122,6 +149,60 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
     @Override
     public int getItemCount() {
         return items == null ? 0 : items.size();
+    }
+
+    public void setSpanCount(int spanCount) {
+        this.spanCount = spanCount;
+    }
+
+    public boolean onKey(final int keyCode) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                return tryMoveSelection(layoutManager, 1);
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+                return tryMoveSelection(layoutManager, -1);
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                return tryMoveSelection(layoutManager, spanCount);
+            case KeyEvent.KEYCODE_DPAD_UP:
+                return tryMoveSelection(layoutManager, -spanCount);
+            case KeyEvent.KEYCODE_DPAD_CENTER:
+                chooseSelectedItem();
+                return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(final RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        layoutManager = recyclerView.getLayoutManager();
+    }
+
+    private boolean tryMoveSelection(RecyclerView.LayoutManager lm, int offset) {
+        int trySelectedItem = selectedItem + offset;
+
+        if (trySelectedItem < 0) {
+            trySelectedItem = 0;
+        }
+        if (trySelectedItem >= getItemCount()) {
+            trySelectedItem = getItemCount() - 1;
+        }
+
+        if (trySelectedItem != selectedItem) {
+            selectedItem = trySelectedItem;
+            notifyDataSetChanged();
+            lm.scrollToPosition(trySelectedItem);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void chooseSelectedItem() {
+        if (items == null || selectedItem < 0 || selectedItem >= getItemCount()) {
+            return;
+        }
+        chooseApp(items.get(selectedItem));
     }
 
     public static final class ViewHolder extends RecyclerView.ViewHolder{
@@ -211,35 +292,37 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
     private View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            AppInfo resolveInfo = (AppInfo)v.getTag();
-            switch (resolveInfo.type) {
-                case AppInfo.TYPE_APP:
-                    Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(
-                            resolveInfo.packageName);
-                    if (launchIntent != null) {
-                        // These magic flags are found in the source code of the default Android launcher
-                        // These flags preserve the app activity stack (otherwise a launch activity appears at the top which is not correct)
-                        launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
-                                Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-                        context.startActivity(launchIntent);
-                    }
-                    break;
-                case AppInfo.TYPE_WEB:
-                    if (resolveInfo.url != null) {
-                        Intent i = new Intent(Intent.ACTION_VIEW);
-                        i.setData(Uri.parse(resolveInfo.url));
-                        try {
-                            context.startActivity(i);
-                        } catch (ActivityNotFoundException e) {
-                            Toast.makeText(context, R.string.browser_not_found, Toast.LENGTH_LONG).show();
-                        }
-                    }
-                    break;
-            }
-            if (listener != null) {
-                listener.onAppChoose(resolveInfo);
-            }
+            chooseApp((AppInfo)v.getTag());
         }
     };
 
+    private void chooseApp(AppInfo appInfo) {
+        switch (appInfo.type) {
+            case AppInfo.TYPE_APP:
+                Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(
+                        appInfo.packageName);
+                if (launchIntent != null) {
+                    // These magic flags are found in the source code of the default Android launcher
+                    // These flags preserve the app activity stack (otherwise a launch activity appears at the top which is not correct)
+                    launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+                            Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                    context.startActivity(launchIntent);
+                }
+                break;
+            case AppInfo.TYPE_WEB:
+                if (appInfo.url != null) {
+                    Intent i = new Intent(Intent.ACTION_VIEW);
+                    i.setData(Uri.parse(appInfo.url));
+                    try {
+                        context.startActivity(i);
+                    } catch (ActivityNotFoundException e) {
+                        Toast.makeText(context, R.string.browser_not_found, Toast.LENGTH_LONG).show();
+                    }
+                }
+                break;
+        }
+        if (listener != null) {
+            listener.onAppChoose(appInfo);
+        }
+    }
 }

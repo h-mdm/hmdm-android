@@ -127,7 +127,7 @@ public class BaseActivity extends AppCompatActivity {
             enterDeviceIdDialogBinding.showDeviceIdVariants.setVisibility(View.GONE);
         }
 
-        enterDeviceIdDialogBinding.showDeviceIdQrCode.setVisibility(Utils.isDeviceOwner(this) ? View.VISIBLE : View.GONE);
+        enterDeviceIdDialogBinding.showDeviceIdQrCode.setVisibility((Utils.isDeviceOwner(this) || BuildConfig.FLAVOR.equals("system")) ? View.VISIBLE : View.GONE);
 
         enterDeviceIdDialog.setContentView( enterDeviceIdDialogBinding.getRoot() );
         enterDeviceIdDialog.show();

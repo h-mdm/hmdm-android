@@ -22,14 +22,17 @@ package com.hmdm.launcher.util;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.admin.DevicePolicyManager;
 import android.app.admin.SystemUpdatePolicy;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PermissionInfo;
+import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.os.Build;
@@ -45,6 +48,7 @@ import com.hmdm.launcher.json.ServerConfig;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static android.app.admin.DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED;
 
@@ -497,6 +501,30 @@ public class Utils {
         }
     }
 
+    public static boolean setTimeZone(String timeZone, Context context) {
+        if (!Utils.isDeviceOwner(context) || timeZone == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            return true;
+        }
+
+        try {
+            DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(
+                    Context.DEVICE_POLICY_SERVICE);
+            ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+
+            if (timeZone.equals("auto")) {
+                // Note: in Android 11, there is a special method for setting auto time zone
+                devicePolicyManager.setGlobalSetting(adminComponentName, Settings.Global.AUTO_TIME_ZONE, "1");
+            } else {
+                devicePolicyManager.setGlobalSetting(adminComponentName, Settings.Global.AUTO_TIME_ZONE, "0");
+                return devicePolicyManager.setTimeZone(adminComponentName, timeZone);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true;
+        }
+        return true;
+    }
+
     @SuppressLint("SourceLockedOrientationActivity")
     public static void setOrientation(Activity activity, ServerConfig config) {
         if (config.getOrientation() != null && config.getOrientation() != 0) {
@@ -514,5 +542,48 @@ public class Utils {
         } else {
             activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         }
+    }
+
+    public static boolean isLauncherIntent(Intent intent) {
+        if (intent == null) {
+            return false;
+        }
+        Set<String> categories = intent.getCategories();
+        if (categories == null) {
+            return false;
+        }
+        for (String c : categories) {
+            if (c.equals(Intent.CATEGORY_LAUNCHER)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static String getDefaultLauncher(Context context) {
+        PackageManager localPackageManager = context.getPackageManager();
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        ResolveInfo info = localPackageManager.resolveActivity(intent,
+                PackageManager.MATCH_DEFAULT_ONLY);
+        if (info == null || info.activityInfo == null) {
+            return null;
+        }
+        return info.activityInfo.packageName;
+    }
+
+    public static boolean isServiceRunning(Context context, Class<?> serviceClass) {
+        try {
+            ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            List<ActivityManager.RunningServiceInfo> runningServices = manager.getRunningServices(Integer.MAX_VALUE);
+            for (ActivityManager.RunningServiceInfo service : runningServices) {
+                if (serviceClass.getName().equals(service.service.getClassName())) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
     }
 }

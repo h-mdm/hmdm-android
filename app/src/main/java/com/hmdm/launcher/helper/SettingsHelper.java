@@ -29,9 +29,12 @@ import com.hmdm.launcher.json.ApplicationSetting;
 import com.hmdm.launcher.json.RemoteFile;
 import com.hmdm.launcher.json.ServerConfig;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 public class SettingsHelper {
 
@@ -50,6 +53,7 @@ public class SettingsHelper {
     private ServerConfig config;
     private ServerConfig oldConfig;
     private Map<String,ApplicationSetting> appSettings = new HashMap<>();
+    private Set<String> allowedClasses = new HashSet<>();
 
     private static SettingsHelper instance;
 
@@ -75,6 +79,7 @@ public class SettingsHelper {
                         sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_CONFIG, "" ),
                         ServerConfig.class );
                 updateAppSettingsMap(config);
+                updateAllowedClassesSet(config);
             }
         } catch ( Exception e ) {
             e.printStackTrace();
@@ -147,6 +152,7 @@ public class SettingsHelper {
             return;
         }
         updateAppSettingsMap(config);
+        updateAllowedClassesSet(config);
         this.oldConfig = this.config;
         this.config = config;
     }
@@ -179,7 +185,7 @@ public class SettingsHelper {
         }
     }
 
-    public void updateAppSettingsMap(ServerConfig config) {
+    private void updateAppSettingsMap(ServerConfig config) {
         if (config == null || config.getApplicationSettings() == null) {
             return;
         }
@@ -188,6 +194,15 @@ public class SettingsHelper {
             String key = setting.getPackageId() + "." + setting.getName();
             appSettings.put(key, setting);
         }
+    }
+
+    private void updateAllowedClassesSet(ServerConfig config) {
+        if (config == null || config.getAllowedClasses() == null) {
+            return;
+        }
+        String[] allowedClassesList = config.getAllowedClasses().split(",");
+        // Is it thread-safe? Hopefully yes
+        allowedClasses = new HashSet<>(Arrays.asList(allowedClassesList));
     }
 
     public String getAppPreference(String packageId, String attr) {
@@ -220,5 +235,9 @@ public class SettingsHelper {
 
     public void commitAppPreferences(String packageId) {
         // TODO: send new preferences to server
+    }
+
+    public Set<String> getAllowedClasses() {
+        return allowedClasses;
     }
 }

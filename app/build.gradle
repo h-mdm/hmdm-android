@@ -36,21 +36,34 @@ android {
         applicationId "com.hmdm.launcher"
         minSdkVersion 14
         targetSdkVersion 28
-        versionCode 99
-        versionName "3.29"
+        versionCode 105
+        versionName "3.35"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true
         }
         multiDexEnabled true
 
-        buildConfigField("String", "BASE_URL", "\"http://app.h-mdm.com\"")
-        buildConfigField("String", "SECONDARY_BASE_URL", "\"http://app.h-mdm.com\"")
+        // Default URL of the web panel (scheme + host!)
+        buildConfigField("String", "BASE_URL", "\"https://app.h-mdm.com\"")
+        // URL of the secondary address of your web panel, called when the primary host is not available.
+        // Could be equal to the BASE_URL parameter
+        buildConfigField("String", "SECONDARY_BASE_URL", "\"https://app.h-mdm.com\"")
+        // Relative path of the web panel on the server. Keep it empty if installed in the root
         buildConfigField("String", "SERVER_PROJECT", "\"\"")
+        // Set this parameter to true if you'd like Headwind MDM to suggest IMEI as the Device ID at first start
         buildConfigField("Boolean", "SUGGEST_IMEI_AS_ID", "false")
+        // Enables Push notifications. Setting it to false will stop automatic configuration updates after changing it on the server.
         buildConfigField("Boolean", "ENABLE_PUSH", "true")
+        // MQTT port for Push notifications
         buildConfigField("Integer", "MQTT_PORT", "31000")
+        // Set this parameter to true if you'll grant system privileges to Headwind MDM (signing it by system keys)
+        // This will enable silent installation even if Headwind MDM is not a device owner
+        // This may be useful, for example, when your device doesn't have QR code provisioning capability
         buildConfigField("Boolean", "SYSTEM_PRIVILEGES", "false")
+        // Set this parameter to true if you'd like to trust every certificate, for example, self-signed
+        // Not recommended for security purposes!
+        buildConfigField("Boolean", "TRUST_ANY_CERTIFICATE", "false")
     }
     buildTypes {
         release {
