@@ -72,6 +72,7 @@ import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.github.anrwatchdog.ANRWatchDog;
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
@@ -89,6 +90,7 @@ import com.hmdm.launcher.databinding.DialogUnknownSourcesBinding;
 import com.hmdm.launcher.db.DatabaseHelper;
 import com.hmdm.launcher.db.RemoteFileTable;
 import com.hmdm.launcher.helper.CryptoHelper;
+import com.hmdm.launcher.helper.MigrationHelper;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.DeviceInfo;
@@ -201,11 +203,14 @@ public class MainActivity
     private boolean configFault = false;
 
     private boolean needSendDeviceInfoAfterReconfigure = false;
+    private boolean needRedrawContentAfterReconfigure = false;
 
     private int REQUEST_CODE_GPS_STATE_CHANGE = 1;
 
     // This flag is used by the broadcast receiver to determine what to do if it gets a policy violation report
     private boolean isBackground;
+
+    private ANRWatchDog anrWatchDog;
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -298,6 +303,8 @@ public class MainActivity
             public void uncaughtException(Thread t, Throwable e) {
                 e.printStackTrace();
 
+                ProUtils.sendExceptionToCrashlytics(e);
+
                 CrashLoopProtection.registerFault(MainActivity.this);
                 // Restart launcher if there's a launcher restarter (and we're not in a crash loop)
                 if (!CrashLoopProtection.isCrashLoopDetected(MainActivity.this)) {
@@ -315,6 +322,11 @@ public class MainActivity
 
         // Crashlytics is not included in the open-source version
         ProUtils.initCrashlytics(this);
+
+        if (BuildConfig.ANR_WATCHDOG) {
+            anrWatchDog = new ANRWatchDog();
+            anrWatchDog.start();
+        }
 
         if (BuildConfig.TRUST_ANY_CERTIFICATE) {
             InstallUtils.initUnsafeTrustManager();
@@ -1087,6 +1099,7 @@ public class MainActivity
         }
 
         needSendDeviceInfoAfterReconfigure = true;
+        needRedrawContentAfterReconfigure = true;
 
         Log.i(Const.LOG_TAG, "updateConfig(): set configInitializing=true");
         configInitializing = true;
@@ -1141,10 +1154,46 @@ public class MainActivity
                 super.onPostExecute( result );
                 Log.i(Const.LOG_TAG, "updateRemoteLogConfig(): result=" + result);
                 RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Device owner: " + Utils.isDeviceOwner(MainActivity.this));
-                setupPushService();
+                checkServerMigration();
             }
         };
         task.execute();
+    }
+
+    private void checkServerMigration() {
+        if (settingsHelper != null && settingsHelper.getConfig() != null && settingsHelper.getConfig().getNewServerUrl() != null &&
+                !settingsHelper.getConfig().getNewServerUrl().trim().equals("")) {
+            try {
+                final MigrationHelper migrationHelper = new MigrationHelper(settingsHelper.getConfig().getNewServerUrl().trim());
+                if (migrationHelper.needMigrating(this)) {
+                    // Before migration, test that new URL is working well
+                    migrationHelper.tryNewServer(this, new MigrationHelper.CompletionHandler() {
+                        @Override
+                        public void onSuccess() {
+                            // Everything is OK, migrate!
+                            RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Migrated to " + settingsHelper.getConfig().getNewServerUrl().trim());
+                            settingsHelper.setBaseUrl(migrationHelper.getBaseUrl());
+                            settingsHelper.setSecondaryBaseUrl(migrationHelper.getBaseUrl());
+                            settingsHelper.setServerProject(migrationHelper.getServerProject());
+                            ServerServiceKeeper.resetServices();
+                            configInitializing = false;
+                            updateConfig(false);
+                        }
+
+                        @Override
+                        public void onError(String cause) {
+                            RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Failed to migrate to " + settingsHelper.getConfig().getNewServerUrl().trim() + ": " + cause);
+                            setupPushService();
+                        }
+                    });
+                    return;
+                }
+            } catch (Exception e) {
+                // Malformed URL
+                RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Failed to migrate to " + settingsHelper.getConfig().getNewServerUrl().trim() + ": malformed URL");
+            }
+        }
+        setupPushService();
     }
 
     private void setupPushService() {
@@ -1244,7 +1293,7 @@ public class MainActivity
             ConfirmPasswordResetTask confirmTask = new ConfirmPasswordResetTask(this) {
                 @Override
                 protected void onPostExecute( Integer result ) {
-                    updateLocationService();
+                    setDefaultLauncher();
                 }
             };
 
@@ -1252,11 +1301,21 @@ public class MainActivity
             confirmTask.execute(deviceInfo);
 
         } else {
-            updateLocationService();
+            setDefaultLauncher();
         }
 
     }
 
+    private void setDefaultLauncher() {
+        ServerConfig config = settingsHelper != null ? settingsHelper.getConfig() : null;
+        if (Utils.isDeviceOwner(this) && (config != null && config.getRunDefaultLauncher() != null && config.getRunDefaultLauncher())) {
+            String defaultLauncher = Utils.getDefaultLauncher(this);
+            if (!defaultLauncher.equalsIgnoreCase(getPackageName())) {
+                Utils.setDefaultLauncher(this);
+            }
+        }
+        updateLocationService();
+    }
 
     private void updateLocationService() {
         startLocationServiceWithRetry();
@@ -1826,42 +1885,47 @@ public class MainActivity
         }
         updateTitle(config);
 
-        if ( config.getBackgroundImageUrl() != null && config.getBackgroundImageUrl().length() > 0 ) {
-           Picasso.Builder builder = new Picasso.Builder(this);
-            builder.listener(new Picasso.Listener()
-            {
-                @Override
-                public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception)
+        if (appListAdapter == null || needRedrawContentAfterReconfigure) {
+            needRedrawContentAfterReconfigure = false;
+
+            if ( config.getBackgroundImageUrl() != null && config.getBackgroundImageUrl().length() > 0 ) {
+                Picasso.Builder builder = new Picasso.Builder(this);
+                builder.listener(new Picasso.Listener()
                 {
-                    // On fault, get the background image from the cache
-                    // This is a workaround against a bug in Picasso: it doesn't display cached images by default!
-                    Picasso.with(MainActivity.this)
+                    @Override
+                    public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception)
+                    {
+                        // On fault, get the background image from the cache
+                        // This is a workaround against a bug in Picasso: it doesn't display cached images by default!
+                        Picasso.with(MainActivity.this)
                             .load(config.getBackgroundImageUrl())
                             .networkPolicy(NetworkPolicy.OFFLINE)
                             .into(binding.activityMainBackground);
-                }
-            });
-            builder.build()
+                    }
+                });
+                builder.build()
                     .load(config.getBackgroundImageUrl())
                     .into(binding.activityMainBackground);
 
-        } else {
-            binding.activityMainBackground.setImageDrawable(null);
+            } else {
+                binding.activityMainBackground.setImageDrawable(null);
+            }
+
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+
+            int width = size.x;
+            int itemWidth = getResources().getDimensionPixelSize(R.dimen.app_list_item_size);
+
+            spanCount = (int) (width * 1.0f / itemWidth);
+            appListAdapter = new AppListAdapter(this, this);
+            appListAdapter.setSpanCount(spanCount);
+
+            binding.activityMainContent.setLayoutManager(new GridLayoutManager(this, spanCount));
+            binding.activityMainContent.setAdapter(appListAdapter);
+            appListAdapter.notifyDataSetChanged();
         }
-
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize( size );
-
-        int width = size.x;
-        int itemWidth = getResources().getDimensionPixelSize( R.dimen.app_list_item_size );
-
-        spanCount = ( int ) ( width * 1.0f / itemWidth );
-        appListAdapter = new AppListAdapter(this, this);
-        appListAdapter.setSpanCount(spanCount);
-
-        binding.activityMainContent.setLayoutManager( new GridLayoutManager(this, spanCount));
-        binding.activityMainContent.setAdapter(appListAdapter);
         binding.setShowContent(true);
         // We can now sleep, uh
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -2585,7 +2649,13 @@ public class MainActivity
             }
         });
 
-        systemSettingsDialog.show();
+        try {
+            systemSettingsDialog.show();
+        } catch (Exception e) {
+            // BadTokenException: activity closed before dialog is shown
+            e.printStackTrace();
+            systemSettingsDialog = null;
+        }
     }
 
     private void startActivityOptionalResult(Intent intent, Integer requestCode) {

@@ -77,6 +77,8 @@ public class ServerConfig {
 
     private Boolean runDefaultLauncher;
 
+    private String newServerUrl;
+
     private List<Application> applications = new LinkedList();
 
     private List<ApplicationSetting> applicationSettings = new LinkedList();
@@ -440,6 +442,14 @@ public class ServerConfig {
 
     public void setRunDefaultLauncher(Boolean runDefaultLauncher) {
         this.runDefaultLauncher = runDefaultLauncher;
+    }
+
+    public String getNewServerUrl() {
+        return newServerUrl;
+    }
+
+    public void setNewServerUrl(String newServerUrl) {
+        this.newServerUrl = newServerUrl;
     }
 
     public List<RemoteFile> getFiles() {

@@ -65,7 +65,8 @@ public class ServerServiceKeeper {
         return secondaryServerServiceInstance;
     }
 
-    private static ServerService createServerService( String baseUrl ) {
+    // Made public for downloading from third party servers
+    public static ServerService createServerService( String baseUrl ) {
         return createBuilder( baseUrl ).build().create( ServerService.class );
     }
 

@@ -28,6 +28,7 @@ import android.app.admin.SystemUpdatePolicy;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -44,6 +45,7 @@ import android.view.WindowManager;
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.json.ServerConfig;
+import com.hmdm.launcher.ui.MainActivity;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -585,5 +587,25 @@ public class Utils {
             return false;
         }
         return false;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static void setDefaultLauncher(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return;
+        }
+        IntentFilter filter = new IntentFilter(Intent.ACTION_MAIN);
+        filter.addCategory(Intent.CATEGORY_HOME);
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+
+        // Set the activity as the preferred option for the device.
+        ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+        ComponentName activity = new ComponentName(context, MainActivity.class);
+        DevicePolicyManager dpm =
+                (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        try {
+            dpm.addPersistentPreferredActivity(adminComponentName, filter, activity);
+        } catch (Exception e) {
+        }
     }
 }

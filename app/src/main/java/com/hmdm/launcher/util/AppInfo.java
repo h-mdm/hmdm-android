@@ -27,6 +27,7 @@ public class AppInfo implements Parcelable {
     public static final int TYPE_WEB = 1;
 
     public int type;
+    public Integer keyCode;
     public CharSequence name;
     public String packageName;
     public String url;
@@ -37,6 +38,7 @@ public class AppInfo implements Parcelable {
 
     protected AppInfo(Parcel in) {
         type = in.readInt();
+        keyCode = (Integer)in.readSerializable();
         name = in.readString();
         packageName = in.readString();
         url = in.readString();
@@ -47,6 +49,7 @@ public class AppInfo implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeInt(type);
+        dest.writeSerializable(keyCode);
         dest.writeString(name != null ? name.toString() : null);
         dest.writeString(packageName);
         dest.writeString(url);

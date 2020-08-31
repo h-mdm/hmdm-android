@@ -60,6 +60,7 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
 
     private LayoutInflater layoutInflater;
     private List<AppInfo> items;
+    private Map<Integer, AppInfo> shortcuts;        // Keycode -> Application, filled in getInstalledApps()
     private OnAppChooseListener listener;
     private Context context;
     private SettingsHelper settingsHelper;
@@ -71,6 +72,14 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
     public AppListAdapter(Context context, OnAppChooseListener listener){
         layoutInflater = LayoutInflater.from(context);
         items = getInstalledApps(context);
+
+        shortcuts = new HashMap<>();
+        for (AppInfo item : items) {
+            if (item.keyCode != null) {
+                shortcuts.put(item.keyCode, item);
+            }
+        }
+
         this.listener = listener;
         this.context = context;
         this.settingsHelper = SettingsHelper.getInstance( context );
@@ -156,6 +165,12 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
     }
 
     public boolean onKey(final int keyCode) {
+        AppInfo shortcutAppInfo = shortcuts.get(new Integer(keyCode));
+        if (shortcutAppInfo != null) {
+            chooseApp(shortcutAppInfo);
+            return true;
+        }
+
         switch (keyCode) {
             case KeyEvent.KEYCODE_DPAD_RIGHT:
                 return tryMoveSelection(layoutManager, 1);
@@ -244,6 +259,7 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
                 Application app = requiredPackages.get(p.packageName);
                 AppInfo newInfo = new AppInfo();
                 newInfo.type = AppInfo.TYPE_APP;
+                newInfo.keyCode = app.getKeyCode();
                 newInfo.name = app.getIconText() != null ? app.getIconText() : p.loadLabel(context.getPackageManager()).toString();
                 newInfo.packageName = p.packageName;
                 newInfo.iconUrl = app.getIcon();
@@ -256,6 +272,7 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
         for (Map.Entry<String, Application> entry : requiredLinks.entrySet()) {
             AppInfo newInfo = new AppInfo();
             newInfo.type = AppInfo.TYPE_WEB;
+            newInfo.keyCode = entry.getValue().getKeyCode();
             newInfo.name = entry.getValue().getIconText();
             newInfo.url = entry.getValue().getUrl();
             newInfo.iconUrl = entry.getValue().getIcon();

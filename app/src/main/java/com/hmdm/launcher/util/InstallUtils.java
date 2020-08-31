@@ -206,7 +206,7 @@ public class InstallUtils {
         connection.connect();
 
         if (connection.getResponseCode() != 200) {
-            return null;
+            throw new Exception("Bad server response for " + strUrl + ": " + connection.getResponseCode());
         }
 
         int lengthOfFile = connection.getContentLength();

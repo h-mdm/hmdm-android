@@ -24,7 +24,9 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.Settings;
 
+import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
+import com.hmdm.launcher.helper.CryptoHelper;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.ServerConfigResponse;
 import com.hmdm.launcher.pro.ProUtils;
@@ -55,9 +57,16 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         }
         Response< ServerConfigResponse > response = null;
 
+        String deviceId = settingsHelper.getDeviceId();
+        String signature = "";
+        try {
+            signature = CryptoHelper.getSHA1String(BuildConfig.REQUEST_SIGNATURE + deviceId);
+        } catch (Exception e) {
+        }
+
         try {
             response = serverService.
-                    getServerConfig(settingsHelper.getServerProject(), settingsHelper.getDeviceId()).execute();
+                    getServerConfig(settingsHelper.getServerProject(), deviceId, signature).execute();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -65,7 +74,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         try {
             if (response == null) {
                 response = secondaryServerService.
-                        getServerConfig(settingsHelper.getServerProject(), settingsHelper.getDeviceId()).execute();
+                        getServerConfig(settingsHelper.getServerProject(), deviceId, signature).execute();
             }
 
             Thread.sleep( 1500 );

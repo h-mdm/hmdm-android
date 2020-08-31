@@ -36,8 +36,8 @@ android {
         applicationId "com.hmdm.launcher"
         minSdkVersion 14
         targetSdkVersion 28
-        versionCode 105
-        versionName "3.35"
+        versionCode 107
+        versionName "3.37"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true
@@ -64,6 +64,10 @@ android {
         // Set this parameter to true if you'd like to trust every certificate, for example, self-signed
         // Not recommended for security purposes!
         buildConfigField("Boolean", "TRUST_ANY_CERTIFICATE", "false")
+        // A shared secret to sign server config requests
+        buildConfigField("String", "REQUEST_SIGNATURE", "\"12345\"")
+        // ANR watchdog flag (for testing purposes only as this watchdog may drain the resources!)
+        buildConfigField("Boolean", "ANR_WATCHDOG", "false")
     }
     buildTypes {
         release {

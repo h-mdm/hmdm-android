@@ -40,6 +40,7 @@ public class Application {
     private String iconText;
     private String icon;
     private Integer screenOrder;
+    private Integer keyCode;
 
     public Application() {}
 
@@ -145,5 +146,13 @@ public class Application {
 
     public void setScreenOrder(Integer screenOrder) {
         this.screenOrder = screenOrder;
+    }
+
+    public Integer getKeyCode() {
+        return keyCode;
+    }
+
+    public void setKeyCode(Integer keyCode) {
+        this.keyCode = keyCode;
     }
 }

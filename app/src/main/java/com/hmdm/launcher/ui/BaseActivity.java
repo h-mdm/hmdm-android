@@ -47,12 +47,12 @@ import com.hmdm.launcher.databinding.DialogEnterDeviceIdBinding;
 import com.hmdm.launcher.databinding.DialogEnterServerBinding;
 import com.hmdm.launcher.databinding.DialogNetworkErrorBinding;
 import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.server.ServerUrl;
 import com.hmdm.launcher.util.DeviceInfoProvider;
 import com.hmdm.launcher.util.Utils;
 
 import org.json.JSONObject;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -258,30 +258,19 @@ public class BaseActivity extends AppCompatActivity {
             dialogEnterServerBinding.setError(true);
             return false;
         } else {
-            URL url;
+            ServerUrl url = null;
             try {
-                url = new URL(serverUrl);
+                url = new ServerUrl(serverUrl);
             } catch (Exception e) {
                 // Malformed URL
                 dialogEnterServerBinding.setError(true);
                 return false;
             }
 
-            String baseUrl = url.getProtocol() + "://" + url.getHost();
-            if (url.getPort() != -1) {
-                baseUrl += ":" + url.getPort();
-            }
-            String serverProject = url.getPath();
-            if (serverProject.endsWith("/")) {
-                serverProject = serverProject.substring(0, serverProject.length() - 1);
-            }
-            if (serverProject.startsWith("/")) {
-                serverProject = serverProject.substring(1);
-            }
             SettingsHelper settingsHelper = SettingsHelper.getInstance( this );
-            settingsHelper.setBaseUrl(baseUrl);
-            settingsHelper.setSecondaryBaseUrl(baseUrl);
-            settingsHelper.setServerProject(serverProject);
+            settingsHelper.setBaseUrl(url.baseUrl);
+            settingsHelper.setSecondaryBaseUrl(url.baseUrl);
+            settingsHelper.setServerProject(url.serverProject);
             dialogEnterServerBinding.setError( false );
 
             dismissDialog(enterServerDialog);
@@ -325,6 +314,8 @@ public class BaseActivity extends AppCompatActivity {
         dialogDeviceInfoBinding.setVersion( BuildConfig.FLAVOR.length() > 0 ?
                 BuildConfig.VERSION_NAME + "-" + BuildConfig.FLAVOR : BuildConfig.VERSION_NAME );
 
+        dialogDeviceInfoBinding.setServerUrl(SettingsHelper.getInstance(this).getBaseUrl() + SettingsHelper.getInstance(this).getServerProject());
+
         deviceInfoDialog.show();
     }
 
@@ -352,14 +343,18 @@ public class BaseActivity extends AppCompatActivity {
                     progressDialog = null;
                 }
 
-                Intent intent = new Intent( Intent.ACTION_MAIN );
-                intent.addCategory( Intent.CATEGORY_HOME );
-                intent.addCategory( Intent.CATEGORY_DEFAULT );
-                intent.setFlags( Intent.FLAG_ACTIVITY_NEW_TASK );
-
-                startActivity( Intent.createChooser( intent, getString( R.string.select_system_launcher ) ) );
+                openLauncherChoiceDialog();
             }
         }, 1000);
+    }
+
+    protected void openLauncherChoiceDialog() {
+        Intent intent = new Intent( Intent.ACTION_MAIN );
+        intent.addCategory( Intent.CATEGORY_HOME );
+        intent.addCategory( Intent.CATEGORY_DEFAULT );
+        intent.setFlags( Intent.FLAG_ACTIVITY_NEW_TASK );
+
+        startActivity( Intent.createChooser( intent, getString( R.string.select_system_launcher ) ) );
     }
 
 }
