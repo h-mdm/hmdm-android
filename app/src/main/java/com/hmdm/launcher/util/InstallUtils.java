@@ -113,6 +113,29 @@ public class InstallUtils {
                     it.remove();
                     continue;
                 }
+
+                if (!application.isRemove() && compareVersions(packageInfo.versionName, application.getVersion()) > 0) {
+                    // Downgrade requested!
+                    // It will only succeed if a higher version is marked as "Remove"
+                    // Let's check that condition to avoid failed attempts to install and downloads of the lower version each time
+                    RemoteLogger.log(context, Const.LOG_DEBUG, "Downgrade requested for " + application.getPkg() +
+                            ": installed version " + packageInfo.versionName + ", required version " + application.getVersion());
+                    boolean canDowngrade = false;
+                    for (Application a : applications) {
+                        if (a.getPkg().equalsIgnoreCase(application.getPkg()) && a.isRemove() && areVersionsEqual(packageInfo.versionName, a.getVersion())) {
+                            // Current version will be removed
+                            canDowngrade = true;
+                            break;
+                        }
+                    }
+                    if (canDowngrade) {
+                        RemoteLogger.log(context, Const.LOG_DEBUG, "Current version of " + application.getPkg() + " will be removed, downgrade allowed");
+                    } else {
+                        RemoteLogger.log(context, Const.LOG_DEBUG, "Ignoring downgrade request for " + application.getPkg() + ": remove current version first!");
+                        it.remove();
+                        continue;
+                    }
+                }
             } catch ( PackageManager.NameNotFoundException e ) {
                 // The app isn't installed, let's keep it in the "To be installed" list
                 if (application.isRemove()) {
@@ -130,6 +153,43 @@ public class InstallUtils {
         String v1d = v1.replaceAll("[^\\d.]", "");
         String v2d = v2.replaceAll("[^\\d.]", "");
         return v1d.equals(v2d);
+    }
+
+    // Returns -1 if v1 < v2, 0 if v1 == v2 and 1 if v1 > v2
+    public static int compareVersions(String v1, String v2) {
+        // Versions are numbers separated by a dot
+        String v1d = v1.replaceAll("[^\\d.]", "");
+        String v2d = v2.replaceAll("[^\\d.]", "");
+
+        String[] v1n = v1d.split("\\.");
+        String[] v2n = v2d.split("\\.");
+
+        // One version could contain more digits than another
+        int count = v1n.length < v2n.length ? v1n.length : v2n.length;
+
+        for (int n = 0; n < count; n++) {
+            try {
+                int n1 = Integer.parseInt(v1n[n]);
+                int n2 = Integer.parseInt(v2n[n]);
+                if (n1 < n2) {
+                    return -1;
+                } else if (n1 > n2) {
+                    return 1;
+                }
+                // If major version numbers are equals, continue to compare minor version numbers
+            } catch (Exception e) {
+                return 0;
+            }
+        }
+
+        // Here we are if common parts are equal
+        // Now we decide that if a version has more parts, it is considered as greater
+        if (v1n.length < v2n.length) {
+            return -1;
+        } else if (v1n.length > v2n.length) {
+            return 1;
+        }
+        return 0;
     }
 
     public static void generateFilesForInstallList(Context context, List<RemoteFile> files,

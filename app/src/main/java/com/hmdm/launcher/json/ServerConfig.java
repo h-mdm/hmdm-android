@@ -79,6 +79,8 @@ public class ServerConfig {
 
     private String newServerUrl;
 
+    private boolean lockSafeSettings;
+
     private List<Application> applications = new LinkedList();
 
     private List<ApplicationSetting> applicationSettings = new LinkedList();
@@ -450,6 +452,14 @@ public class ServerConfig {
 
     public void setNewServerUrl(String newServerUrl) {
         this.newServerUrl = newServerUrl;
+    }
+
+    public boolean isLockSafeSettings() {
+        return lockSafeSettings;
+    }
+
+    public void setLockSafeSettings(boolean lockSafeSettings) {
+        this.lockSafeSettings = lockSafeSettings;
     }
 
     public List<RemoteFile> getFiles() {

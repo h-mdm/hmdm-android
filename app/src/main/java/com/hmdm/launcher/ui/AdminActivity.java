@@ -44,6 +44,7 @@ import com.hmdm.launcher.server.ServerServiceKeeper;
 import com.hmdm.launcher.util.AppInfo;
 import com.hmdm.launcher.util.LegacyUtils;
 import com.hmdm.launcher.util.PushNotificationMqttWrapper;
+import com.hmdm.launcher.util.RemoteLogger;
 
 public class AdminActivity extends BaseActivity {
 
@@ -177,7 +178,9 @@ public class AdminActivity extends BaseActivity {
         editor.remove(Const.PREFERENCES_DEVICE_OWNER);
         editor.remove(Const.PREFERENCES_MIUI_PERMISSIONS);
         editor.remove(Const.PREFERENCES_MIUI_OPTIMIZATION);
+        editor.remove(Const.PREFERENCES_DEVICE_OWNER);
         editor.commit();
+        RemoteLogger.log(this, Const.LOG_INFO, "Reset saved permissions state, will be refreshed at next start");
         Toast.makeText(this, R.string.permissions_reset_hint, Toast.LENGTH_LONG).show();
     }
 

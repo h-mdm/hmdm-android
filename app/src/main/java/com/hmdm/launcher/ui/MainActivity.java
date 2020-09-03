@@ -546,7 +546,7 @@ public class MainActivity
 
     }
 
-    // Does not seem to work, though. See the comment to Utils.becomeDeviceOwner()
+    // Does not seem to work, though. See the comment to SystemUtils.becomeDeviceOwner()
     private void setSelfAsDeviceOwner() {
         // We set self as device owner only once
         if (preferences.getInt(Const.PREFERENCES_DEVICE_OWNER, -1) != -1) {
@@ -672,8 +672,10 @@ public class MainActivity
         }
 
         int administratorMode = preferences.getInt( Const.PREFERENCES_ADMINISTRATOR, - 1 );
+//        RemoteLogger.log(this, Const.LOG_DEBUG, "Saved device admin state: " + administratorMode);
         if ( administratorMode == -1 ) {
             if (checkAdminMode()) {
+                RemoteLogger.log(this, Const.LOG_DEBUG, "Saving device admin state as 1 (TRUE)");
                 preferences.
                         edit().
                         putInt( Const.PREFERENCES_ADMINISTRATOR, Const.PREFERENCES_ON ).
@@ -1308,9 +1310,9 @@ public class MainActivity
 
     private void setDefaultLauncher() {
         ServerConfig config = settingsHelper != null ? settingsHelper.getConfig() : null;
-        if (Utils.isDeviceOwner(this) && (config != null && config.getRunDefaultLauncher() != null && config.getRunDefaultLauncher())) {
+        if (Utils.isDeviceOwner(this) && config != null && (config.getRunDefaultLauncher() == null || !config.getRunDefaultLauncher())) {
             String defaultLauncher = Utils.getDefaultLauncher(this);
-            if (!defaultLauncher.equalsIgnoreCase(getPackageName())) {
+            if (!getPackageName().equalsIgnoreCase(defaultLauncher)) {
                 Utils.setDefaultLauncher(this);
             }
         }
@@ -2173,6 +2175,7 @@ public class MainActivity
     public void skipAdminMode( View view ) {
         dismissDialog(administratorModeDialog);
 
+        RemoteLogger.log(this, Const.LOG_INFO, "Manually skipped the device admin permissions setup");
         preferences.
                 edit().
                 putInt( Const.PREFERENCES_ADMINISTRATOR, Const.PREFERENCES_OFF ).

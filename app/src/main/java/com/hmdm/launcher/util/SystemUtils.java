@@ -2,6 +2,8 @@ package com.hmdm.launcher.util;
 
 import android.content.Context;
 
+import com.hmdm.launcher.Const;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
@@ -31,6 +33,7 @@ public class SystemUtils {
     public static boolean becomeDeviceOwner(Context context) {
         String command = "dpm set-device-owner " + context.getPackageName() + "/.AdminReceiver";
         String result = executeShellCommand(command);
+        RemoteLogger.log(context, Const.LOG_INFO, "DPM command output: " + result);
         return result.startsWith("Active admin component set");
     }
 

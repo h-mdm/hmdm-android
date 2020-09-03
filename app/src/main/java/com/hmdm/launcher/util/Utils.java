@@ -230,8 +230,11 @@ public class Utils {
         try {
             DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
             ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
-            return dpm.isAdminActive(adminComponentName);
+            boolean isAdminActive = dpm.isAdminActive(adminComponentName);
+//            RemoteLogger.log(context, Const.LOG_DEBUG, "Admin component active: " + isAdminActive);
+            return isAdminActive;
         } catch (Exception e) {
+//            RemoteLogger.log(context, Const.LOG_WARN, "Failed to get device administrator status: " + e.getMessage());
             return true;
         }
     }
@@ -605,7 +608,10 @@ public class Utils {
                 (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
         try {
             dpm.addPersistentPreferredActivity(adminComponentName, filter, activity);
+            RemoteLogger.log(context, Const.LOG_DEBUG, "Headwind MDM is set as default launcher");
         } catch (Exception e) {
+            e.printStackTrace();
+            RemoteLogger.log(context, Const.LOG_WARN, "Failed to set Headwind MDM as default launcher: " + e.getMessage());
         }
     }
 }
