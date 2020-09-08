@@ -50,6 +50,14 @@ public class SystemUtils {
             while ((line = reader.readLine()) != null) {
                 output.append(line + "\n");
             }
+
+            if (output.toString().trim().equalsIgnoreCase("")) {
+                // No output, try to read an error!
+                BufferedReader errorReader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                while ((line = errorReader.readLine()) != null) {
+                    output.append(line + "\n");
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

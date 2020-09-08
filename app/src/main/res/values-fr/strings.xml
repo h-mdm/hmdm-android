@@ -1,0 +1,111 @@
+<!--
+  ~ Headwind MDM: Open Source Android MDM Software
+  ~ https://h-mdm.com
+  ~
+  ~ Copyright (C) 2019 Headwind Solutions LLC (http://h-sms.com)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resources>
+    <string name="app_name">Headwind MDM</string>
+    <string name="admin_title">Administrateur</string>
+    <string name="vendor">(c) 2020 h-mdm.com</string>
+    <string name="demo_text">Headwind MDM © 2020 h-mdm.com</string>
+    <string name="install_error">Erreur lors de l\'installation</string>
+    <string name="dialog_enter_device_id_error">Ce ID n\'est pas enregistrée au %s. Obtenez ID dans \'onglet \"Appareils\" du panneau de contrôle.</string>
+    <string name="dialog_enter_device_id_qrcode">Code QR</string>
+    <string name="dialog_enter_device_id_variants">Variantes</string>
+    <string name="dialog_enter_device_id_save">Sauvegarder</string>
+    <string name="dialog_enter_device_id_exit">Sortir</string>
+    <string name="dialog_enter_device_id_title">Entrer ID de l\'appareil à %s</string>
+    <string name="main_start_preparations">Préparation du démarrage</string>
+    <string name="main_downloading_configuration">Mise à jour du fichier de configuration</string>
+    <string name="main_downloading_content">Mise à jour des données</string>
+    <string name="main_update_applications">Installation et mise à jour des applications</string>
+    <string name="dialog_root_message">Vous avez besoin d\'un accès ROOT</string>
+    <string name="main_application_start">Démarrage de l\'application</string>
+    <string name="main_app_installing">Installation de l\'application</string>
+    <string name="main_app_downloading">Téléchargement de l\'application</string>
+    <string name="main_app_downloading_error">Echec du téléchargement du package</string>
+    <string name="main_app_removing">Désinstallation de l\'application</string>
+    <string name="main_file_downloading">Téléchargement du fichier</string>
+    <string name="main_file_downloading_error">Echec du téléchargement du fichier</string>
+    <string name="main_activity_repeat">Recommencez</string>
+    <string name="main_activity_reset">Effacer</string>
+    <string name="main_activity_cancel">Annuler</string>
+    <string name="main_activity_details">Détails</string>
+    <string name="select_system_launcher">Choisissez Headwind MDM comme lanceur par défaut et vérifiez \"Toujours\":</string>
+    <string name="dialog_network_error_title">Erreur de connexion au serveur. Veuillez vérifier la connexion Internet et réessayer.</string>
+    <string name="main_activity_update_config">Demander le fichier de configuration au serveur</string>
+    <string name="main_activity_applications_update">Mise à jour des applications</string>
+    <string name="dialog_overlay_settings_title">Veuillez autoriser l\'app à glisser sur d\'autres fenêtres. Une fiche de paramètres s\'ouvriras. Trouvez l\'élément \"Headwind MDM\", autorisez à glisser sur d\'autres fenêtres et tapez sur \"Back\". Si vous ne trouvez pas le paramètre, tapez sur \"Passer\". (app peut ne pas fonctionner comme prévu!)</string>
+    <string name="dialog_history_settings_title">Veuillez autoriser l\'app à utiliser l\'historique. Une fiche de paramètres s\'ouvrira. Trouvez l\'élément \"Headwind MDM\", autorisez l\'accès à l\'historique de l\'app et tapez sur \"Retour\". Si vous ne trouvez pas le paramètre, tapez sur \"Passer\". (app peut ne pas fonctionner comme prévu !)</string>
+    <string name="dialog_history_settings_continue">Continuer</string>
+    <string name="dialog_history_settings_skip">Passer</string>
+    <string name="dialog_unknown_sources_title">Veuillez autoriser l\'installation à partir de sources inconnues. Une fiche de paramètres s\'ouvrira. Trouvez \"Sources inconnues\", autorisez l\'installation et cliquez sur \"Retour\".</string>
+    <string name="dialog_unknown_sources_continue">Continuer</string>
+    <string name="dialog_miui_permissions_title">MIUI nécessite une configuration manuelle des autorisations personnalisées. La fenêtre des autorisations de l\'app s\'ouvrira. Appuyez sur \"Autres autorisations\", autorisez \"Afficher les fenêtres pop-up lors de l\'exécution en arrière-plan\" et cliquez sur \"Retour\".</string>
+    <string name="dialog_miui_developer_title">MIUI nécessite une configuration manuelle de votre appareil. Sur l\'écran d\'informations, TAP 7 FOIS SUR \"NUMÉRO DE CONSTRUCTION\". Cela activera les paramètres du développeur.</string>
+    <string name="dialog_miui_optimization_title">MIUI nécessite une configuration manuelle de votre appareil. La fenêtre des paramètres du développeur va maintenant s\'ouvrir. Faites défiler l\'écran vers le bas et décochez \"Optimisation MIUI\".</string>
+    <string name="dialog_administrator_mode_message">Veuillez autoriser l\'app à fonctionner en mode administrateur de l\'appareil. Une fiche de paramètres s\'ouvrira. Sélectionnez \"Administrateurs de l\'appareil\", recherchez l\'élément \"Headwind MDM\", activez l\'administrateur et appuyez sur \"Retour\".</string>
+    <string name="dialog_administrator_mode_continue">Continuer</string>
+    <string name="dialog_administrator_mode_skip">Passer</string>
+    <string name="accessibility_service_description">Surveillance active des apps par le lanceur Headwind MDM</string>
+    <string name="dialog_accessibility_service_message">Veuillez autoriser \'app à utiliser les services d\'accessibilité. Une fiche de paramètres s\'ouvrira. Trouvez l\'élément \"Headwind MDM\", autorisez l\'utilisation des services d\'accessibilité, et appuyez sur \"Retour\".</string>
+    <string name="dialog_accessibility_service_continue">Continuer</string>
+    <string name="dialog_accessibility_service_skip">Passer</string>
+    <string name="access_to_app_denied">L\'accès à cette app (%s) est bloqué par l\'administrateur. Cliquez sur \'Accueil\' pour continuer.</string>
+    <string name="dialog_app_not_allowed_close">Fermer</string>
+    <string name="dialog_app_not_allowed_admin">Administrateur</string>
+    <string name="device_id">ID de l\'appareil</string>
+    <string name="imei">IMEI</string>
+    <string name="serial_number">Numéro de série</string>
+    <string name="phone_number">Numéro de téléphone</string>
+    <string name="launcher_version">Version du lanceur</string>
+    <string name="close">Fermer</string>
+    <string name="admin_change_device_id">Changer l\'ID de l\'appareil</string>
+    <string name="admin_change_server_url">Changer URL du serveur</string>
+    <string name="admin_allow_settings">Ouvrir les paramètres</string>
+    <string name="settings_allowed">Vous avez 3 minutes pour modifier les paramètres.</string>
+    <string name="admin_refresh">Actualiser la configuration</string>
+    <string name="admin_exit">Quitter vers le lanceur de système</string>
+    <string name="admin_reset_permissions">Vérifier les autorisations</string>
+    <string name="reboot">Redémarrer l\'appareil</string>
+    <string name="reboot_failed">Pas assez de droits pour redémarrer l\'appareil.</string>
+    <string name="message_turn_on_gps">L\'écran des paramètres s\'ouvre. Veuillez activer la localisation GPS sur cet écran et cliquez sur Retour.</string>
+    <string name="message_turn_off_gps">L\'écran des paramètres s\'ouvre. Veuillez DÉSACTIVER la localisation GPS sur cet écran et cliquez sur Retour.</string>
+    <string name="message_turn_on_mobile_data">L\'écran des paramètres s\'ouvre. Veuillez activer les données mobiles sur cet écran et cliquez sur Retour.</string>
+    <string name="message_turn_off_mobile_data">L\'écran des paramètres s\'ouvre. Veuillez désactiver les données mobiles sur cet écran et cliquez sur Retour.</string>
+    <string name="message_set_password">La qualité de votre mot de passe n\'est pas suffisante. L\'écran des paramètres s\'ouvre. Veuillez changer le mot de passe et cliquez sur Retour.</string>
+    <string name="switch_off_blockings">Désactiver les restrictions...</string>
+    <string name="kiosk_mode_requires_overlays">Mode kiosk désactivé : pas de permission pour passer par-dessus d\'autres fenêtres. Veuillez permettre à MDM Headwind de passer par-dessus d\'autres fenêtres.</string>
+    <string name="enter_admin_password">Entrez le mot de passe administrateur</string>
+    <string name="wrong_password">Mauvais mot de passe</string>
+    <string name="dialog_enter_password_login">S\'identifier</string>
+    <string name="dialog_enter_password_cancel">Annuler</string>
+    <string name="internal_error">L\'app a rencontré une erreur interne. Veuillez redémarrer l\'appareil et réessayer l\'action.</string>
+    <string name="empty_configuration">La configuration n\'est pas définie, essayant à nouveau de l\'obtenir du serveur!</string>
+    <string name="permissions_reset_hint">Fermez le panneau d\'administration pour vérifier et demander des autorisations.</string>
+    <string name="dialog_enter_server_error">Veuillez saisir une URL de serveur valide.</string>
+    <string name="dialog_enter_server_ok">D\'accord</string>
+    <string name="dialog_enter_server_title">Veuillez saisir URL du serveur</string>
+   <string name="critical_server_failure">Quittez en raison d\'une panne du serveur! Veuillez résoudre le problème et redémarrer Headwind MDM, ou supprimez-le complètement et réinstallez-le.</string>
+    <string name="dialog_permission_title">L\'app nécessite les autorisations pour s\'exécuter. Veuillez accorder les autorisations demandées.</string>
+    <string name="main_activity_exit">Sortie</string>
+    <string name="browser_not_found">Impossible d\'ouvrir la page Web car le navigateur est introuvable. Veuillez ajouter une app de navigateur à la configuration de l\'appareil.</string>
+    <string name="location_service_text">La localisation de l\'appareil est surveillée</string>
+    <string name="qrcode_contents_error">Contenu du code QR non valide. Veuillez générer le code QR de provisionnement dans le panneau Web Headwind MDM.</string>
+    <string name="device_locked">Cet appareil a été verrouillé par l\'administrateur.</string>
+    <string name="fault_loop_detected">Oups, le lanceur a eu une faute irrémédiable! Veuillez contacter votre administrateur système.</string>
+</resources>

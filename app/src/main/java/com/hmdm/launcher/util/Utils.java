@@ -470,10 +470,8 @@ public class Utils {
 
     // Returns true if the current password is good enough, or false elsewhere
     public static boolean setPasswordMode(String passwordMode, Context context) {
-        if (!Utils.isDeviceOwner(context)) {
-            return true;
-        }
-
+        // This function works with a (deprecated) device admin as well
+        // So we don't check that it has device owner rights!
         try {
             DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(
                     Context.DEVICE_POLICY_SERVICE);
@@ -498,10 +496,17 @@ public class Utils {
                 devicePolicyManager.setPasswordMinimumSymbols(adminComponentName, 1);
                 devicePolicyManager.setPasswordMinimumLength(adminComponentName, 8);
             }
-            return devicePolicyManager.isActivePasswordSufficient();
+            boolean result = devicePolicyManager.isActivePasswordSufficient();
+            if (passwordMode != null) {
+                RemoteLogger.log(context, Const.LOG_DEBUG, "Active password quality sufficient: " + result);
+            }
+            return result;
         } catch (Exception e) {
             e.printStackTrace();
             // If the app doesn't have enough rights, let's leave password quality as is
+            if (passwordMode != null) {
+                RemoteLogger.log(context, Const.LOG_WARN, "Failed to update password quality: " + e.getMessage());
+            }
             return true;
         }
     }

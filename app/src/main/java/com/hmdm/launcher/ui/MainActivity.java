@@ -1799,7 +1799,9 @@ public class MainActivity
 
         if (!Utils.setPasswordMode(config.getPasswordMode(), this)) {
             Intent updatePasswordIntent = new Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD);
-            postDelayedSystemSettingDialog(getString(R.string.message_set_password), updatePasswordIntent);
+            // Different Android versions/builds use different activities to setup password
+            // So we have to enable temporary access to settings here (and only here!)
+            postDelayedSystemSettingDialog(getString(R.string.message_set_password), updatePasswordIntent, null, true);
         }
 
         if (config.getTimeZone() != null) {
@@ -2593,10 +2595,14 @@ public class MainActivity
     }
 
     private void postDelayedSystemSettingDialog(final String message, final Intent settingsIntent, final Integer requestCode) {
+        postDelayedSystemSettingDialog(message, settingsIntent, requestCode, false);
+    }
+
+    private void postDelayedSystemSettingDialog(final String message, final Intent settingsIntent, final Integer requestCode, final boolean forceEnableSettings) {
         if (settingsIntent != null) {
             // If settings are controlled by usage stats, safe settings are allowed, so we need to enable settings in accessibility mode only
             // Accessibility mode is only enabled when usage stats is off
-            if (preferences.getInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
+            if (preferences.getInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON || forceEnableSettings) {
                 LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_ENABLE_SETTINGS));
             }
             LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_STOP_CONTROL));
@@ -2656,6 +2662,7 @@ public class MainActivity
             systemSettingsDialog.show();
         } catch (Exception e) {
             // BadTokenException: activity closed before dialog is shown
+            RemoteLogger.log(this, Const.LOG_WARN, "Failed to open a popup system dialog! " + e.getMessage());
             e.printStackTrace();
             systemSettingsDialog = null;
         }
