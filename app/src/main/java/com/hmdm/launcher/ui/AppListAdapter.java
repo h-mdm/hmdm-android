@@ -129,6 +129,7 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
             holder.binding.imageView.getLayoutParams().height = iconSize;
             if (appInfo.iconUrl != null) {
                 // Load the icon
+                // TODO: for BuildConfig.TRUST_ANY_CERTIFICATE, use custom Picasso builder as in MainActivity.java
                 Picasso.with(context).load(appInfo.iconUrl).into(holder.binding.imageView);
             } else {
                 switch (appInfo.type) {
@@ -293,10 +294,10 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
                 if (o2.screenOrder == null) {
                     return 0;
                 }
-                return -1;
+                return 1;
             }
             if (o2.screenOrder == null) {
-                return 1;
+                return -1;
             }
             return Integer.compare(o1.screenOrder, o2.screenOrder);
         }

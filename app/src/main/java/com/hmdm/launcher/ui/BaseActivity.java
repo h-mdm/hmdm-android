@@ -56,6 +56,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.HttpUrl;
+
 public class BaseActivity extends AppCompatActivity {
 
     protected ProgressDialog progressDialog;
@@ -261,6 +263,14 @@ public class BaseActivity extends AppCompatActivity {
             ServerUrl url = null;
             try {
                 url = new ServerUrl(serverUrl);
+
+                // Retrofit uses HttpUrl!
+                HttpUrl httpUrl = HttpUrl.parse(serverUrl);
+                if (httpUrl == null) {
+                    // Malformed URL
+                    dialogEnterServerBinding.setError(true);
+                    return false;
+                }
             } catch (Exception e) {
                 // Malformed URL
                 dialogEnterServerBinding.setError(true);

@@ -43,6 +43,9 @@ import retrofit2.http.Path;
 public interface ServerService {
 
     @GET("{project}/rest/public/sync/configuration/{number}")
+    Call<ResponseBody> getRawServerConfig(@Path("project") String project, @Path("number") String number, @Header("X-Request-Signature") String signature);
+
+    @GET("{project}/rest/public/sync/configuration/{number}")
     Call<ServerConfigResponse> getServerConfig(@Path("project") String project, @Path("number") String number, @Header("X-Request-Signature") String signature);
 
     @POST("{project}/rest/public/sync/info")

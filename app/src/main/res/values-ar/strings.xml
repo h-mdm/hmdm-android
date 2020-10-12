@@ -43,7 +43,7 @@
     <string name="main_activity_cancel">إلغاء</string>
     <string name="main_activity_details">تفاصيل</string>
     <string name="select_system_launcher">حدد Headwind MDM كمشغل افتراضي وحدد \"دائمًا\":</string>
-    <string name="dialog_network_error_title">خطأ في الاتصال بالخادم. يرجى التحقق من الاتصال بالإنترنت وحاول مرة أخرى.</string>
+    <string name="dialog_network_error_title">خطأ في الاتصال بالخادم %s. يرجى التحقق من الاتصال بالإنترنت وحاول مرة أخرى.</string>
     <string name="main_activity_update_config">طلب ملف الاعدادات من الخادم</string>
     <string name="main_activity_applications_update">تحديث التطبيقات</string>
     <string name="dialog_overlay_settings_title">يرجى السماح للتطبيق الضهور فوق النوافذ الأخرى. سيتم الآن فتح ورقة الإعدادات. ابحث عن عنصر \"Headwind MDM\" ، واسمح الضهور على النوافذ الأخرى ، ثم انقر على \"رجوع\". إذا لم تتمكن من العثور على الإعداد ، فانقر على \"تخطي\" (قد لا يعمل التطبيق كما هو متوقع!)</string>

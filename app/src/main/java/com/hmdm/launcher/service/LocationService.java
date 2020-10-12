@@ -141,7 +141,7 @@ public class LocationService extends Service {
         boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         boolean networkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
         boolean passiveEnabled = locationManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER);
-        RemoteLogger.log(this, Const.LOG_DEBUG,
+        RemoteLogger.log(this, Const.LOG_VERBOSE,
                 "Request location updates. gps=" + gpsEnabled + ", network=" + networkEnabled + ", passive=" + passiveEnabled);
 
         locationManager.removeUpdates(networkLocationListener);

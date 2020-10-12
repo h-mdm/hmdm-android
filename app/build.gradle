@@ -34,10 +34,10 @@ android {
     buildToolsVersion "28.0.3"
     defaultConfig {
         applicationId "com.hmdm.launcher"
-        minSdkVersion 14
+        minSdkVersion 16
         targetSdkVersion 28
-        versionCode 113
-        versionName "3.43"
+        versionCode 115
+        versionName "3.45"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true
@@ -66,6 +66,9 @@ android {
         buildConfigField("Boolean", "TRUST_ANY_CERTIFICATE", "false")
         // A shared secret to sign server config requests
         buildConfigField("String", "REQUEST_SIGNATURE", "\"12345\"")
+        // Set this parameter to true if the server signature should be checked
+        // (additional protection against Man-In-The-Middle attacks)
+        buildConfigField("Boolean", "CHECK_SIGNATURE", "false")
         // ANR watchdog flag (for testing purposes only as this watchdog may drain the resources!)
         buildConfigField("Boolean", "ANR_WATCHDOG", "false")
     }

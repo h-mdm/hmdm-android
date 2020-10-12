@@ -138,6 +138,7 @@ public class Const {
     public static final String PASSWORD_QUALITY_STRONG = "strong";
 
     public static final String HEADER_IP_ADDRESS = "X-IP-Address";
+    public static final String HEADER_RESPONSE_SIGNATURE = "X-Response-Signature";
 
     public static final int SCREEN_ORIENTATION_PORTRAIT = 1;
     public static final int SCREEN_ORIENTATION_LANDSCAPE = 2;

@@ -102,6 +102,7 @@ import com.hmdm.launcher.pro.service.CheckForegroundApplicationService;
 import com.hmdm.launcher.pro.worker.DetailedInfoWorker;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
+import com.hmdm.launcher.server.UnsafeOkHttpClient;
 import com.hmdm.launcher.service.LocationService;
 import com.hmdm.launcher.service.PluginApiService;
 import com.hmdm.launcher.service.StatusControlService;
@@ -120,6 +121,7 @@ import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.SystemUtils;
 import com.hmdm.launcher.util.Utils;
 import com.hmdm.launcher.worker.PushNotificationWorker;
+import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
@@ -442,6 +444,12 @@ public class MainActivity
         super.onResume();
 
         isBackground = false;
+
+        // Protection against NPE crash (why it could become null?!)
+        if (preferences == null) {
+            settingsHelper = SettingsHelper.getInstance(this);
+            preferences = getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE);
+        }
 
         // Lock orientation of progress activity to avoid hangups on rotation while initial configuration
         setRequestedOrientation(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ?
@@ -1894,6 +1902,9 @@ public class MainActivity
 
             if ( config.getBackgroundImageUrl() != null && config.getBackgroundImageUrl().length() > 0 ) {
                 Picasso.Builder builder = new Picasso.Builder(this);
+                if (BuildConfig.TRUST_ANY_CERTIFICATE) {
+                    builder.downloader(new OkHttp3Downloader(UnsafeOkHttpClient.getUnsafeOkHttpClient()));
+                }
                 builder.listener(new Picasso.Listener()
                 {
                     @Override

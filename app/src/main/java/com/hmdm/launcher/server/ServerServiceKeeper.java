@@ -45,7 +45,13 @@ public class ServerServiceKeeper {
 
     public static ServerService getServerServiceInstance(Context context) {
         if ( serverServiceInstance == null ) {
-            serverServiceInstance = createServerService( SettingsHelper.getInstance(context).getBaseUrl() );
+            try {
+                serverServiceInstance = createServerService(SettingsHelper.getInstance(context).getBaseUrl());
+            } catch (Exception e) {
+                // "Invalid URL" exception. We must not be here but in the case we are here,
+                // avoid crash loop by replacing the URL to the default one
+                serverServiceInstance = createServerService(BuildConfig.BASE_URL);
+            }
         }
 
         return serverServiceInstance;
