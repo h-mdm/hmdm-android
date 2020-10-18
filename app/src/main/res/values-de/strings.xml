@@ -101,7 +101,7 @@
     <string name="dialog_enter_server_ok">OK</string>
     <string name="dialog_enter_server_title">Bitte geben Sie die Server-URL ein</string>
     <string name="dialog_enter_server_hint" translatable="false">http://hmdm.example.com:8080/hmdm/</string>
-    <string name="critical_Server_Failure">Beenden wegen Serverfehler! Bitte beheben Sie das Problem und starten Sie Headwind MDM neu oder entfernen Sie es vollständig und installieren Sie es neu.</string>
+    <string name="critical_server_failure">Beenden wegen Serverfehler! Bitte beheben Sie das Problem und starten Sie Headwind MDM neu oder entfernen Sie es vollständig und installieren Sie es neu.</string>
     <string name="dialog_permission_title">Für die Ausführung der App sind die Berechtigungen erforderlich. Bitte erteilen Sie die angeforderten Berechtigungen.</string>
     <string name="main_activity_exit">Beenden Sie</string>
     <string name="browser_not_found">​​Die Webseite kann nicht geöffnet werden, da der Browser nicht gefunden wird. Bitte fügen Sie der Gerätekonfiguration eine Browser-App hinzu.</string>
