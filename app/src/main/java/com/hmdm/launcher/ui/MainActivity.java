@@ -1831,6 +1831,8 @@ public class MainActivity
             Utils.lockVolume(config.getLockVolume(), this);
         }
 
+        Utils.disableScreenshots(config.isDisableScreenshots(), this);
+
         return true;
     }
 

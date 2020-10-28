@@ -80,6 +80,7 @@ public class ServerConfig {
     private String newServerUrl;
 
     private boolean lockSafeSettings;
+    private boolean disableScreenshots;
 
     private List<Application> applications = new LinkedList();
 
@@ -460,6 +461,14 @@ public class ServerConfig {
 
     public void setLockSafeSettings(boolean lockSafeSettings) {
         this.lockSafeSettings = lockSafeSettings;
+    }
+
+    public boolean isDisableScreenshots() {
+        return disableScreenshots;
+    }
+
+    public void setDisableScreenshots(boolean disableScreenshots) {
+        this.disableScreenshots = disableScreenshots;
     }
 
     public List<RemoteFile> getFiles() {

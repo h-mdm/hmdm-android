@@ -151,7 +151,7 @@ class AlarmPingSender implements MqttPingSender {
 			wakelock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, wakeLockTag);
 			wakelock.acquire();
 
-			RemoteLogger.log(context, Const.LOG_DEBUG, "Sending MQTT Ping at:" + System.currentTimeMillis());
+			RemoteLogger.log(context, Const.LOG_VERBOSE, "Sending MQTT Ping at:" + System.currentTimeMillis());
 
 			// Assign new callback to token to execute code after PingResq
 			// arrives. Get another wakelock even receiver already has one,
@@ -160,7 +160,7 @@ class AlarmPingSender implements MqttPingSender {
 
 				@Override
 				public void onSuccess(IMqttToken asyncActionToken) {
-					RemoteLogger.log(context, Const.LOG_DEBUG, "Ping success");
+					RemoteLogger.log(context, Const.LOG_VERBOSE, "Ping success");
 					Log.d(TAG, "Success. Release lock(" + wakeLockTag + "):"
 							+ System.currentTimeMillis());
 					//Release wakelock when it is done.
@@ -170,7 +170,7 @@ class AlarmPingSender implements MqttPingSender {
 				@Override
 				public void onFailure(IMqttToken asyncActionToken,
 									  Throwable exception) {
-					RemoteLogger.log(context, Const.LOG_DEBUG, "Ping failure");
+					RemoteLogger.log(context, Const.LOG_INFO, "MQTT ping failure");
 					Log.d(TAG, "Failure. Release lock(" + wakeLockTag + "):"
 							+ System.currentTimeMillis());
 					//Release wakelock when it is done.
@@ -180,7 +180,7 @@ class AlarmPingSender implements MqttPingSender {
 
 
 			if (token == null && wakelock.isHeld()) {
-				RemoteLogger.log(context, Const.LOG_DEBUG, "WakeLock released");
+				RemoteLogger.log(context, Const.LOG_VERBOSE, "WakeLock released");
 				wakelock.release();
 			}
 		}

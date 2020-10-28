@@ -63,7 +63,7 @@ public class LocationService extends Service {
         public void onLocationChanged(Location location) {
             // Do nothing here: we use getLastKnownLocation() to determine the location!
             //Toast.makeText(LocationService.this, "Location updated from GPS", Toast.LENGTH_SHORT).show();
-            RemoteLogger.log(LocationService.this, Const.LOG_DEBUG, "GPS location update: lat="
+            RemoteLogger.log(LocationService.this, Const.LOG_VERBOSE, "GPS location update: lat="
                     + location.getLatitude() + ", lon=" + location.getLongitude());
         }
 
@@ -84,7 +84,7 @@ public class LocationService extends Service {
         public void onLocationChanged(Location location) {
             // Do nothing here: we use getLastKnownLocation() to determine the location!
             //Toast.makeText(LocationService.this, "Location updated from Network", Toast.LENGTH_SHORT).show();
-            RemoteLogger.log(LocationService.this, Const.LOG_DEBUG, "Network location update: lat="
+            RemoteLogger.log(LocationService.this, Const.LOG_VERBOSE, "Network location update: lat="
                     + location.getLatitude() + ", lon=" + location.getLongitude());
         }
 

@@ -30,6 +30,8 @@ import android.location.LocationManager;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Environment;
+import android.telephony.SubscriptionInfo;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 
 import com.hmdm.launcher.BuildConfig;
@@ -61,6 +63,7 @@ public class DeviceInfoProvider {
             permissions.add(Utils.checkAdminMode(context) ? 1 : 0);
             permissions.add(Utils.canDrawOverlays(context) ? 1 : 0);
             permissions.add(ProUtils.checkUsageStatistics(context) ? 1 : 0);
+            permissions.add(ProUtils.checkAccessibilityService(context) ? 1 : 0);
         }
 
         SettingsHelper config = SettingsHelper.getInstance(context);
@@ -121,13 +124,13 @@ public class DeviceInfoProvider {
 
         deviceInfo.setDeviceId( SettingsHelper.getInstance( context ).getDeviceId() );
 
-        String phone = DeviceInfoProvider.getPhoneNumber(context);
+        String phone = DeviceInfoProvider.getPhoneNumber(context, 0);
         if (phone == null || phone.equals("")) {
             phone = config.getConfig().getPhone();
         }
         deviceInfo.setPhone(phone);
 
-        String imei = DeviceInfoProvider.getImei(context);
+        String imei = DeviceInfoProvider.getImei(context, 0);
         if (imei == null || imei.equals("")) {
             imei = config.getConfig().getImei();
         }
@@ -161,6 +164,15 @@ public class DeviceInfoProvider {
         deviceInfo.setLocation(getLocation(context));
         deviceInfo.setMdmMode(Utils.isDeviceOwner(context));
         deviceInfo.setLauncherType(BuildConfig.FLAVOR);
+        deviceInfo.setCpu(Build.CPU_ABI);
+        deviceInfo.setSerial(getSerialNumber());
+
+        deviceInfo.setImsi(getImsi(context, 0));
+        deviceInfo.setIccid(getIccid(context, 0));
+        deviceInfo.setImei2(getImei(context, 1));
+        deviceInfo.setImsi2(getImsi(context, 1));
+        deviceInfo.setPhone2(getPhoneNumber(context, 1));
+        deviceInfo.setIccid2(getIccid(context, 1));
 
         String launcherPackage = Utils.getDefaultLauncher(context);
         deviceInfo.setLauncherPackage(launcherPackage != null ? launcherPackage : "");
@@ -237,6 +249,92 @@ public class DeviceInfoProvider {
         }
     }
 
+    @SuppressLint( { "MissingPermission" } )
+    public static String getIccid(Context context) {
+        try {
+            TelephonyManager tMgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            if (tMgr == null) {
+                return null;
+            }
+            return tMgr.getSimSerialNumber();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @SuppressLint( { "MissingPermission" } )
+    public static String getImsi(Context context) {
+        try {
+            TelephonyManager tMgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            if (tMgr == null) {
+                return null;
+            }
+            return tMgr.getSubscriberId();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @SuppressLint( { "MissingPermission" } )
+    public static String getImsi(Context context, int slot) {
+        String imsi = null;
+        try {
+            TelephonyManager telephonyManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+            // This method is hidden, use reflection
+            // Thanks to https://stackoverflow.com/questions/36902916/subscriptionmanager-to-read-imsi-for-dual-sim-devices-ruuning-android-5-1
+            Class c = Class.forName("android.telephony.TelephonyManager");
+            Method m = c.getMethod("getSubscriberId", new Class[] {int.class});
+            Object o = m.invoke(telephonyManager, new Object[]{slot});
+            imsi = (String)o;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return imsi;
+    }
+
+    @SuppressLint( { "MissingPermission" } )
+    public static String getPhoneNumber(Context context, int slot) {
+        try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP_MR1) {
+                if (slot == 0) {
+                    return getPhoneNumber(context);
+                }
+                return null;
+            }
+            SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
+            List<SubscriptionInfo> subscriptionList = subscriptionManager.getActiveSubscriptionInfoList();
+            if (subscriptionList == null || slot >= subscriptionList.size()) {
+                // No mobile info at all
+                return null;
+            }
+            return subscriptionList.get(slot).getNumber();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @SuppressLint( { "MissingPermission" } )
+    public static String getIccid(Context context, int slot) {
+        try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP_MR1) {
+                if (slot == 0) {
+                    return getPhoneNumber(context);
+                }
+                return null;
+            }
+            SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
+            List<SubscriptionInfo> subscriptionList = subscriptionManager.getActiveSubscriptionInfoList();
+            if (subscriptionList == null || slot >= subscriptionList.size()) {
+                // No mobile info at all
+                return null;
+            }
+            return subscriptionList.get(slot).getIccId();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     @SuppressLint( { "MissingPermission" } )
     public static String getImei(Context context) {
@@ -246,6 +344,25 @@ public class DeviceInfoProvider {
                 return null;
             }
             return tMgr.getDeviceId();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @SuppressLint( { "MissingPermission" } )
+    public static String getImei(Context context, int slot) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            if (slot == 0) {
+                return getImei(context);
+            }
+            return null;
+        }
+        try {
+            TelephonyManager tMgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            if (tMgr == null) {
+                return null;
+            }
+            return tMgr.getDeviceId(slot);
         } catch (Exception e) {
             return null;
         }

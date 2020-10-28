@@ -468,6 +468,24 @@ public class Utils {
         return true;
     }
 
+    public static boolean disableScreenshots(Boolean disabled, Context context) {
+        if (!isDeviceOwner(context) || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return false;
+        }
+
+        DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(
+                Context.DEVICE_POLICY_SERVICE);
+        ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+
+        try {
+            devicePolicyManager.setScreenCaptureDisabled(adminComponentName, disabled);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
     // Returns true if the current password is good enough, or false elsewhere
     public static boolean setPasswordMode(String passwordMode, Context context) {
         // This function works with a (deprecated) device admin as well

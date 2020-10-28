@@ -38,6 +38,7 @@ import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.db.DatabaseHelper;
 import com.hmdm.launcher.db.RemoteFileTable;
+import com.hmdm.launcher.helper.CryptoHelper;
 import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.RemoteFile;
 
@@ -263,6 +264,12 @@ public class InstallUtils {
         connection.setRequestProperty("Accept-Encoding", "identity");
         connection.setConnectTimeout((int) Const.CONNECTION_TIMEOUT);
         connection.setReadTimeout((int)Const.CONNECTION_TIMEOUT);
+        if (BuildConfig.CHECK_SIGNATURE) {
+            String signature = getRequestSignature(strUrl);
+            if (signature != null) {
+                connection.setRequestProperty("X-Request-Signature", signature);
+            }
+        }
         connection.connect();
 
         if (connection.getResponseCode() != 200) {
@@ -295,6 +302,22 @@ public class InstallUtils {
         dis.close();
 
         return tempFile;
+    }
+
+    private static String getRequestSignature(String strUrl) {
+        int index = strUrl.indexOf("/files/", 0);
+        if (index == -1) {
+            // Seems to be an external resource, do not add signature
+            return null;
+        }
+        index += "/files/".length();
+        String filepath = strUrl.substring(index);
+
+        try {
+            return CryptoHelper.getSHA1String(BuildConfig.REQUEST_SIGNATURE + filepath);
+        } catch (Exception e) {
+        }
+        return null;
     }
 
     private static String getFileName(String strUrl) {

@@ -45,6 +45,14 @@ public class DeviceInfo {
     private String launcherType;
     private String launcherPackage;
     private boolean defaultLauncher;
+    private String iccid;
+    private String imsi;
+    private String phone2;
+    private String imei2;
+    private String iccid2;
+    private String imsi2;
+    private String cpu;
+    private String serial;
 
     // These fields are reserved for custom builds of Headwind MDM
     private String custom1;
@@ -209,6 +217,70 @@ public class DeviceInfo {
 
     public void setDefaultLauncher(boolean defaultLauncher) {
         this.defaultLauncher = defaultLauncher;
+    }
+
+    public String getIccid() {
+        return iccid;
+    }
+
+    public void setIccid(String iccid) {
+        this.iccid = iccid;
+    }
+
+    public String getImsi() {
+        return imsi;
+    }
+
+    public void setImsi(String imsi) {
+        this.imsi = imsi;
+    }
+
+    public String getPhone2() {
+        return phone2;
+    }
+
+    public void setPhone2(String phone2) {
+        this.phone2 = phone2;
+    }
+
+    public String getImei2() {
+        return imei2;
+    }
+
+    public void setImei2(String imei2) {
+        this.imei2 = imei2;
+    }
+
+    public String getIccid2() {
+        return iccid2;
+    }
+
+    public void setIccid2(String iccid2) {
+        this.iccid2 = iccid2;
+    }
+
+    public String getImsi2() {
+        return imsi2;
+    }
+
+    public void setImsi2(String imsi2) {
+        this.imsi2 = imsi2;
+    }
+
+    public String getCpu() {
+        return cpu;
+    }
+
+    public void setCpu(String cpu) {
+        this.cpu = cpu;
+    }
+
+    public String getSerial() {
+        return serial;
+    }
+
+    public void setSerial(String serial) {
+        this.serial = serial;
     }
 
     public String getCustom1() {
