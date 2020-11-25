@@ -39,6 +39,7 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
@@ -214,6 +215,8 @@ public class MainActivity
 
     private ANRWatchDog anrWatchDog;
 
+    private int lastNetworkType;
+
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive( Context context, Intent intent ) {
@@ -275,6 +278,23 @@ public class MainActivity
     private final BroadcastReceiver stateChangeReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            // Log new connection type
+            if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+                ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+                if (null != activeNetwork) {
+                    if (lastNetworkType != activeNetwork.getType()) {
+                        lastNetworkType = activeNetwork.getType();
+                        RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Network type changed: " + activeNetwork.getTypeName());
+                    }
+                } else {
+                    if (lastNetworkType != -1) {
+                        lastNetworkType = -1;
+                        RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Network connection lost");
+                    }
+                }
+            }
+
             try {
                 checkSystemSettings(settingsHelper.getConfig());
             } catch (Exception e) {
@@ -336,6 +356,8 @@ public class MainActivity
 
         Utils.lockSafeBoot(this);
         Utils.initPasswordReset(this);
+
+        RemoteLogger.log(this, Const.LOG_INFO, "MDM Launcher " + BuildConfig.VERSION_NAME + "-" + BuildConfig.FLAVOR + " started");
 
         DetailedInfoWorker.schedule(MainActivity.this);
         if (BuildConfig.ENABLE_PUSH) {

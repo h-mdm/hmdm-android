@@ -63,7 +63,7 @@ public class MigrationHelper {
                 }
 
                 try {
-                    response = newServer.getServerConfig(settingsHelper.getServerProject(), deviceId, signature).execute();
+                    response = newServer.getServerConfig(serverUrl.serverProject, deviceId, signature).execute();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

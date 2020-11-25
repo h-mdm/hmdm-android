@@ -80,6 +80,8 @@
     <string name="settings_allowed">Изменение настроек разрешено в течение 3 минут</string>
     <string name="admin_refresh">Обновить конфигурацию</string>
     <string name="admin_reset_permissions">Проверить разрешения</string>
+    <string name="admin_reset_network">Сброс политик сети</string>
+    <string name="admin_reset_network_hint">Сетевые политики сброшены. Вы можете включить сеть и обновить конфигурацию устройства.</string>
     <string name="admin_exit">Выйти в системный лаунчер</string>
     <string name="reboot">Перезагрузка</string>
     <string name="reboot_failed">Не удалось перезагрузить устройство - не хватает прав.</string>

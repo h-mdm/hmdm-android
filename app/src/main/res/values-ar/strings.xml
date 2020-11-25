@@ -76,6 +76,8 @@
     <string name="admin_refresh">تحديث التكوين</string>
     <string name="admin_exit">الخروج إلى مشغل النظام</string>
     <string name="admin_reset_permissions">تحقق من الأذونات</string>
+    <string name="admin_reset_network">إعادة تعيين سياسة الشبكة</string>
+    <string name="admin_reset_network_hint">تم مسح سياسات الشبكة. يمكنك الآن تمكين الشبكة وإعادة تحميل التكوين.</string>
     <string name="reboot">"    جهاز إعادة التشغيل "</string>
     <string name="reboot_failed">لا توجد حقوق كافية لإعادة تشغيل الجهاز.</string>
     <string name="message_turn_on_gps">ستفتح شاشة الإعدادات. يرجى تشغيل موقع GPS على هذه الشاشة والنقر فوق رجوع.</string>

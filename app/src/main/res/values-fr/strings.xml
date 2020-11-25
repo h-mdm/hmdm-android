@@ -81,6 +81,8 @@
     <string name="admin_refresh">Actualiser la configuration</string>
     <string name="admin_exit">Quitter vers le lanceur de système</string>
     <string name="admin_reset_permissions">Vérifier les autorisations</string>
+    <string name="admin_reset_network">Effacer la politique de réseau</string>
+    <string name="admin_reset_network_hint">Les stratégies réseau sont effacées. Vous pouvez maintenant activer le réseau et recharger la configuration.</string>
     <string name="reboot">Redémarrer l\'appareil</string>
     <string name="reboot_failed">Pas assez de droits pour redémarrer l\'appareil.</string>
     <string name="message_turn_on_gps">L\'écran des paramètres s\'ouvre. Veuillez activer la localisation GPS sur cet écran et cliquez sur Retour.</string>

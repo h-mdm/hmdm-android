@@ -81,6 +81,8 @@
     <string name="admin_refresh">Konfiguration aktualisieren</string>
     <string name="admin_exit">Beenden Sie den Systemstarter</string>
     <string name="admin_reset_permissions">Berechtigungen prüfen</string>
+    <string name="admin_reset_network">Netzwerkrichtlinie zurücksetzen</string>
+    <string name="admin_reset_network_hint">Netzwerkrichtlinien werden gelöscht. Sie können jetzt das Netzwerk aktivieren und die Konfiguration neu laden.</string>
     <string name="reboot">Gerät neu starten</string>
     <string name="reboot_failed">Nicht genügend Rechte zum Neustart des Geräts.</string>
     <string name="message_turn_on_gps">Der Einstellungsbildschirm wird geöffnet. Bitte schalten Sie die GPS-Position auf diesem Bildschirm ein und klicken Sie auf Zurück.</string>

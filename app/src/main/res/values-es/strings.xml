@@ -81,6 +81,8 @@
     <string name="admin_refresh">Actualizar configuracion</string>
     <string name="admin_exit">Salir al Inicio</string>
     <string name="admin_reset_permissions">Verificar permisos</string>
+    <string name="admin_reset_network">Restablecer la política de red</string>
+    <string name="admin_reset_network_hint">Se borran las políticas de red. Ahora puede habilitar la red y volver a cargar la configuración.</string>
     <string name="reboot">Reiniciar Dispositivo</string>
     <string name="reboot_failed">No posee suficientes permisos para reiniciar el dispositivo.</string>
     <string name="message_turn_on_gps">La pantalla de configuracion se abrira ahora. Por favor, habilite la localizacion por GPS y presione Atras.</string>

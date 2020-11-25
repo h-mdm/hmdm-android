@@ -168,6 +168,7 @@ public class AdminActivity extends BaseActivity {
     }
 
     public void resetPermissions(View view) {
+        LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_ENABLE_SETTINGS));
         SharedPreferences preferences = getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
         SharedPreferences.Editor editor = preferences.edit();
         editor.remove(Const.PREFERENCES_UNKNOWN_SOURCES);
@@ -182,6 +183,18 @@ public class AdminActivity extends BaseActivity {
         editor.commit();
         RemoteLogger.log(this, Const.LOG_INFO, "Reset saved permissions state, will be refreshed at next start");
         Toast.makeText(this, R.string.permissions_reset_hint, Toast.LENGTH_LONG).show();
+    }
+
+
+    public void resetNetworkPolicy(View view) {
+        ServerConfig config = settingsHelper.getConfig();
+        if (config != null) {
+            config.setWifi(null);
+            config.setMobileData(null);
+            settingsHelper.updateConfig(config);
+        }
+        RemoteLogger.log(this, Const.LOG_INFO, "Network policies are cleared");
+        Toast.makeText(this, R.string.admin_reset_network_hint, Toast.LENGTH_LONG).show();
     }
 
     public void reboot(View view) {

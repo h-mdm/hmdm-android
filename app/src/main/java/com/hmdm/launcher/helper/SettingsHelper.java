@@ -46,6 +46,7 @@ public class SettingsHelper {
     private static final String PREF_KEY_CONFIG = ".helpers.CONFIG";
     private static final String PREF_KEY_IP_ADDRESS = ".helpers.IP_ADDRESS";
     private static final String PREF_QR_PROVISIONING = ".helpers.QR_PROVISIONING";
+    private static final String PREF_CFG_UPDATE_TIMESTAMP = ".helpers.CFG_UPDATE_TIMESTAMP";
     // This prefix is for the compatibility with a legacy package name
     private static String PACKAGE_NAME;
 
@@ -140,6 +141,14 @@ public class SettingsHelper {
             externalIp = "";
         }
         sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_IP_ADDRESS, externalIp ).commit();
+    }
+
+    public long getConfigUpdateTimestamp() {
+        return sharedPreferences.getLong(PACKAGE_NAME + PREF_CFG_UPDATE_TIMESTAMP, 0);
+    }
+
+    public void setConfigUpdateTimestamp(long timestamp) {
+        sharedPreferences.edit().putLong(PACKAGE_NAME + PREF_CFG_UPDATE_TIMESTAMP, timestamp).commit();
     }
 
     public void updateConfig( ServerConfig config ) {

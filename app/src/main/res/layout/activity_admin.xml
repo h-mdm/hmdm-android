@@ -37,6 +37,16 @@
             app:navigationIcon="@drawable/ic_arrow_back_white_24dp"
             android:id="@+id/toolbar"/>
 
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
+
         <TextView
             android:id="@+id/deviceId"
             android:layout_width="match_parent"
@@ -100,6 +110,15 @@
             android:onClick="resetPermissions"/>
 
         <Button
+            android:id="@+id/resetNetworkButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:layout_marginRight="@dimen/activity_horizontal_margin"
+            android:text="@string/admin_reset_network"
+            android:onClick="resetNetworkPolicy"/>
+
+        <Button
             android:id="@+id/rebootButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -108,6 +127,9 @@
             android:layout_marginRight="@dimen/activity_horizontal_margin"
             android:text="@string/reboot"
             android:onClick="reboot"/>
+
+            </LinearLayout>
+        </ScrollView>
 
     </LinearLayout>
 

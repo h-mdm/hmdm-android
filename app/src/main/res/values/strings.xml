@@ -81,6 +81,8 @@
     <string name="admin_refresh">Update configuration</string>
     <string name="admin_exit">Exit to system launcher</string>
     <string name="admin_reset_permissions">Check permissions</string>
+    <string name="admin_reset_network">Reset network policy</string>
+    <string name="admin_reset_network_hint">Network policies are cleared. You can now enable the network and reload the configuration.</string>
     <string name="reboot">Reboot device</string>
     <string name="reboot_failed">Not enough rights to reboot the device.</string>
     <string name="message_turn_on_gps">The settings screen will open. Please turn on GPS location on this screen and click Back.</string>

@@ -67,15 +67,12 @@ public class PushNotificationWorker extends Worker {
     private Context context;
     private SettingsHelper settingsHelper;
 
-    private long lastStartTimestamp;
-
     public PushNotificationWorker(
             @NonNull final Context context,
             @NonNull WorkerParameters params) {
         super(context, params);
         this.context = context;
         settingsHelper = SettingsHelper.getInstance(context);
-        lastStartTimestamp = System.currentTimeMillis();
     }
 
     @Override
@@ -149,12 +146,17 @@ public class PushNotificationWorker extends Worker {
 
     // Periodic configuration update requests
     private Result doMqttWork() {
+        long lastConfigUpdateTimestamp = settingsHelper.getConfigUpdateTimestamp();
         long now = System.currentTimeMillis();
-        if (lastStartTimestamp + CONFIG_UPDATE_INTERVAL > now) {
+        if (lastConfigUpdateTimestamp == 0) {
+            settingsHelper.setConfigUpdateTimestamp(now);
+            return Result.success();
+        }
+        if (lastConfigUpdateTimestamp + CONFIG_UPDATE_INTERVAL > now) {
             return Result.success();
         }
         RemoteLogger.log(context, Const.LOG_DEBUG, "Forcing configuration update");
-        lastStartTimestamp = now;
+        settingsHelper.setConfigUpdateTimestamp(now);
         LocalBroadcastManager.getInstance(context).
                 sendBroadcast(new Intent(Const.ACTION_UPDATE_CONFIGURATION));
         return Result.success();
