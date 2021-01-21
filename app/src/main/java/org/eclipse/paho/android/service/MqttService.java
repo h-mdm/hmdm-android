@@ -341,7 +341,7 @@ public class MqttService extends Service implements MqttTraceHandler {
 	for (MqttConnection client : connections.values()) {
 			traceDebug("Reconnect Client:",
 					client.getClientId() + '/' + client.getServerURI());
-		if(this.isOnline()){
+		if(this.isOnline() && !client.isConnected()){
 			client.reconnect();
 		}
 	}

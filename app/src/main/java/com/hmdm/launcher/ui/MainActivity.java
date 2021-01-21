@@ -93,6 +93,7 @@ import com.hmdm.launcher.db.RemoteFileTable;
 import com.hmdm.launcher.helper.CryptoHelper;
 import com.hmdm.launcher.helper.MigrationHelper;
 import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.json.Action;
 import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.DeviceInfo;
 import com.hmdm.launcher.json.RemoteFile;
@@ -587,7 +588,9 @@ public class MainActivity
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
-                SystemUtils.becomeDeviceOwner(MainActivity.this);
+                if (!SystemUtils.becomeDeviceOwnerByCommand(MainActivity.this)) {
+                    SystemUtils.becomeDeviceOwnerByXmlFile(MainActivity.this);
+                };
                 return null;
             }
 
@@ -882,12 +885,17 @@ public class MainActivity
         } else if ( !checkPermissions(true)) {
             // Permissions are requested inside checkPermissions, so do nothing here
             Log.i(Const.LOG_TAG, "startLauncher: requesting permissions");
-        } else if (!Utils.isDeviceOwner(this) && !settingsHelper.isBaseUrlSet() &&
-                (BuildConfig.FLAVOR.equals("master") || BuildConfig.FLAVOR.equals("opensource") || BuildConfig.FLAVOR.equals("whitelabel"))) {
+        } else if (!Utils.isDeviceOwner(this) && !settingsHelper.isBaseUrlSet() && BuildConfig.REQUEST_SERVER_URL) {
             // For common public version, here's an option to change the server in non-MDM mode
             createAndShowServerDialog(false, settingsHelper.getBaseUrl(), settingsHelper.getServerProject());
         } else if ( settingsHelper.getDeviceId().length() == 0 ) {
-            createAndShowEnterDeviceIdDialog( false, null );
+            if (!SystemUtils.autoSetDeviceId(this)) {
+                createAndShowEnterDeviceIdDialog(false, null);
+            } else {
+                // Retry after automatical setting of device ID
+                // We shouldn't get looping here because autoSetDeviceId cannot return true if deviceId.length == 0
+                startLauncher();
+            }
         } else if ( ! configInitialized ) {
             Log.i(Const.LOG_TAG, "Updating configuration in startLauncher()");
             if (settingsHelper.getConfig() != null) {
@@ -1140,6 +1148,10 @@ public class MainActivity
         // Work around a strange bug with stale SettingsHelper instance: re-read its value
         settingsHelper = SettingsHelper.getInstance(this);
 
+        if (settingsHelper.getConfig() != null && settingsHelper.getConfig().getRestrictions() != null) {
+            Utils.releaseUserRestrictions(MainActivity.this, settingsHelper.getConfig().getRestrictions());
+        }
+
         binding.setMessage( getString( R.string.main_activity_update_config ) );
         GetServerConfigTask task = new GetServerConfigTask( this ) {
             @Override
@@ -1147,6 +1159,10 @@ public class MainActivity
                 super.onPostExecute( result );
                 configInitializing = false;
                 Log.i(Const.LOG_TAG, "updateConfig(): set configInitializing=false after getting config");
+
+                if (settingsHelper.getConfig() != null && settingsHelper.getConfig().getRestrictions() != null) {
+                    Utils.lockUserRestrictions(MainActivity.this, settingsHelper.getConfig().getRestrictions());
+                }
 
                 switch ( result ) {
                     case Const.TASK_SUCCESS:
@@ -1343,7 +1359,20 @@ public class MainActivity
         if (Utils.isDeviceOwner(this) && config != null && (config.getRunDefaultLauncher() == null || !config.getRunDefaultLauncher())) {
             String defaultLauncher = Utils.getDefaultLauncher(this);
             if (!getPackageName().equalsIgnoreCase(defaultLauncher)) {
-                Utils.setDefaultLauncher(this);
+                // As per the documentation, setting the default preferred activity should not be done on the main thread
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... voids) {
+                        Utils.setDefaultLauncher(MainActivity.this);
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Void v) {
+                        updateLocationService();
+                    }
+                }.execute();
+                return;
             }
         }
         updateLocationService();
@@ -1629,9 +1658,7 @@ public class MainActivity
 
             }.execute(application);
         } else {
-            RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Configuration updated");
-            Log.i(Const.LOG_TAG, "Showing content from loadAndInstallApplications()");
-            showContent( settingsHelper.getConfig() );
+            setActions();
         }
     }
 
@@ -1856,6 +1883,33 @@ public class MainActivity
         Utils.disableScreenshots(config.isDisableScreenshots(), this);
 
         return true;
+    }
+
+    private void setActions() {
+        final ServerConfig config = settingsHelper.getConfig();
+        // As per the documentation, setting the default preferred activity should not be done on the main thread
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                // If kiosk browser is installed, make it a default browser
+                // This is a temporary solution! Perhaps user wants only to open specific hosts / schemes
+                if (Utils.isDeviceOwner(MainActivity.this)) {
+                    if (config.getActions() != null && config.getActions().size() > 0) {
+                        for (Action action : config.getActions()) {
+                            Utils.setAction(MainActivity.this, action);
+                        }
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void v) {
+                RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Configuration updated");
+                Log.i(Const.LOG_TAG, "Showing content from setActions()");
+                showContent(settingsHelper.getConfig());
+            }
+        }.execute();
     }
 
     private void showContent(ServerConfig config ) {

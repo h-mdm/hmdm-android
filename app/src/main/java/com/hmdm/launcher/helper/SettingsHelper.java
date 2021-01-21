@@ -92,8 +92,8 @@ public class SettingsHelper {
         return sharedPreferences.getBoolean(PACKAGE_NAME + PREF_QR_PROVISIONING, false);
     }
 
-    public void setQrProvisioning(boolean value) {
-        sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_QR_PROVISIONING, value).commit();
+    public boolean setQrProvisioning(boolean value) {
+        return sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_QR_PROVISIONING, value).commit();
     }
 
     public boolean isBaseUrlSet() {
@@ -104,51 +104,51 @@ public class SettingsHelper {
         return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_BASE_URL, BuildConfig.BASE_URL );
     }
 
-    public void setBaseUrl( String baseUrl ) {
-        sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_BASE_URL, baseUrl ).commit();
+    public boolean setBaseUrl( String baseUrl ) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_BASE_URL, baseUrl ).commit();
     }
 
     public String getSecondaryBaseUrl() {
         return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_SECONDARY_BASE_URL, BuildConfig.SECONDARY_BASE_URL );
     }
 
-    public void setSecondaryBaseUrl( String secondaryBaseUrl ) {
-        sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_SECONDARY_BASE_URL, secondaryBaseUrl ).commit();
+    public boolean setSecondaryBaseUrl( String secondaryBaseUrl ) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_SECONDARY_BASE_URL, secondaryBaseUrl ).commit();
     }
 
     public String getServerProject() {
         return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_SERVER_PROJECT, BuildConfig.SERVER_PROJECT );
     }
 
-    public void setServerProject( String serverProject ) {
-        sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_SERVER_PROJECT, serverProject ).commit();
+    public boolean setServerProject( String serverProject ) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_SERVER_PROJECT, serverProject ).commit();
     }
 
     public String getDeviceId() {
         return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_DEVICE_ID,"" );
     }
 
-    public void setDeviceId( String deviceId ) {
-        sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_DEVICE_ID, deviceId ).commit();
+    public boolean setDeviceId( String deviceId ) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_DEVICE_ID, deviceId ).commit();
     }
 
     public String getExternalIp() {
         return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_IP_ADDRESS, "" );
     }
 
-    public void setExternalIp( String externalIp ) {
+    public boolean setExternalIp( String externalIp ) {
         if (externalIp == null) {
             externalIp = "";
         }
-        sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_IP_ADDRESS, externalIp ).commit();
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_IP_ADDRESS, externalIp ).commit();
     }
 
     public long getConfigUpdateTimestamp() {
         return sharedPreferences.getLong(PACKAGE_NAME + PREF_CFG_UPDATE_TIMESTAMP, 0);
     }
 
-    public void setConfigUpdateTimestamp(long timestamp) {
-        sharedPreferences.edit().putLong(PACKAGE_NAME + PREF_CFG_UPDATE_TIMESTAMP, timestamp).commit();
+    public boolean setConfigUpdateTimestamp(long timestamp) {
+        return sharedPreferences.edit().putLong(PACKAGE_NAME + PREF_CFG_UPDATE_TIMESTAMP, timestamp).commit();
     }
 
     public void updateConfig( ServerConfig config ) {

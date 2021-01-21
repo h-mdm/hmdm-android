@@ -52,6 +52,8 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.json.JSONObject;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class PushNotificationMqttWrapper {
@@ -65,6 +67,12 @@ public class PushNotificationMqttWrapper {
 
     private static final String WORKER_TAG_MQTT_RECONNECT = "com.hmdm.launcher.WORK_TAG_MQTT_RECONNECT";
     private static final int MQTT_RECONNECT_INTERVAL_SEC = 900;
+
+    // If more than 20 connections per minute, we are stopping:
+    // this is a sign that two devices with the same ID are registered
+    private List<Long> connectionLoopProtectionArray = new LinkedList<>();
+    private static final int CONNECTION_LOOP_PROTECTION_TIME_MS = 60000;
+    private static final int CONNECTION_LOOP_CRITICAL_COUNT = 15;
 
     private PushNotificationMqttWrapper() {
     }
@@ -127,7 +135,12 @@ public class PushNotificationMqttWrapper {
             public void connectComplete(boolean reconnect, String serverURI) {
                 if (reconnect || needProcessConnectExtended) {
                     RemoteLogger.log(context, Const.LOG_DEBUG, "Reconnect complete");
-                    subscribe(context, deviceId, null, null);
+                    if (checkConnectionLoop()) {
+                        subscribe(context, deviceId, null, null);
+                    } else {
+                        RemoteLogger.log(context, Const.LOG_ERROR, "Reconnection loop detected! You have multiple devices with ID=" + deviceId + "! MQTT service stopped.");
+                        disconnect(context);
+                    }
                 }
             }
         });
@@ -161,6 +174,19 @@ public class PushNotificationMqttWrapper {
                 handler.post(onFailure);
             }
         }
+    }
+
+    private boolean checkConnectionLoop() {
+        Long now = System.currentTimeMillis();
+        // Remove old items
+        for (int n = 0; n < connectionLoopProtectionArray.size(); n++) {
+            if (connectionLoopProtectionArray.get(n) < now - CONNECTION_LOOP_PROTECTION_TIME_MS) {
+                connectionLoopProtectionArray.remove(n);
+                n--;
+            }
+        }
+        connectionLoopProtectionArray.add(now);
+        return connectionLoopProtectionArray.size() <= CONNECTION_LOOP_CRITICAL_COUNT;
     }
 
     private IMqttMessageListener mqttMessageListener = new IMqttMessageListener() {

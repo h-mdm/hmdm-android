@@ -32,6 +32,7 @@ public class Application {
     private String pkg;
     private String version;
     private String url;
+    private boolean useKiosk;
     private boolean showIcon;
     private boolean remove;
     private boolean runAfterInstall;
@@ -82,6 +83,14 @@ public class Application {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public boolean isUseKiosk() {
+        return useKiosk;
+    }
+
+    public void setUseKiosk(boolean useKiosk) {
+        this.useKiosk = useKiosk;
     }
 
     public boolean isShowIcon() {

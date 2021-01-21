@@ -35,6 +35,8 @@ import com.hmdm.launcher.json.ServerConfigResponse;
 import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
+import com.hmdm.launcher.util.PushNotificationMqttWrapper;
+import com.hmdm.launcher.util.RemoteLogger;
 
 import okhttp3.ResponseBody;
 import retrofit2.Response;
@@ -72,6 +74,16 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
             ServerConfig serverConfig = BuildConfig.CHECK_SIGNATURE ? getServerConfigSecure(deviceId, signature) : getServerConfigPlain(deviceId, signature);
 
             if (serverConfig != null) {
+                if (serverConfig.getNewNumber() != null) {
+                    RemoteLogger.log(context, Const.LOG_INFO, "Device number changed from " + settingsHelper.getDeviceId() + " to " + serverConfig.getNewNumber());
+                    settingsHelper.setDeviceId(serverConfig.getNewNumber());
+                    serverConfig.setNewNumber(null);
+                    try {
+                        PushNotificationMqttWrapper.getInstance().disconnect(context);
+                    } catch (Exception e) {
+                    }
+                }
+
                 settingsHelper.updateConfig(serverConfig);
 
                 // Prevent from occasional launch in the kiosk mode without any possibility to exit!

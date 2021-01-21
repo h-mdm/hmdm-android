@@ -27,6 +27,8 @@ import java.util.List;
 @JsonIgnoreProperties( ignoreUnknown = true )
 public class ServerConfig {
 
+    private String newNumber;
+
     private String backgroundColor;
     private String textColor;
     private String backgroundImageUrl;
@@ -74,6 +76,7 @@ public class ServerConfig {
     private Boolean kioskNotifications;
     private Boolean kioskSystemInfo;
     private Boolean kioskKeyguard;
+    private String restrictions;
 
     private Boolean runDefaultLauncher;
 
@@ -87,6 +90,8 @@ public class ServerConfig {
     private List<ApplicationSetting> applicationSettings = new LinkedList();
 
     private List<RemoteFile> files = new LinkedList();
+
+    private List<Action> actions = new LinkedList();
 
     public static final String TITLE_NONE = "none";
     public static final String TITLE_DEVICE_ID = "deviceId";
@@ -102,6 +107,14 @@ public class ServerConfig {
     public static final String PUSH_OPTIONS_POLLING = "polling";
 
     public ServerConfig() {}
+
+    public String getNewNumber() {
+        return newNumber;
+    }
+
+    public void setNewNumber(String newNumber) {
+        this.newNumber = newNumber;
+    }
 
     public String getBackgroundColor() {
         return backgroundColor;
@@ -471,11 +484,27 @@ public class ServerConfig {
         this.disableScreenshots = disableScreenshots;
     }
 
+    public String getRestrictions() {
+        return restrictions;
+    }
+
+    public void setRestrictions(String restrictions) {
+        this.restrictions = restrictions;
+    }
+
     public List<RemoteFile> getFiles() {
         return files;
     }
 
     public void setFiles(List<RemoteFile> files) {
         this.files = files;
+    }
+
+    public List<Action> getActions() {
+        return actions;
+    }
+
+    public void setActions(List<Action> actions) {
+        this.actions = actions;
     }
 }

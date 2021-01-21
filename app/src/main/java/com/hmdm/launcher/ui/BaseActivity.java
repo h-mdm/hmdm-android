@@ -110,13 +110,13 @@ public class BaseActivity extends AppCompatActivity {
         // Don't use this by default because the device ID must not be bound to IMEI:
         // if it's bound to IMEI, it becomes difficult to replace the device
         List<String> variantsList = new ArrayList<>();
-        if (BuildConfig.SUGGEST_IMEI_AS_ID) {
+        if (!BuildConfig.DEVICE_ID_CHOICE.equals("user")) {
             String imei = DeviceInfoProvider.getImei(this);
             if (imei != null) {
                 variantsList.add(imei);
             }
             String serial = DeviceInfoProvider.getSerialNumber();
-            if (serial != null) {
+            if (serial != null && !serial.equals(Build.UNKNOWN)) {
                 variantsList.add(serial);
             }
         }
@@ -129,7 +129,7 @@ public class BaseActivity extends AppCompatActivity {
             enterDeviceIdDialogBinding.showDeviceIdVariants.setVisibility(View.GONE);
         }
 
-        enterDeviceIdDialogBinding.showDeviceIdQrCode.setVisibility((Utils.isDeviceOwner(this) || BuildConfig.FLAVOR.equals("system")) ? View.VISIBLE : View.GONE);
+        enterDeviceIdDialogBinding.showDeviceIdQrCode.setVisibility((Utils.isDeviceOwner(this) || BuildConfig.SYSTEM_PRIVILEGES) ? View.VISIBLE : View.GONE);
 
         enterDeviceIdDialog.setContentView( enterDeviceIdDialogBinding.getRoot() );
         enterDeviceIdDialog.show();

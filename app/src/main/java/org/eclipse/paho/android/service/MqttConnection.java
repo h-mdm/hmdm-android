@@ -1078,9 +1078,13 @@ class MqttConnection implements MqttCallbackExtended {
 			try {
 				myClient.reconnect();
 			} catch (MqttException ex){
-				Log.e(TAG, "Exception occurred attempting to reconnect: " + ex.getMessage());
-				setConnectingState(false);
-				handleException(resultBundle, ex);
+				if (ex.getReasonCode() != MqttException.REASON_CODE_CLIENT_CONNECTED) {
+					Log.e(TAG, "Exception occurred attempting to reconnect: " + ex.getMessage());
+					setConnectingState(false);
+					handleException(resultBundle, ex);
+				} else {
+					// Do nothing, we are already connected
+				}
 			}
 		} else if (disconnected && !cleanSession) {
 			// use the activityToke the same with action connect

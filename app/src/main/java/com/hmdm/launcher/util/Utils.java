@@ -44,9 +44,15 @@ import android.view.WindowManager;
 
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
+import com.hmdm.launcher.json.Action;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.ui.MainActivity;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,6 +84,10 @@ public class Utils {
             }
         } catch (NoSuchMethodError e) {
             // This exception is raised on Android 5.1
+            e.printStackTrace();
+            return false;
+        } catch (/* SecurityException */ Exception e) {
+            // No active admin ComponentInfo (not sure why could that happen)
             e.printStackTrace();
             return false;
         }
@@ -624,17 +634,170 @@ public class Utils {
         filter.addCategory(Intent.CATEGORY_HOME);
         filter.addCategory(Intent.CATEGORY_DEFAULT);
 
+        ComponentName activity = new ComponentName(context, MainActivity.class);
+        setPreferredActivity(context, filter, activity, "Set Headwind MDM as default launcher");
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static void setAction(Context context, Action action) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return;
+        }
+        try {
+            IntentFilter filter = new IntentFilter("android.intent.action." + action.getAction());
+
+            if (action.getCategories() != null && action.getCategories().length() > 0) {
+                String[] categories = action.getCategories().split(",");
+                for (String category : categories) {
+                    filter.addCategory("android.intent.category." + category);
+                }
+            }
+
+            if (action.getMimeTypes() != null && action.getMimeTypes().length() > 0) {
+                String[] mimeTypes = action.getMimeTypes().split(",");
+                for (String mimeType : mimeTypes) {
+                    try {
+                        filter.addDataType(mimeType);
+                    } catch (IntentFilter.MalformedMimeTypeException e) {
+                    }
+                }
+            }
+
+            if (action.getSchemes() != null && action.getSchemes().length() > 0) {
+                String[] schemes = action.getSchemes().split(",");
+                for (String scheme : schemes) {
+                    filter.addDataScheme(scheme);
+                }
+
+                if (action.getHosts() != null && action.getHosts().length() > 0) {
+                    String[] hosts = action.getHosts().split(",");
+                    for (String host : hosts) {
+                        String[] hostport = host.split(":");
+                        switch (hostport.length) {
+                            case 0:
+                                break;
+                            case 1:
+                                filter.addDataAuthority(hostport[0], null);
+                                break;
+                            case 2:
+                                filter.addDataAuthority(hostport[0], hostport[1]);
+                                break;
+                        }
+                    }
+                }
+            }
+
+            ComponentName activity = new ComponentName(action.getPackageId(), action.getActivity());
+            if (activity != null) {
+                setPreferredActivity(context, filter, activity, "Set " + action.getPackageId() + "/" + action.getActivity() + " as default for " + action.getAction());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private static void setPreferredActivity(Context context, IntentFilter filter, ComponentName activity, String logMessage) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return;
+        }
+
         // Set the activity as the preferred option for the device.
         ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
-        ComponentName activity = new ComponentName(context, MainActivity.class);
         DevicePolicyManager dpm =
                 (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
         try {
             dpm.addPersistentPreferredActivity(adminComponentName, filter, activity);
-            RemoteLogger.log(context, Const.LOG_DEBUG, "Headwind MDM is set as default launcher");
+            RemoteLogger.log(context, Const.LOG_DEBUG, logMessage + " - success");
         } catch (Exception e) {
             e.printStackTrace();
-            RemoteLogger.log(context, Const.LOG_WARN, "Failed to set Headwind MDM as default launcher: " + e.getMessage());
+            RemoteLogger.log(context, Const.LOG_WARN, logMessage + " - failure: " + e.getMessage());
         }
     }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static void releaseUserRestrictions(Context context, String restrictions) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return;
+        }
+
+        ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+        DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        if (dpm == null || !dpm.isDeviceOwnerApp(context.getPackageName())) {
+            return;
+        }
+
+        String[] restrictionList = restrictions.split(",");
+        for (String r : restrictionList) {
+            try {
+                dpm.clearUserRestriction(adminComponentName, r.trim());
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static void lockUserRestrictions(Context context, String restrictions) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return;
+        }
+
+        ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+        DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        if (dpm == null || !dpm.isDeviceOwnerApp(context.getPackageName())) {
+            return;
+        }
+
+        String[] restrictionList = restrictions.split(",");
+        for (String r : restrictionList) {
+            try {
+                dpm.addUserRestriction(adminComponentName, r.trim());
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    /**
+     * Load file content to String
+     */
+    public static String loadFileAsString(String filePath) throws java.io.IOException {
+        StringBuffer fileData = new StringBuffer();
+        BufferedReader reader = new BufferedReader(new FileReader(filePath));
+        char[] buf = new char[1024];
+        int numRead = 0;
+        while((numRead = reader.read(buf)) != -1){
+            String readData = String.valueOf(buf, 0, numRead);
+            fileData.append(readData);
+        }
+        reader.close();
+        return fileData.toString();
+    }
+
+    /**
+     * Write String to file
+     */
+    public static boolean writeStringToFile(String fileName, String fileContent, boolean overwrite) {
+        try {
+            File file = new File(fileName);
+            if (file.exists()) {
+                if (overwrite) {
+                    file.delete();
+                } else {
+                    return false;
+                }
+            }
+
+            file.createNewFile();
+            FileOutputStream fos = new FileOutputStream(file);
+            OutputStreamWriter writer = new OutputStreamWriter(fos);
+            writer.append(fileContent);
+            writer.close();
+            fos.close();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+
+    }
+
 }

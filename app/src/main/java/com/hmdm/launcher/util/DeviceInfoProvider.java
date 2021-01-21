@@ -47,6 +47,7 @@ import com.hmdm.launcher.pro.ProUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -364,6 +365,19 @@ public class DeviceInfoProvider {
             }
             return tMgr.getDeviceId(slot);
         } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Get the STB MacAddress
+     */
+    public static String getMacAddress() {
+        try {
+            return Utils.loadFileAsString("/sys/class/net/eth0/address")
+                    .toUpperCase().substring(0, 17);
+        } catch (IOException e) {
+            e.printStackTrace();
             return null;
         }
     }

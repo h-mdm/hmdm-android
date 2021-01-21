@@ -83,6 +83,7 @@ public class Const {
     public static final String SETTINGS_PACKAGE_NAME = "com.android.settings";
     public static final String GSF_PACKAGE_NAME = "com.google.android.gsf";
     public static final String SYSTEM_UI_PACKAGE_NAME = "com.android.systemui";
+    public static final String KIOSK_BROWSER_PACKAGE_NAME = "com.hmdm.kiosk";
 
     public static final String QR_BASE_URL_ATTR = "com.hmdm.BASE_URL";
     public static final String QR_SECONDARY_BASE_URL_ATTR = "com.hmdm.SECONDARY_BASE_URL";

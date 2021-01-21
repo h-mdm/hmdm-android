@@ -20,6 +20,7 @@
 package com.hmdm.launcher.ui;
 
 import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -36,6 +37,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.databinding.ItemAppBinding;
 import com.hmdm.launcher.helper.SettingsHelper;
@@ -278,6 +280,7 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
             newInfo.url = entry.getValue().getUrl();
             newInfo.iconUrl = entry.getValue().getIcon();
             newInfo.screenOrder = entry.getValue().getScreenOrder();
+            newInfo.useKiosk = entry.getValue().isUseKiosk() ? 1 : 0;
             appInfos.add(newInfo);
         }
 
@@ -331,6 +334,11 @@ public class AppListAdapter extends RecyclerView.Adapter<AppListAdapter.ViewHold
                 if (appInfo.url != null) {
                     Intent i = new Intent(Intent.ACTION_VIEW);
                     i.setData(Uri.parse(appInfo.url));
+
+                    if (appInfo.useKiosk != 0) {
+                            i.setComponent(new ComponentName(Const.KIOSK_BROWSER_PACKAGE_NAME, Const.KIOSK_BROWSER_PACKAGE_NAME + ".MainActivity"));
+                    }
+
                     try {
                         context.startActivity(i);
                     } catch (ActivityNotFoundException e) {

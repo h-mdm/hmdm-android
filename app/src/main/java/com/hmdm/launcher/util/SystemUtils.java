@@ -1,8 +1,13 @@
 package com.hmdm.launcher.util;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.os.Build;
+import android.util.Log;
 
+import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
+import com.hmdm.launcher.helper.SettingsHelper;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -30,7 +35,7 @@ public class SystemUtils {
      * @param context
      * @return
      */
-    public static boolean becomeDeviceOwner(Context context) {
+    public static boolean becomeDeviceOwnerByCommand(Context context) {
         String command = "dpm set-device-owner " + context.getPackageName() + "/.AdminReceiver";
         String result = executeShellCommand(command);
         RemoteLogger.log(context, Const.LOG_INFO, "DPM command output: " + result);
@@ -65,4 +70,63 @@ public class SystemUtils {
         return response;
     }
 
+    public static boolean autoSetDeviceId(Context context) {
+        String deviceId = null;
+        if (BuildConfig.DEVICE_ID_CHOICE.equals("imei")) {
+            deviceId = DeviceInfoProvider.getImei(context);
+        } else if (BuildConfig.DEVICE_ID_CHOICE.equals("serial")) {
+            deviceId = DeviceInfoProvider.getSerialNumber();
+            if (deviceId.equals(Build.UNKNOWN)) {
+                deviceId = null;
+            }
+        } else if (BuildConfig.DEVICE_ID_CHOICE.equals("mac")) {
+            deviceId = DeviceInfoProvider.getMacAddress();
+        }
+
+        if (deviceId == null || deviceId.length() == 0) {
+            return false;
+        }
+
+        return SettingsHelper.getInstance(context.getApplicationContext()).setDeviceId(deviceId);
+    }
+
+    public static boolean becomeDeviceOwnerByXmlFile(Context context) {
+        ComponentName cn = LegacyUtils.getAdminComponentName(context);
+
+        final String deviceOwnerFileName = "/data/system/device_owner_2.xml";
+        final String deviceOwnerFileContent = "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n" +
+                "<root>\n" +
+                "<device-owner package=\"" + cn.getPackageName() + "\" name=\"\" " +
+                "component=\"" + cn.getPackageName() + "/" + cn.getClassName() + "\" userRestrictionsMigrated=\"true\" canAccessDeviceIds=\"true\" />\n" +
+                "<device-owner-context userId=\"0\" />\n" +
+                "</root>";
+
+        final String devicePoliciesFileName = "/data/system/device_policies.xml";
+        final String devicePoliciesFileContent = "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n" +
+                "<policies setup-complete=\"true\" provisioning-state=\"3\">\n" +
+                "<admin name=\"" + cn.getPackageName() + "/" + cn.getClassName() + "\">\n" +
+                "<policies flags=\"17\" />\n" +
+                "<strong-auth-unlock-timeout value=\"0\" />\n" +
+                "<user-restrictions no_add_managed_profile=\"true\" />\n" +
+                "<default-enabled-user-restrictions>\n" +
+                "<restriction value=\"no_add_managed_profile\" />\n" +
+                "</default-enabled-user-restrictions>\n" +
+                "<cross-profile-calendar-packages />\n" +
+                "</admin>\n" +
+                "<password-validity value=\"true\" />\n" +
+                "<lock-task-features value=\"16\" />\n" +
+                "</policies>";
+
+        if (!Utils.writeStringToFile(deviceOwnerFileName, deviceOwnerFileContent, false)) {
+            Log.e(Const.LOG_TAG, "Could not create device owner file " + deviceOwnerFileName);
+            return false;
+        }
+
+        // Now when we succeeded to create the device owner file, let's update device policies file
+        if (!Utils.writeStringToFile(devicePoliciesFileName, devicePoliciesFileContent, true)) {
+            Log.e(Const.LOG_TAG, "Could not update device policies file " + devicePoliciesFileName);
+            return false;
+        }
+        return true;
+    }
 }
