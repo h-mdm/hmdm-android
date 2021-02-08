@@ -273,16 +273,31 @@ public class Utils {
         }
     }
 
+    private static String getDataToken(Context context) {
+        String token = context.getSharedPreferences(Const.PREFERENCES, Context.MODE_PRIVATE).getString(Const.PREFERENCES_DATA_TOKEN, null);
+        if (token == null) {
+            token = java.util.UUID.randomUUID().toString();
+            context.getSharedPreferences(Const.PREFERENCES, Context.MODE_PRIVATE)
+                    .edit()
+                    .putString(Const.PREFERENCES_DATA_TOKEN, token)
+                    .commit();
+        }
+        return token;
+    }
+
     public static void initPasswordReset(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
+                String token = getDataToken(context);
                 DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
                 ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
-                if (!dpm.setResetPasswordToken(adminComponentName, Const.PASSWORD_RESET_TOKEN.getBytes()) ||
-                    !dpm.isResetPasswordTokenActive(adminComponentName)) {
-                    // This log message won't be sent to server because it is called too early
+                if (dpm.setResetPasswordToken(adminComponentName, token.getBytes())) {
+                    if (!dpm.isResetPasswordTokenActive(adminComponentName)) {
+                        RemoteLogger.log(context, Const.LOG_WARN, "Password reset token will be activated once the user enters the current password next time.");
+                    }
+                } else {
                     RemoteLogger.log(context, Const.LOG_WARN, "Failed to setup password reset token, password reset requests will fail");
-                };
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -293,14 +308,12 @@ public class Utils {
         try {
             DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                // This flow doesn't work on Huawei Android 9 for some reason: tokenActive is alvays false,
-                // despite setResetPasswordToken returns true
                 ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
                 boolean tokenActive = dpm.isResetPasswordTokenActive(adminComponentName);
                 if (!tokenActive) {
                     return false;
                 }
-                return dpm.resetPasswordWithToken(adminComponentName, password, Const.PASSWORD_RESET_TOKEN.getBytes(), 0);
+                return dpm.resetPasswordWithToken(adminComponentName, password, getDataToken(context).getBytes(), 0);
             } else {
                 return dpm.resetPassword(password, 0);
             }

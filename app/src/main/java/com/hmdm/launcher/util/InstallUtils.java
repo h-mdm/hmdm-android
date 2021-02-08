@@ -244,62 +244,67 @@ public class InstallUtils {
         }
 
         try {
-            tempFile.createNewFile();
-        } catch (Exception e) {
-            e.printStackTrace();
+            try {
+                tempFile.createNewFile();
+            } catch (Exception e) {
+                e.printStackTrace();
 
-            tempFile = File.createTempFile(getFileName(strUrl), "temp");
-        }
-
-        URL url = new URL(strUrl);
-
-        HttpURLConnection connection;
-        if (BuildConfig.TRUST_ANY_CERTIFICATE && url.getProtocol().toLowerCase().equals("https")) {
-            connection = (HttpsURLConnection) url.openConnection();
-            ((HttpsURLConnection)connection).setHostnameVerifier(DO_NOT_VERIFY);
-        } else {
-            connection = (HttpURLConnection) url.openConnection();
-        }
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("Accept-Encoding", "identity");
-        connection.setConnectTimeout((int) Const.CONNECTION_TIMEOUT);
-        connection.setReadTimeout((int)Const.CONNECTION_TIMEOUT);
-        if (BuildConfig.CHECK_SIGNATURE) {
-            String signature = getRequestSignature(strUrl);
-            if (signature != null) {
-                connection.setRequestProperty("X-Request-Signature", signature);
+                tempFile = File.createTempFile(getFileName(strUrl), "temp");
             }
+
+            URL url = new URL(strUrl);
+
+            HttpURLConnection connection;
+            if (BuildConfig.TRUST_ANY_CERTIFICATE && url.getProtocol().toLowerCase().equals("https")) {
+                connection = (HttpsURLConnection) url.openConnection();
+                ((HttpsURLConnection) connection).setHostnameVerifier(DO_NOT_VERIFY);
+            } else {
+                connection = (HttpURLConnection) url.openConnection();
+            }
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Accept-Encoding", "identity");
+            connection.setConnectTimeout((int) Const.CONNECTION_TIMEOUT);
+            connection.setReadTimeout((int) Const.CONNECTION_TIMEOUT);
+            if (BuildConfig.CHECK_SIGNATURE) {
+                String signature = getRequestSignature(strUrl);
+                if (signature != null) {
+                    connection.setRequestProperty("X-Request-Signature", signature);
+                }
+            }
+            connection.connect();
+
+            if (connection.getResponseCode() != 200) {
+                throw new Exception("Bad server response for " + strUrl + ": " + connection.getResponseCode());
+            }
+
+            int lengthOfFile = connection.getContentLength();
+
+            progressHandler.onDownloadProgress(0, lengthOfFile, 0);
+
+            InputStream is = connection.getInputStream();
+            DataInputStream dis = new DataInputStream(is);
+
+            byte[] buffer = new byte[1024];
+            int length;
+            long total = 0;
+
+            FileOutputStream fos = new FileOutputStream(tempFile);
+            while ((length = dis.read(buffer)) > 0) {
+                total += length;
+                progressHandler.onDownloadProgress(
+                        (int) ((total * 100.0f) / lengthOfFile),
+                        lengthOfFile,
+                        total);
+                fos.write(buffer, 0, length);
+            }
+            fos.flush();
+            fos.close();
+
+            dis.close();
+        } catch (Exception e) {
+            tempFile.delete();
+            throw e;
         }
-        connection.connect();
-
-        if (connection.getResponseCode() != 200) {
-            throw new Exception("Bad server response for " + strUrl + ": " + connection.getResponseCode());
-        }
-
-        int lengthOfFile = connection.getContentLength();
-
-        progressHandler.onDownloadProgress(0, lengthOfFile, 0);
-
-        InputStream is = connection.getInputStream();
-        DataInputStream dis = new DataInputStream(is);
-
-        byte[] buffer = new byte[1024];
-        int length;
-        long total = 0;
-
-        FileOutputStream fos = new FileOutputStream(tempFile);
-        while ((length = dis.read(buffer)) > 0) {
-            total += length;
-            progressHandler.onDownloadProgress(
-                    (int)((total * 100.0f) / lengthOfFile),
-                    lengthOfFile,
-                    total);
-            fos.write(buffer, 0, length);
-        }
-        fos.flush();
-        fos.close();
-
-        dis.close();
 
         return tempFile;
     }
@@ -473,6 +478,50 @@ public class InstallUtils {
             sc.init(null, trustAllCerts, new java.security.SecureRandom());
             HttpsURLConnection
                     .setDefaultSSLSocketFactory(sc.getSocketFactory());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void deleteTempApk(File file) {
+        try {
+            if (file.getName().endsWith(".xapk")) {
+                // For XAPK, we need to remove the directory with the same name
+                String path = file.getAbsolutePath();
+                File directory = new File(path.substring(0, path.length() - 5));
+                if (directory.exists()) {
+                    deleteRecursive(directory);
+                }
+            }
+            if (file.exists()) {
+                file.delete();
+            }
+        } catch (Exception e) {
+        }
+    }
+
+    private static void deleteRecursive(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory())
+            for (File child : fileOrDirectory.listFiles())
+                deleteRecursive(child);
+
+        fileOrDirectory.delete();
+    }
+
+    public static void clearTempFiles(Context context) {
+        try {
+            File filesDir = context.getExternalFilesDir(null);
+            for (File child : filesDir.listFiles()) {
+                if (child.getName().equalsIgnoreCase("MqttConnection")) {
+                    // These are names which should be kept here
+                    continue;
+                }
+                if (child.isDirectory()) {
+                    deleteRecursive(child);
+                } else {
+                    child.delete();
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

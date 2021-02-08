@@ -55,6 +55,8 @@ public class DetailedInfo {
         device.setMobileData(cursor.getInt(cursor.getColumnIndex("deviceMobileData")) != 0);
         device.setBluetooth(cursor.getInt(cursor.getColumnIndex("deviceBluetooth")) != 0);
         device.setUsbStorage(cursor.getInt(cursor.getColumnIndex("deviceUsbStorage")) != 0);
+        device.setMemoryTotal(cursor.getInt(cursor.getColumnIndex("deviceMemoryTotal")));
+        device.setMemoryAvailable(cursor.getInt(cursor.getColumnIndex("deviceMemoryAvailable")));
 
         wifi = new Wifi();
         wifi.setRssi(cursor.getInt(cursor.getColumnIndex("wifiRssi")));
@@ -166,6 +168,8 @@ public class DetailedInfo {
         private Boolean mobileData;
         private Boolean bluetooth;
         private Boolean usbStorage;
+        private Integer memoryTotal;
+        private Integer memoryAvailable;
 
         public Integer getBatteryLevel() {
             return batteryLevel;
@@ -245,6 +249,22 @@ public class DetailedInfo {
 
         public void setUsbStorage(Boolean usbStorage) {
             this.usbStorage = usbStorage;
+        }
+
+        public Integer getMemoryTotal() {
+            return memoryTotal;
+        }
+
+        public void setMemoryTotal(Integer memoryTotal) {
+            this.memoryTotal = memoryTotal;
+        }
+
+        public Integer getMemoryAvailable() {
+            return memoryAvailable;
+        }
+
+        public void setMemoryAvailable(Integer memoryAvailable) {
+            this.memoryAvailable = memoryAvailable;
         }
     }
 

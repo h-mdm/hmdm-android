@@ -132,8 +132,10 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.ResponseBody;
@@ -217,6 +219,8 @@ public class MainActivity
     private ANRWatchDog anrWatchDog;
 
     private int lastNetworkType;
+
+    private Map<String, File> pendingInstallations = new HashMap<String,File>();
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -360,6 +364,8 @@ public class MainActivity
 
         RemoteLogger.log(this, Const.LOG_INFO, "MDM Launcher " + BuildConfig.VERSION_NAME + "-" + BuildConfig.FLAVOR + " started");
 
+        InstallUtils.clearTempFiles(this);
+
         DetailedInfoWorker.schedule(MainActivity.this);
         if (BuildConfig.ENABLE_PUSH) {
             PushNotificationWorker.schedule(MainActivity.this);
@@ -434,12 +440,17 @@ public class MainActivity
                             break;
                         case PackageInstaller.STATUS_SUCCESS:
                             RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "App installed successfully");
-                            if (Utils.isDeviceOwner(MainActivity.this)){
-                                // Always grant all dangerous rights to the app
-                                // TODO: in the future, the rights must be configurable on the server
-                                String packageName = intent.getStringExtra(Const.PACKAGE_NAME);
-                                if (packageName != null) {
-                                    Log.i(Const.LOG_TAG, "Install complete: " + packageName);
+                            String packageName = intent.getStringExtra(Const.PACKAGE_NAME);
+                            if (packageName != null) {
+                                Log.i(Const.LOG_TAG, "Install complete: " + packageName);
+                                File file = pendingInstallations.get(packageName);
+                                if (file != null) {
+                                    pendingInstallations.remove(packageName);
+                                    InstallUtils.deleteTempApk(file);
+                                }
+                                if (Utils.isDeviceOwner(MainActivity.this)){
+                                    // Always grant all dangerous rights to the app
+                                    // TODO: in the future, the rights must be configurable on the server
                                     Utils.autoGrantRequestedPermissions(MainActivity.this, packageName);
                                 }
                             }
@@ -453,6 +464,15 @@ public class MainActivity
                                 logRecord += ", extra: " + extraMessage;
                             }
                             RemoteLogger.log(MainActivity.this, Const.LOG_ERROR, logRecord);
+                            packageName = intent.getStringExtra(Const.PACKAGE_NAME);
+                            if (packageName != null) {
+                                File file = pendingInstallations.get(packageName);
+                                if (file != null) {
+                                    pendingInstallations.remove(packageName);
+                                    InstallUtils.deleteTempApk(file);
+                                }
+                            }
+
                             break;
                     }
                     checkAndStartLauncher();
@@ -1676,12 +1696,17 @@ public class MainActivity
             // Restart self in EMUI: there's no auto restart after update in EMUI, we must use a helper app
             startLauncherRestarter();
         }
+        pendingInstallations.put(packageName, file);
         if (Utils.isDeviceOwner(this) || BuildConfig.SYSTEM_PRIVILEGES) {
                 RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Silently installing app " + packageName);
             InstallUtils.silentInstallApplication(this, file, packageName, new InstallUtils.InstallErrorHandler() {
                     @Override
                     public void onInstallError() {
                         Log.i(Const.LOG_TAG, "installApplication(): error installing app " + packageName);
+                        pendingInstallations.remove(packageName);
+                        if (file.exists()) {
+                            file.delete();
+                        }
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
@@ -1704,6 +1729,10 @@ public class MainActivity
             InstallUtils.requestInstallApplication(MainActivity.this, file, new InstallUtils.InstallErrorHandler() {
                 @Override
                 public void onInstallError() {
+                    pendingInstallations.remove(packageName);
+                    if (file.exists()) {
+                        file.delete();
+                    }
                     handler.post(new Runnable() {
                         @Override
                         public void run() {

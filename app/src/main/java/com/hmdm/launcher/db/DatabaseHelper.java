@@ -24,7 +24,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
     private static final String DATABASE_NAME = "hmdm.launcher.sqlite";
 
     private static DatabaseHelper sInstance;
@@ -67,6 +67,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
             if (oldVersion < 3 && newVersion >= 3) {
                 db.execSQL(RemoteFileTable.getCreateTableSql());
+            }
+            if (oldVersion < 4 && newVersion >= 4) {
+                db.execSQL(InfoHistoryTable.getAlterTableAddMemoryTotalSql());
+                db.execSQL(InfoHistoryTable.getAlterTableAddMemoryAvailableSql());
             }
             db.setTransactionSuccessful();
         } catch ( Exception e ) {

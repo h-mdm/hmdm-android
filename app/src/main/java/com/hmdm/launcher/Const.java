@@ -44,8 +44,6 @@ public class Const {
     public static final String POLICY_VIOLATION_CAUSE = "POLICY_VIOLATION_CAUSE";
     public static final String RESTORED_ACTIVITY = "RESTORED_ACTIVITY";
 
-    public static final String PASSWORD_RESET_TOKEN = "Ax83bz6235l3Wed3yx7ZB30Kfa6cOln2";
-
     public static final int GPS_ON_REQUIRED = 1;
     public static final int GPS_OFF_REQUIRED = 2;
     public static final int MOBILE_DATA_ON_REQUIRED = 3;
@@ -67,6 +65,7 @@ public class Const {
     public static final String PREFERENCES_MIUI_DEVELOPER = "PREFERENCES_MIUI_DEVELOPER";
     public static final String PREFERENCES_MIUI_OPTIMIZATION = "PREFERENCES_MIUI_OPTIMIZATION";
     public static final String PREFERENCES_LOG_STRING = "PREFERENCES_LOG_STRING";
+    public static final String PREFERENCES_DATA_TOKEN = "PREFERENCES_DATA_TOKEN";
 
     public static final int MIUI_PERMISSIONS = 0;
     public static final int MIUI_DEVELOPER = 1;

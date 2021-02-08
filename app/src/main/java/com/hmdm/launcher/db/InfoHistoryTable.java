@@ -76,8 +76,12 @@ public class InfoHistoryTable {
                     "mobile2State TEXT, " +
                     "mobile2SimState TEXT, " +
                     "mobile2Tx INTEGER, " +
-                    "mobile2Rx INTEGER " +
+                    "mobile2Rx INTEGER, " +
+                    "deviceMemoryTotal INTEGER, " +
+                    "deviceMemoryAvailable INTEGER " +
                     ")";
+    private static final String ALTER_TABLE_ADD_MEMORY_TOTAL = "ALTER TABLE info_history ADD deviceMemoryTotal INT";
+    private static final String ALTER_TABLE_ADD_MEMORY_AVAILABLE = "ALTER TABLE info_history ADD deviceMemoryAvailable INT";
     private static final String SELECT_LAST_INFO =
             "SELECT * FROM info_history ORDER BY ts LIMIT ?";
     private static final String INSERT_INFO =
@@ -86,9 +90,10 @@ public class InfoHistoryTable {
             "wifiRssi, wifiSsid, wifiSecurity, wifiState, wifiIp, wifiTx, wifiRx, " +
             "gpsState, gpsProvider, gpsLat, gpsLon, gpsAlt, gpsSpeed, gpsCourse, " +
             "mobileRssi, mobileCarrier, mobileNumber, mobileImsi, mobileData, mobileIp, mobileState, mobileSimState, mobileTx, mobileRx, " +
-            "mobile2Rssi, mobile2Carrier, mobile2Number, mobile2Imsi, mobile2Data, mobile2Ip, mobile2State, mobile2SimState, mobile2Tx, mobile2Rx" +
+            "mobile2Rssi, mobile2Carrier, mobile2Number, mobile2Imsi, mobile2Data, mobile2Ip, mobile2State, mobile2SimState, mobile2Tx, mobile2Rx," +
+            "deviceMemoryTotal, deviceMemoryAvailable" +
             ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
-            "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String DELETE_FROM_INFO =
             "DELETE FROM info_history WHERE _id=?";
     private static final String DELETE_OLD_ITEMS =
@@ -96,6 +101,14 @@ public class InfoHistoryTable {
 
     public static String getCreateTableSql() {
         return CREATE_TABLE;
+    }
+
+    public static String getAlterTableAddMemoryTotalSql() {
+        return ALTER_TABLE_ADD_MEMORY_TOTAL;
+    }
+
+    public static String getAlterTableAddMemoryAvailableSql() {
+        return ALTER_TABLE_ADD_MEMORY_AVAILABLE;
     }
 
     public static void insert(SQLiteDatabase db, DetailedInfo item) {
@@ -156,7 +169,10 @@ public class InfoHistoryTable {
                     mobile2 != null ? mobile2.getState() : null,
                     mobile2 != null ? mobile2.getSimState() : null,
                     mobile2 != null && mobile2.getTx() != null ? mobile2.getTx().toString() : null,
-                    mobile2 != null && mobile2.getRx() != null ? mobile2.getRx().toString() : null
+                    mobile2 != null && mobile2.getRx() != null ? mobile2.getRx().toString() : null,
+
+                    device != null && device.getMemoryTotal() != null ? device.getMemoryTotal().toString() : null,
+                    device != null && device.getMemoryAvailable() != null ? device.getMemoryAvailable().toString() : null,
             });
         } catch (SQLException e) {
             e.printStackTrace();
