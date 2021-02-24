@@ -309,7 +309,7 @@ public class InstallUtils {
         return tempFile;
     }
 
-    private static String getRequestSignature(String strUrl) {
+    public static String getRequestSignature(String strUrl) {
         int index = strUrl.indexOf("/files/", 0);
         if (index == -1) {
             // Seems to be an external resource, do not add signature

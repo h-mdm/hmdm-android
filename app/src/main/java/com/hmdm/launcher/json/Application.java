@@ -42,6 +42,7 @@ public class Application {
     private String icon;
     private Integer screenOrder;
     private Integer keyCode;
+    private boolean bottom;
 
     public Application() {}
 
@@ -163,5 +164,13 @@ public class Application {
 
     public void setKeyCode(Integer keyCode) {
         this.keyCode = keyCode;
+    }
+
+    public boolean isBottom() {
+        return bottom;
+    }
+
+    public void setBottom(boolean bottom) {
+        this.bottom = bottom;
     }
 }

@@ -25,6 +25,7 @@ import android.app.Dialog;
 import android.app.admin.DevicePolicyManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -138,12 +139,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 
 public class MainActivity
         extends BaseActivity
-        implements View.OnLongClickListener, AppListAdapter.OnAppChooseListener, View.OnClickListener {
+        implements View.OnLongClickListener, BaseAppListAdapter.OnAppChooseListener, BaseAppListAdapter.SwitchAdapterListener, View.OnClickListener {
 
     private static final int PERMISSIONS_REQUEST = 1000;
 
@@ -186,7 +188,8 @@ public class MainActivity
 
     private SharedPreferences preferences;
 
-    private AppListAdapter appListAdapter;
+    private MainAppListAdapter mainAppListAdapter;
+    private BottomAppListAdapter bottomAppListAdapter;
     private int spanCount;
 
     private static boolean configInitialized = false;
@@ -432,10 +435,21 @@ public class MainActivity
                         case PackageInstaller.STATUS_PENDING_USER_ACTION:
                             RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Request user confirmation to install");
                             Intent confirmationIntent = intent.getParcelableExtra(Intent.EXTRA_INTENT);
-                            confirmationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            try {
-                                startActivity(confirmationIntent);
-                            } catch (Exception e) {
+
+                            // Fix the Intent Redirection vulnerability
+                            // https://support.google.com/faqs/answer/9267555
+                            ComponentName name = confirmationIntent.resolveActivity(getPackageManager());
+                            int flags = confirmationIntent.getFlags();
+                            if (name != null && !name.getPackageName().equals(getPackageName()) &&
+                                    (flags & Intent.FLAG_GRANT_READ_URI_PERMISSION) == 0 &&
+                                    (flags & Intent.FLAG_GRANT_WRITE_URI_PERMISSION) == 0) {
+                                confirmationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                try {
+                                    startActivity(confirmationIntent);
+                                } catch (Exception e) {
+                                }
+                            } else {
+                                Log.e(Const.LOG_TAG, "Intent redirection detected, ignoring the fault intent!");
                             }
                             break;
                         case PackageInstaller.STATUS_SUCCESS:
@@ -514,8 +528,12 @@ public class MainActivity
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (appListAdapter != null && event.getAction() == KeyEvent.ACTION_UP) {
-            return appListAdapter.onKey(keyCode);
+        if (mainAppListAdapter != null && event.getAction() == KeyEvent.ACTION_UP) {
+            if (!mainAppListAdapter.onKey(keyCode)) {
+                if (bottomAppListAdapter != null) {
+                    return bottomAppListAdapter.onKey(keyCode);
+                }
+            };
         }
         return super.onKeyUp(keyCode, event);
     }
@@ -2004,13 +2022,28 @@ public class MainActivity
         }
         updateTitle(config);
 
-        if (appListAdapter == null || needRedrawContentAfterReconfigure) {
+        if (mainAppListAdapter == null || needRedrawContentAfterReconfigure) {
             needRedrawContentAfterReconfigure = false;
 
             if ( config.getBackgroundImageUrl() != null && config.getBackgroundImageUrl().length() > 0 ) {
                 Picasso.Builder builder = new Picasso.Builder(this);
                 if (BuildConfig.TRUST_ANY_CERTIFICATE) {
                     builder.downloader(new OkHttp3Downloader(UnsafeOkHttpClient.getUnsafeOkHttpClient()));
+                } else if (BuildConfig.CHECK_SIGNATURE) {
+                    // Here we assume TRUST_ANY_CERTIFICATE and CHECK_SIGNATURE are not turned on together!
+                    // That makes no sense: TRUST_ANY_CERTIFICATE is unsafe, but CHECK_SIGNATURE is for safe setup
+                    OkHttpClient clientWithSignature = new OkHttpClient.Builder()
+                            .addInterceptor(chain -> {
+                                okhttp3.Request.Builder requestBuilder = chain.request().newBuilder();
+                                String signature = InstallUtils.getRequestSignature(chain.request().url().toString());
+                                if (signature != null) {
+                                    requestBuilder.addHeader("X-Request-Signature", signature);
+                                }
+                                return chain.proceed(requestBuilder.build());
+
+                            })
+                            .build();
+                    builder.downloader(new OkHttp3Downloader(clientWithSignature));
                 }
                 builder.listener(new Picasso.Listener()
                 {
@@ -2041,12 +2074,26 @@ public class MainActivity
             int itemWidth = getResources().getDimensionPixelSize(R.dimen.app_list_item_size);
 
             spanCount = (int) (width * 1.0f / itemWidth);
-            appListAdapter = new AppListAdapter(this, this);
-            appListAdapter.setSpanCount(spanCount);
+            mainAppListAdapter = new MainAppListAdapter(this, this, this);
+            mainAppListAdapter.setSpanCount(spanCount);
 
             binding.activityMainContent.setLayoutManager(new GridLayoutManager(this, spanCount));
-            binding.activityMainContent.setAdapter(appListAdapter);
-            appListAdapter.notifyDataSetChanged();
+            binding.activityMainContent.setAdapter(mainAppListAdapter);
+            mainAppListAdapter.notifyDataSetChanged();
+
+            int bottomAppCount = AppShortcutManager.getInstance().getInstalledAppCount(this, true);
+            if (bottomAppCount > 0) {
+                bottomAppListAdapter = new BottomAppListAdapter(this, this, this);
+                bottomAppListAdapter.setSpanCount(spanCount);
+
+                binding.activityBottomLayout.setVisibility(View.VISIBLE);
+                binding.activityBottomLine.setLayoutManager(new GridLayoutManager(this, bottomAppCount < spanCount ? bottomAppCount : spanCount));
+                binding.activityBottomLine.setAdapter(bottomAppListAdapter);
+                bottomAppListAdapter.notifyDataSetChanged();
+            } else {
+                bottomAppListAdapter = null;
+                binding.activityBottomLayout.setVisibility(View.GONE);
+            }
         }
         binding.setShowContent(true);
         // We can now sleep, uh
@@ -2683,6 +2730,20 @@ public class MainActivity
     @Override
     public void onAppChoose( @NonNull AppInfo resolveInfo ) {
 
+    }
+
+    @Override
+    public boolean switchAppListAdapter(BaseAppListAdapter adapter, int direction) {
+        if (adapter == mainAppListAdapter && bottomAppListAdapter != null &&
+                (direction == Const.DIRECTION_RIGHT || direction == Const.DIRECTION_DOWN)) {
+            bottomAppListAdapter.setFocused(true);
+            return true;
+        } else if (adapter == bottomAppListAdapter &&
+                (direction == Const.DIRECTION_LEFT || direction == Const.DIRECTION_UP)) {
+            mainAppListAdapter.setFocused(true);
+            return true;
+        }
+        return false;
     }
 
     @Override

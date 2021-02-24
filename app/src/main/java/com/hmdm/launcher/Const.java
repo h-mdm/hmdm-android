@@ -142,4 +142,9 @@ public class Const {
 
     public static final int SCREEN_ORIENTATION_PORTRAIT = 1;
     public static final int SCREEN_ORIENTATION_LANDSCAPE = 2;
+
+    public static final int DIRECTION_LEFT = 0;
+    public static final int DIRECTION_RIGHT = 1;
+    public static final int DIRECTION_UP = 2;
+    public static final int DIRECTION_DOWN = 3;
 }
