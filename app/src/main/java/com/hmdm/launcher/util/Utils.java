@@ -76,10 +76,13 @@ public class Utils {
         try {
             List<String> permissions = getRuntimePermissions(context.getPackageManager(), packageName);
             for (String permission : permissions) {
-                boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
-                        packageName, permission, PERMISSION_GRANT_STATE_GRANTED);
-                if (!success) {
-                    return false;
+                if (devicePolicyManager.getPermissionGrantState(adminComponentName,
+                        packageName, permission) != PERMISSION_GRANT_STATE_GRANTED) {
+                    boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
+                            packageName, permission, PERMISSION_GRANT_STATE_GRANTED);
+                    if (!success) {
+                        return false;
+                    }
                 }
             }
         } catch (NoSuchMethodError e) {
@@ -652,6 +655,19 @@ public class Utils {
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static void clearDefaultLauncher(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return;
+        }
+        IntentFilter filter = new IntentFilter(Intent.ACTION_MAIN);
+        filter.addCategory(Intent.CATEGORY_HOME);
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+
+        ComponentName activity = new ComponentName(context, MainActivity.class);
+        setPreferredActivity(context, filter, null, "Reset default launcher");
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public static void setAction(Context context, Action action) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             return;
@@ -720,7 +736,11 @@ public class Utils {
         DevicePolicyManager dpm =
                 (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
         try {
-            dpm.addPersistentPreferredActivity(adminComponentName, filter, activity);
+            if (activity != null) {
+                dpm.addPersistentPreferredActivity(adminComponentName, filter, activity);
+            } else {
+                dpm.clearPackagePersistentPreferredActivities(adminComponentName, context.getPackageName());
+            }
             RemoteLogger.log(context, Const.LOG_DEBUG, logMessage + " - success");
         } catch (Exception e) {
             e.printStackTrace();

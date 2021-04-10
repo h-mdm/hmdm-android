@@ -942,8 +942,8 @@ public class MainActivity
             }
             updateConfig( false );
         } else if ( ! configInitializing ) {
-            Log.i(Const.LOG_TAG, "Showing content");
-            showContent( settingsHelper.getConfig() );
+            Log.i(Const.LOG_TAG, "Proceed to lockRestrictions()");
+            lockRestrictions();
         } else {
             Log.i(Const.LOG_TAG, "Do nothing in startLauncher: configInitializing=true");
         }
@@ -1188,6 +1188,8 @@ public class MainActivity
 
         if (settingsHelper.getConfig() != null && settingsHelper.getConfig().getRestrictions() != null) {
             Utils.releaseUserRestrictions(MainActivity.this, settingsHelper.getConfig().getRestrictions());
+            // Explicitly release restrictions of installing/uninstalling apps
+            Utils.releaseUserRestrictions(MainActivity.this, "no_install_apps,no_uninstall_apps");
         }
 
         binding.setMessage( getString( R.string.main_activity_update_config ) );
@@ -1197,10 +1199,6 @@ public class MainActivity
                 super.onPostExecute( result );
                 configInitializing = false;
                 Log.i(Const.LOG_TAG, "updateConfig(): set configInitializing=false after getting config");
-
-                if (settingsHelper.getConfig() != null && settingsHelper.getConfig().getRestrictions() != null) {
-                    Utils.lockUserRestrictions(MainActivity.this, settingsHelper.getConfig().getRestrictions());
-                }
 
                 switch ( result ) {
                     case Const.TASK_SUCCESS:
@@ -1394,24 +1392,30 @@ public class MainActivity
 
     private void setDefaultLauncher() {
         ServerConfig config = settingsHelper != null ? settingsHelper.getConfig() : null;
-        if (Utils.isDeviceOwner(this) && config != null && (config.getRunDefaultLauncher() == null || !config.getRunDefaultLauncher())) {
+        if (Utils.isDeviceOwner(this) && config != null) {
+            // "Run default launcher" means we should not set Headwind MDM as a default launcher
+            // and clear the setting if it has been already set
+            boolean needSetLauncher = (config.getRunDefaultLauncher() == null || !config.getRunDefaultLauncher());
             String defaultLauncher = Utils.getDefaultLauncher(this);
-            if (!getPackageName().equalsIgnoreCase(defaultLauncher)) {
-                // As per the documentation, setting the default preferred activity should not be done on the main thread
-                new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... voids) {
-                        Utils.setDefaultLauncher(MainActivity.this);
-                        return null;
-                    }
 
-                    @Override
-                    protected void onPostExecute(Void v) {
-                        updateLocationService();
+            // As per the documentation, setting the default preferred activity should not be done on the main thread
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    if (needSetLauncher && !getPackageName().equalsIgnoreCase(defaultLauncher)) {
+                        Utils.setDefaultLauncher(MainActivity.this);
+                    } else if (!needSetLauncher && getPackageName().equalsIgnoreCase(defaultLauncher)) {
+                        Utils.clearDefaultLauncher(MainActivity.this);
                     }
-                }.execute();
-                return;
-            }
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void v) {
+                    updateLocationService();
+                }
+            }.execute();
+            return;
         }
         updateLocationService();
     }
@@ -1647,7 +1651,7 @@ public class MainActivity
                         applicationStatus.application = application;
                         if (file != null) {
                             updateMessageForApplicationInstalling(application.getName());
-                            installApplication(file, application.getPkg());
+                            installApplication(file, application.getPkg(), application.getVersion());
                             applicationStatus.installed = true;
                         } else {
                             applicationStatus.installed = false;
@@ -1696,7 +1700,7 @@ public class MainActivity
 
             }.execute(application);
         } else {
-            setActions();
+            lockRestrictions();
         }
     }
 
@@ -1708,15 +1712,16 @@ public class MainActivity
     }
 
     // This function is called from a background thread
-    private void installApplication( File file, final String packageName ) {
+    private void installApplication( File file, final String packageName, final String version ) {
         if (packageName.equals(getPackageName()) &&
                 getPackageManager().getLaunchIntentForPackage(Const.LAUNCHER_RESTARTER_PACKAGE_ID) != null) {
             // Restart self in EMUI: there's no auto restart after update in EMUI, we must use a helper app
             startLauncherRestarter();
         }
         pendingInstallations.put(packageName, file);
+        String versionData = version == null || version.equals("0") ? "" : " " + version;
         if (Utils.isDeviceOwner(this) || BuildConfig.SYSTEM_PRIVILEGES) {
-                RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Silently installing app " + packageName);
+                RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Silently installing app " + packageName + versionData);
             InstallUtils.silentInstallApplication(this, file, packageName, new InstallUtils.InstallErrorHandler() {
                     @Override
                     public void onInstallError() {
@@ -1743,7 +1748,7 @@ public class MainActivity
                     }
                 });
         } else {
-            RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Asking user to install app " + packageName);
+            RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Asking user to install app " + packageName + versionData);
             InstallUtils.requestInstallApplication(MainActivity.this, file, new InstallUtils.InstallErrorHandler() {
                 @Override
                 public void onInstallError() {
@@ -1930,6 +1935,13 @@ public class MainActivity
         Utils.disableScreenshots(config.isDisableScreenshots(), this);
 
         return true;
+    }
+
+    private void lockRestrictions() {
+        if (settingsHelper.getConfig() != null && settingsHelper.getConfig().getRestrictions() != null) {
+            Utils.lockUserRestrictions(MainActivity.this, settingsHelper.getConfig().getRestrictions());
+        }
+        setActions();
     }
 
     private void setActions() {
