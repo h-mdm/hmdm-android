@@ -71,10 +71,11 @@ public class SystemUtils {
     }
 
     public static boolean autoSetDeviceId(Context context) {
+        String deviceIdUse = SettingsHelper.getInstance(context).getDeviceIdUse();
         String deviceId = null;
-        if (BuildConfig.DEVICE_ID_CHOICE.equals("imei")) {
+        if (BuildConfig.DEVICE_ID_CHOICE.equals("imei") || "imei".equals(deviceIdUse)) {
             deviceId = DeviceInfoProvider.getImei(context);
-        } else if (BuildConfig.DEVICE_ID_CHOICE.equals("serial")) {
+        } else if (BuildConfig.DEVICE_ID_CHOICE.equals("serial") || "serial".equals(deviceIdUse)) {
             deviceId = DeviceInfoProvider.getSerialNumber();
             if (deviceId.equals(Build.UNKNOWN)) {
                 deviceId = null;

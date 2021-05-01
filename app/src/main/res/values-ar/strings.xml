@@ -18,10 +18,7 @@
   -->
 
 <resources>
-    <string name="app_name">Headwind MDM</string>
     <string name="admin_title">مسؤول</string>
-    <string name="vendor">(c) 2020 h-mdm.com</string>
-    <string name="demo_text">Headwind MDM © 2020 h-mdm.com</string>
     <string name="install_error">خطأ في التثبيت</string>
     <string name="dialog_enter_device_id_error">هذا ID غير مسجل في %s. احصل على ID من علامة التبويب \"الأجهزة\" بلوحة التحكم.</string>
     <string name="dialog_enter_device_id_qrcode">QR رمز</string>
@@ -42,22 +39,22 @@
     <string name="main_activity_repeat">أعد المحاولة</string>
     <string name="main_activity_cancel">إلغاء</string>
     <string name="main_activity_details">تفاصيل</string>
-    <string name="select_system_launcher">حدد Headwind MDM كمشغل افتراضي وحدد \"دائمًا\":</string>
+    <string name="select_system_launcher">حدد %s كمشغل افتراضي وحدد \"دائمًا\":</string>
     <string name="dialog_network_error_title">خطأ في الاتصال بالخادم %s. يرجى التحقق من الاتصال بالإنترنت وحاول مرة أخرى.</string>
     <string name="main_activity_update_config">طلب ملف الاعدادات من الخادم</string>
     <string name="main_activity_applications_update">تحديث التطبيقات</string>
-    <string name="dialog_overlay_settings_title">يرجى السماح للتطبيق الضهور فوق النوافذ الأخرى. سيتم الآن فتح ورقة الإعدادات. ابحث عن عنصر \"Headwind MDM\" ، واسمح الضهور على النوافذ الأخرى ، ثم انقر على \"رجوع\". إذا لم تتمكن من العثور على الإعداد ، فانقر على \"تخطي\" (قد لا يعمل التطبيق كما هو متوقع!)</string>
-    <string name="dialog_history_settings_title">يرجى السماح للتطبيق باستخدام السجل. سيتم الآن فتح ورقة الإعدادات. ابحث عن عنصر \"Headwind MDM\" ، واسمح بالوصول إلى سجل التطبيق ، وانقر على \"رجوع\". إذا لم تتمكن من العثور على الإعداد ، فانقر على \"تخطي\" (قد لا يعمل التطبيق كما هو متوقع!)</string>
+    <string name="dialog_overlay_settings_title">يرجى السماح للتطبيق الضهور فوق النوافذ الأخرى. سيتم الآن فتح ورقة الإعدادات. ابحث عن عنصر \"%s\" ، واسمح الضهور على النوافذ الأخرى ، ثم انقر على \"رجوع\". إذا لم تتمكن من العثور على الإعداد ، فانقر على \"تخطي\" (قد لا يعمل التطبيق كما هو متوقع!)</string>
+    <string name="dialog_history_settings_title">يرجى السماح للتطبيق باستخدام السجل. سيتم الآن فتح ورقة الإعدادات. ابحث عن عنصر \"%s\" ، واسمح بالوصول إلى سجل التطبيق ، وانقر على \"رجوع\". إذا لم تتمكن من العثور على الإعداد ، فانقر على \"تخطي\" (قد لا يعمل التطبيق كما هو متوقع!)</string>
     <string name="dialog_history_settings_continue">استمر</string>
     <string name="dialog_history_settings_skip">تخطى</string>
     <string name="dialog_unknown_sources_title">الرجاء السماح بالتثبيت من مصادر غير معروفة. سيتم الآن فتح ورقة الإعدادات. ابحث عن \"مصادر غير معروفة\" ، واسمح بالتثبيت وانقر على \"رجوع\".</string>
     <string name="dialog_unknown_sources_continue">استمر</string>
     <string name="dialog_miui_permissions_title">تتطلب MIUI الإعداد اليدوي للأذونات المخصصة. سيتم فتح نافذة أذونات التطبيق الآن. انقر على \"أذونات أخرى\" ، واسمح ب \"عرض النوافذ المنبثقة أثناء التشغيل في الخلفية\" وانقر على \"رجوع\".</string>
-    <string name="dialog_administrator_mode_message">يرجى السماح للتطبيق بالعمل في وضع مشرف الجهاز. سيتم فتح ورقة الإعدادات الآن. حدد \"مشرفو الأجهزة\" ، وابحث عن عنصر \"Headwind MDM\" ، وقم بتنشيط المشرف ، ثم انقر فوق \"رجوع\".</string>
+    <string name="dialog_administrator_mode_message">يرجى السماح للتطبيق بالعمل في وضع مشرف الجهاز. سيتم فتح ورقة الإعدادات الآن. حدد \"مشرفو الأجهزة\" ، وابحث عن عنصر \"%s\" ، وقم بتنشيط المشرف ، ثم انقر فوق \"رجوع\".</string>
     <string name="dialog_administrator_mode_continue">استمر</string>
     <string name="dialog_administrator_mode_skip">تخطى</string>
-    <string name="accessibility_service_description">مراقبة التطبيق النشطة بواسطة مشغل Headwind MDM</string>
-    <string name="dialog_accessibility_service_message">يرجى السماح للتطبيق باستخدام خدمات إمكانية الوصول. سيتم فتح ورقة الإعدادات الآن. ابحث عن عنصر \"Headwind MDM\" ، واسمح باستخدام خدمات إمكانية الوصول ، وانقر على \"رجوع\".</string>
+    <string name="accessibility_service_description">مراقبة نشطة للتطبيق بواسطة تطبيق MDM</string>
+    <string name="dialog_accessibility_service_message">يرجى السماح للتطبيق باستخدام خدمات إمكانية الوصول. سيتم فتح ورقة الإعدادات الآن. ابحث عن عنصر \"%s\" ، واسمح باستخدام خدمات إمكانية الوصول ، وانقر على \"رجوع\".</string>
     <string name="dialog_accessibility_service_continue">استمر</string>
     <string name="dialog_accessibility_service_skip">تخطى</string>
     <string name="access_to_app_denied">تم حظر الوصول إلى هذا التطبيق (%s) من قبل المسؤول. انقر فوق \"الصفحة الرئيسية\" للمتابعة.</string>
@@ -85,7 +82,7 @@
     <string name="message_turn_on_mobile_data">ستفتح شاشة الإعدادات. الرجاء تشغيل بيانات الجوال على هذه الشاشة والنقر فوق \"رجوع\".</string>
     <string name="message_turn_off_mobile_data">ستفتح شاشة الإعدادات. يرجى إيقاف تشغيل بيانات الجوال على هذه الشاشة والنقر فوق رجوع.</string>
     <string name="switch_off_blockings">جارٍ إطفاء القيود ...</string>
-    <string name="kiosk_mode_requires_overlays">تم تعطيل وضع Kiosk: لا يوجد إذن للرسم فوق النوافذ الأخرى. يُرجى السماح لـ Headwind MDM بالرسم فوق النوافذ الأخرى.</string>
+    <string name="kiosk_mode_requires_overlays">تم تعطيل وضع Kiosk: لا يوجد إذن للرسم فوق النوافذ الأخرى. يُرجى السماح لـ %s بالرسم فوق النوافذ الأخرى.</string>
     <string name="enter_admin_password">أدخل كلمة مرور المسؤول</string>
     <string name="wrong_password">كلمة مرور خاطئة</string>
     <string name="dialog_enter_password_login">تسجيل الدخول</string>
@@ -96,12 +93,12 @@
     <string name="dialog_enter_server_error">الرجاء إدخال عنوان URL صالح للخادم.</string>
     <string name="dialog_enter_server_ok">حسنا</string>
     <string name="dialog_enter_server_title">يرجى إدخال عنوان URL للخادم</string>
-    <string name="critical_server_failure">خروج بسبب خطأ في الخادم! يُرجى إصلاح المشكلة وإعادة تشغيل برنامج Headwind MDM ، أو إزالته تمامًا وإعادة التثبيت.</string>
+    <string name="critical_server_failure">خروج بسبب خطأ في الخادم! يُرجى إصلاح المشكلة وإعادة تشغيل برنامج %s ، أو إزالته تمامًا وإعادة التثبيت.</string>
     <string name="dialog_permission_title">يتطلب التطبيق أذونات للتشغيل. يرجى منح الأذونات المطلوبة.</string>
     <string name="main_activity_exit">خروج</string>
     <string name="browser_not_found">لا يمكن فتح صفحة الويب لأن المستعرض غير موجود. الرجاء إضافة تطبيق متصفح إلى اعدادات الجهاز.</string>
     <string name="location_service_text">يتم مراقبة موقع الجهاز</string>
-    <string name="qrcode_contents_error">محتويات رمز QR غير صالحة. يرجى إنشاء رمز الاستجابة السريعة التوفير في لوحة الويب Headwind MDM.</string>
+    <string name="qrcode_contents_error">محتويات رمز QR غير صالحة. يرجى إنشاء رمز الاستجابة السريعة التوفير في لوحة الويب %s.</string>
     <string name="main_file_downloading">تحميل الملف</string>
     <string name="main_file_downloading_error">فشل تحميل الملف</string>
     <string name="message_set_password">جودة كلمة المرور الخاصة بك غير كافية. ستفتح شاشة الإعدادات الآن. يرجى تغيير كلمة المرور الخاصة بك والنقر فوق \"رجوع\".</string>

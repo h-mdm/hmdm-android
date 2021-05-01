@@ -18,10 +18,7 @@
   -->
 
 <resources>
-    <string name="app_name">Headwind MDM</string>
     <string name="admin_title">Administrator</string>
-    <string name="vendor">(c) 2020 h-mdm.com</string>
-    <string name="demo_text">Headwind MDM © 2020 h-mdm.com</string>
     <string name="install_error">Fehler beim Installieren</string>
     <string name="dialog_enter_device_id_error">Diese ID ist bei %s nicht registriert. Rufen Sie die ID auf der Registerkarte \"Geräte\" des Bedienfelds ab.</string>
     <string name="dialog_enter_device_id_qrcode">QR-Code</string>
@@ -45,12 +42,12 @@
     <string name="main_activity_reset">Zurücksetzen</string>
     <string name="main_activity_cancel">Abbrechen</string>
     <string name="main_activity_details">Details</string>
-    <string name="select_system_launcher">Wählen Sie Headwind MDM als Standardstarter aus und aktivieren Sie \'Immer \':</string>
+    <string name="select_system_launcher">Wählen Sie %s als Standardstarter aus und aktivieren Sie \'Immer \':</string>
     <string name="dialog_network_error_title">Fehler beim Verbinden mit %s. Bitte überprüfen Sie die Internetverbindung und versuchen Sie es erneut.</string>
     <string name="main_activity_update_config">Konfigurationsdatei vom Server anfordern</string>
     <string name="main_activity_applications_update">Aktualisieren von Anwendungen</string>
-    <string name="dialog_overlay_settings_title">Bitte erlauben Sie der App, über andere Fenster zu zeichnen. Ein Einstellungsblatt wird nun geöffnet. Suchen Sie das Element \"Headwind-MDM\", lassen Sie es über andere Fenster zeichnen und tippen Sie auf \"Zurück\". Wenn Sie die Einstellung nicht finden können, tippen Sie auf \"Überspringen\" (die App funktioniert möglicherweise nicht wie erwartet!)</string>
-    <string name="dialog_history_settings_title">Bitte erlauben Sie der App, den Verlauf zu verwenden. Ein Einstellungsblatt wird nun geöffnet. Suchen Sie das Element \"Headwind-MDM\", erlauben Sie den Zugriff auf den App-Verlauf und tippen Sie auf \"Zurück\". Wenn Sie die Einstellung nicht finden können, tippen Sie auf \"Überspringen\" (die App funktioniert möglicherweise nicht wie erwartet!)</string>
+    <string name="dialog_overlay_settings_title">Bitte erlauben Sie der App, über andere Fenster zu zeichnen. Ein Einstellungsblatt wird nun geöffnet. Suchen Sie das Element \"%s\", lassen Sie es über andere Fenster zeichnen und tippen Sie auf \"Zurück\". Wenn Sie die Einstellung nicht finden können, tippen Sie auf \"Überspringen\" (die App funktioniert möglicherweise nicht wie erwartet!)</string>
+    <string name="dialog_history_settings_title">Bitte erlauben Sie der App, den Verlauf zu verwenden. Ein Einstellungsblatt wird nun geöffnet. Suchen Sie das Element \"%s\", erlauben Sie den Zugriff auf den App-Verlauf und tippen Sie auf \"Zurück\". Wenn Sie die Einstellung nicht finden können, tippen Sie auf \"Überspringen\" (die App funktioniert möglicherweise nicht wie erwartet!)</string>
     <string name="dialog_history_settings_continue">Weiter</string>
     <string name="dialog_history_settings_skip">Überspringen</string>
     <string name="dialog_unknown_sources_title">Bitte erlauben Sie die Installation aus unbekannten Quellen. Ein Einstellungsblatt wird nun geöffnet. Suchen Sie nach \"Unbekannten Quellen\", erlauben Sie die Installation und klicken Sie auf \"Zurück\".</string>
@@ -58,11 +55,11 @@
     <string name="dialog_miui_permissions_title">MIUI erfordert die manuelle Einrichtung benutzerdefinierter Berechtigungen. Das Fenster mit den App-Berechtigungen wird jetzt geöffnet. Tippen Sie auf \"Andere Berechtigungen\", erlauben Sie \"Popup-Fenster anzeigen, während Sie im Hintergrund ausgeführt werden\" und klicken Sie auf \"Zurück\".</string>
     <string name="dialog_miui_developer_title">MIUI erfordert die manuelle Einrichtung Ihres Geräts. Tippen Sie auf dem Infobildschirm 7 MAL AUF \"BUILD NUMBER\". Dadurch werden die Entwicklereinstellungen aktiviert.</string>
     <string name="dialog_miui_optimization_title">MIUI erfordert die manuelle Einrichtung Ihres Geräts. Das Fenster mit den Entwicklereinstellungen wird jetzt geöffnet. Scrollen Sie auf dem Bildschirm nach unten und deaktivieren Sie \"MIUI-Optimierung\".</string>
-    <string name="dialog_administrator_mode_message">Bitte lassen Sie die App im Geräteadministratormodus arbeiten. Ein Einstellungsblatt wird jetzt geöffnet. Wählen Sie \"Geräteadministratoren\", suchen Sie das Element \"Headwind-MDM\", aktivieren Sie den Administrator und tippen Sie auf \"Zurück\".</string>
+    <string name="dialog_administrator_mode_message">Bitte lassen Sie die App im Geräteadministratormodus arbeiten. Ein Einstellungsblatt wird jetzt geöffnet. Wählen Sie \"Geräteadministratoren\", suchen Sie das Element \"%s\", aktivieren Sie den Administrator und tippen Sie auf \"Zurück\".</string>
     <string name="dialog_administrator_mode_continue">Weiter</string>
     <string name="dialog_administrator_mode_skip">Überspringen</string>
-    <string name="accessibility_service_description">Aktive App-Überwachung durch Headwind MDM Launcher</string>
-    <string name="dialog_accessibility_service_message">Bitte erlauben Sie der App, Eingabehilfedienste zu verwenden. Ein Einstellungsblatt wird jetzt geöffnet. Suchen Sie das Element \"Headwind-MDM\", erlauben Sie die Verwendung von Eingabehilfen und tippen Sie auf \"Zurück\".</string>
+    <string name="accessibility_service_description">Aktive App-Überwachung durch MDM-Anwendung</string>
+    <string name="dialog_accessibility_service_message">Bitte erlauben Sie der App, Eingabehilfedienste zu verwenden. Ein Einstellungsblatt wird jetzt geöffnet. Suchen Sie das Element \"%s\", erlauben Sie die Verwendung von Eingabehilfen und tippen Sie auf \"Zurück\".</string>
     <string name="dialog_accessibility_service_continue">Weiter</string>
     <string name="dialog_accessibility_service_skip">Überspringen</string>
     <string name="access_to_app_denied">Der Zugriff auf diese App (%s) wird vom Administrator blockiert. Klicken Sie auf \'Home\', um fortzufahren.</string>
@@ -91,7 +88,7 @@
     <string name="message_turn_off_mobile_data">Mobile Daten sind aktiviert. Bitte öffnen Sie die Statusleiste und schalten Sie die mobilen Daten aus.</string>
     <string name="message_set_password">Ihre Passwortqualität ist nicht gut genug. Der Einstellungsbildschirm wird geöffnet. Bitte ändern Sie das Passwort und klicken Sie auf Zurück.</string>
     <string name="switch_off_blockings">Einschränkungen ausschalten ...</string>
-    <string name="kiosk_mode_requires_overlays">Kioskmodus deaktiviert: Keine Berechtigung zum Zeichnen über andere Fenster. Bitte erlauben Sie Headwind MDM, über andere Fenster zu zeichnen.</string>
+    <string name="kiosk_mode_requires_overlays">Kioskmodus deaktiviert: Keine Berechtigung zum Zeichnen über andere Fenster. Bitte erlauben Sie %s, über andere Fenster zu zeichnen.</string>
     <string name="enter_admin_password">Geben Sie das Administratorkennwort ein</string>
     <string name="wrong_password">Falsches Passwort</string>
     <string name="dialog_enter_password_login">Login</string>
@@ -103,12 +100,12 @@
     <string name="dialog_enter_server_ok">OK</string>
     <string name="dialog_enter_server_title">Bitte geben Sie die Server-URL ein</string>
     <string name="dialog_enter_server_hint" translatable="false">http://hmdm.example.com:8080/hmdm/</string>
-    <string name="critical_server_failure">Beenden wegen Serverfehler! Bitte beheben Sie das Problem und starten Sie Headwind MDM neu oder entfernen Sie es vollständig und installieren Sie es neu.</string>
+    <string name="critical_server_failure">Beenden wegen Serverfehler! Bitte beheben Sie das Problem und starten Sie %s neu oder entfernen Sie es vollständig und installieren Sie es neu.</string>
     <string name="dialog_permission_title">Für die Ausführung der App sind die Berechtigungen erforderlich. Bitte erteilen Sie die angeforderten Berechtigungen.</string>
     <string name="main_activity_exit">Beenden Sie</string>
     <string name="browser_not_found">​​Die Webseite kann nicht geöffnet werden, da der Browser nicht gefunden wird. Bitte fügen Sie der Gerätekonfiguration eine Browser-App hinzu.</string>
     <string name="location_service_text">Der Gerätestandort wird überwacht</string>
-    <string name="qrcode_contents_error">Ungültiger Inhalt des QR-Codes. Bitte generieren Sie den Bereitstellungs-QR-Code im MDM-Webpanel von Headwind.</string>
+    <string name="qrcode_contents_error">Ungültiger Inhalt des QR-Codes. Bitte generieren Sie den Bereitstellungs-QR-Code im Webpanel von %s.</string>
     <string name="device_locked">Dieses Gerät wurde vom Administrator gesperrt.</string>
     <string name="fault_loop_detected">Hoppla, der Launcher hat einen nicht behebbaren Fehler! Bitte wenden Sie sich an Ihren Systemadministrator.</string>
 </resources>

@@ -27,6 +27,7 @@ import android.os.Build;
 import android.os.PersistableBundle;
 
 import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.json.DeviceCreateOptions;
 import com.hmdm.launcher.util.PreferenceLogger;
 
 import static android.app.admin.DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE;
@@ -68,6 +69,14 @@ public class AdminReceiver extends DeviceAdminReceiver {
                     // Also let's try legacy attribute
                     deviceId = bundle.getString(Const.QR_LEGACY_DEVICE_ID_ATTR, null);
                 }
+                if (deviceId == null) {
+                    String deviceIdUse = bundle.getString(Const.QR_DEVICE_ID_USE_ATTR, null);
+                    if (deviceIdUse != null) {
+                        if (DEBUG) PreferenceLogger.log(preferences, "deviceIdUse: " + deviceIdUse);
+                        // Save for further automatic choice of the device ID
+                        settingsHelper.setDeviceIdUse(deviceIdUse);
+                    }
+                }
             }
             if (deviceId != null) {
                 // Device ID is delivered in the QR code!
@@ -79,10 +88,14 @@ public class AdminReceiver extends DeviceAdminReceiver {
             String baseUrl = null;
             String secondaryBaseUrl = null;
             String serverProject = null;
+            DeviceCreateOptions createOptions = new DeviceCreateOptions();
             if (bundle != null) {
                 baseUrl = bundle.getString(Const.QR_BASE_URL_ATTR, null);
                 secondaryBaseUrl = bundle.getString(Const.QR_SECONDARY_BASE_URL_ATTR, null);
                 serverProject = bundle.getString(Const.QR_SERVER_PROJECT_ATTR, null);
+                createOptions.setCustomer(bundle.getString(Const.QR_CUSTOMER_ATTR, null));
+                createOptions.setConfiguration(bundle.getString(Const.QR_CONFIG_ATTR, null));
+                createOptions.setGroups(bundle.getString(Const.QR_GROUP_ATTR, null));
                 if (baseUrl != null) {
                     if (DEBUG) PreferenceLogger.log(preferences, "BaseURL: " + baseUrl);
                     settingsHelper.setBaseUrl(baseUrl);
@@ -98,6 +111,18 @@ public class AdminReceiver extends DeviceAdminReceiver {
                 if (serverProject != null) {
                     if (DEBUG) PreferenceLogger.log(preferences, "ServerPath: " + serverProject);
                     settingsHelper.setServerProject(serverProject);
+                }
+                if (createOptions.getCustomer() != null) {
+                    if (DEBUG) PreferenceLogger.log(preferences, "Customer: " + createOptions.getCustomer());
+                    settingsHelper.setCreateOptionCustomer(createOptions.getCustomer());
+                }
+                if (createOptions.getConfiguration() != null) {
+                    if (DEBUG) PreferenceLogger.log(preferences, "Configuration: " + createOptions.getConfiguration());
+                    settingsHelper.setCreateOptionConfigName(createOptions.getConfiguration());
+                }
+                if (createOptions.getGroups() != null) {
+                    if (DEBUG) PreferenceLogger.log(preferences, "Groups: " + bundle.getString(Const.QR_GROUP_ATTR));
+                    settingsHelper.setCreateOptionGroup(createOptions.getGroupSet());
                 }
                 settingsHelper.setQrProvisioning(true);
             }

@@ -47,9 +47,9 @@ import com.hmdm.launcher.databinding.DialogEnterDeviceIdBinding;
 import com.hmdm.launcher.databinding.DialogEnterServerBinding;
 import com.hmdm.launcher.databinding.DialogNetworkErrorBinding;
 import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.json.DeviceCreateOptions;
 import com.hmdm.launcher.server.ServerUrl;
 import com.hmdm.launcher.util.DeviceInfoProvider;
-import com.hmdm.launcher.util.Utils;
 
 import org.json.JSONObject;
 
@@ -129,7 +129,7 @@ public class BaseActivity extends AppCompatActivity {
             enterDeviceIdDialogBinding.showDeviceIdVariants.setVisibility(View.GONE);
         }
 
-        enterDeviceIdDialogBinding.showDeviceIdQrCode.setVisibility((Utils.isDeviceOwner(this) || BuildConfig.SYSTEM_PRIVILEGES) ? View.VISIBLE : View.GONE);
+        enterDeviceIdDialogBinding.showDeviceIdQrCode.setVisibility(View.VISIBLE);
 
         enterDeviceIdDialog.setContentView( enterDeviceIdDialogBinding.getRoot() );
         enterDeviceIdDialog.show();
@@ -161,7 +161,7 @@ public class BaseActivity extends AppCompatActivity {
         }
     }
 
-    private void updateSettingsFromQr(String qrcode) {
+    protected void updateSettingsFromQr(String qrcode) {
         try {
             SettingsHelper settingsHelper = SettingsHelper.getInstance(getApplicationContext());
             JSONObject qr = new JSONObject(qrcode);
@@ -194,8 +194,23 @@ public class BaseActivity extends AppCompatActivity {
                 settingsHelper.setServerProject(serverProject);
             }
 
+            DeviceCreateOptions createOptions = new DeviceCreateOptions();
+            createOptions.setCustomer(extras.optString(Const.QR_CUSTOMER_ATTR, null));
+            createOptions.setConfiguration(extras.optString(Const.QR_CONFIG_ATTR, null));
+            createOptions.setGroups(extras.optString(Const.QR_GROUP_ATTR, null));
+            if (createOptions.getCustomer() != null) {
+                settingsHelper.setCreateOptionCustomer(createOptions.getCustomer());
+            }
+            if (createOptions.getConfiguration() != null) {
+                settingsHelper.setCreateOptionConfigName(createOptions.getConfiguration());
+            }
+            if (createOptions.getGroups() != null) {
+                settingsHelper.setCreateOptionGroup(createOptions.getGroupSet());
+            }
+
         } catch (Exception e) {
-            Toast.makeText(this, R.string.qrcode_contents_error, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.qrcode_contents_error,
+                    getString(R.string.app_name)), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -359,12 +374,12 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     protected void openLauncherChoiceDialog() {
-        Intent intent = new Intent( Intent.ACTION_MAIN );
-        intent.addCategory( Intent.CATEGORY_HOME );
-        intent.addCategory( Intent.CATEGORY_DEFAULT );
-        intent.setFlags( Intent.FLAG_ACTIVITY_NEW_TASK );
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-        startActivity( Intent.createChooser( intent, getString( R.string.select_system_launcher ) ) );
+        startActivity(Intent.createChooser(intent, getString(R.string.select_system_launcher, getString(R.string.app_name))));
     }
 
 }

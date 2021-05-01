@@ -769,7 +769,7 @@ public class MainActivity
         }
 
         int usageStatisticsMode = preferences.getInt( Const.PREFERENCES_USAGE_STATISTICS, - 1 );
-        if ( usageStatisticsMode == -1 ) {
+        if (!BuildConfig.FLAVOR.equals("opensource") && usageStatisticsMode == -1) {
             if ( checkUsageStatistics() ) {
                 preferences.
                         edit().
@@ -787,7 +787,7 @@ public class MainActivity
         }
 
         int accessibilityService = preferences.getInt( Const.PREFERENCES_ACCESSIBILITY_SERVICE, - 1 );
-        if ( accessibilityService == -1 ) {
+        if (!BuildConfig.FLAVOR.equals("opensource") && accessibilityService == -1) {
             if ( checkAccessibilityService() ) {
                 preferences.
                         edit().
@@ -843,6 +843,8 @@ public class MainActivity
                 R.layout.dialog_accessibility_service,
                 null,
                 false );
+        dialogAccessibilityServiceBinding.hint.setText(
+                getString(R.string.dialog_accessibility_service_message, getString(R.string.app_name)));
         accessibilityServiceDialog.setCancelable( false );
         accessibilityServiceDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
 
@@ -888,7 +890,8 @@ public class MainActivity
         if (ProUtils.kioskModeRequired(this) && !settingsHelper.getConfig().getMainApp().equals(getPackageName())) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                     !Settings.canDrawOverlays( this )) {
-                Toast.makeText(this, R.string.kiosk_mode_requires_overlays, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.kiosk_mode_requires_overlays,
+                        getString(R.string.app_name)), Toast.LENGTH_LONG).show();
                 config.setKioskMode(false);
                 settingsHelper.updateConfig(config);
                 createLauncherButtons();
@@ -1202,6 +1205,7 @@ public class MainActivity
 
                 switch ( result ) {
                     case Const.TASK_SUCCESS:
+                        RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Configuration updated");
                         updateRemoteLogConfig();
                         break;
                     case Const.TASK_ERROR:
@@ -1282,8 +1286,13 @@ public class MainActivity
 
     private void setupPushService() {
         String pushOptions = null;
+        int keepaliveTime = Const.DEFAULT_PUSH_ALARM_KEEPALIVE_TIME_SEC;
         if (settingsHelper != null && settingsHelper.getConfig() != null) {
             pushOptions = settingsHelper.getConfig().getPushOptions();
+            Integer newKeepaliveTime = settingsHelper.getConfig().getKeepaliveTime();
+            if (newKeepaliveTime != null && newKeepaliveTime >= 30) {
+                keepaliveTime = newKeepaliveTime;
+            }
         }
         if (BuildConfig.ENABLE_PUSH && pushOptions != null && (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER)
                 || pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM))) {
@@ -1293,7 +1302,7 @@ public class MainActivity
                     checkFactoryReset();
                 };
                 PushNotificationMqttWrapper.getInstance().connect(this, url.getHost(), BuildConfig.MQTT_PORT,
-                        pushOptions, settingsHelper.getDeviceId(), nextRunnable, nextRunnable);
+                        pushOptions, keepaliveTime, settingsHelper.getDeviceId(), nextRunnable, nextRunnable);
             } catch (Exception e) {
                 e.printStackTrace();
                 checkFactoryReset();
@@ -1964,7 +1973,6 @@ public class MainActivity
 
             @Override
             protected void onPostExecute(Void v) {
-                RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Configuration updated");
                 Log.i(Const.LOG_TAG, "Showing content from setActions()");
                 showContent(settingsHelper.getConfig());
             }
@@ -2344,6 +2352,8 @@ public class MainActivity
                 R.layout.dialog_administrator_mode,
                 null,
                 false );
+        dialogAdministratorModeBinding.hint.setText(
+                getString(R.string.dialog_administrator_mode_message, getString(R.string.app_name)));
         administratorModeDialog.setCancelable( false );
         administratorModeDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
 
@@ -2413,7 +2423,10 @@ public class MainActivity
         } else {
             if (applicationsForInstall.size() > 0) {
                 Application application = applicationsForInstall.remove(0);
-                settingsHelper.removeApplication(application);
+                // Mark this app not to download any more until the config is refreshed
+                // But we should not remove the app from a list because it may be
+                // already installed!
+                settingsHelper.removeApplicationUrl(application);
             }
             loadAndInstallApplications();
         }
@@ -2427,6 +2440,8 @@ public class MainActivity
                 R.layout.dialog_history_settings,
                 null,
                 false );
+        dialogHistorySettingsBinding.hint.setText(
+                getString(R.string.dialog_history_settings_title, getString(R.string.app_name)));
         historySettingsDialog.setCancelable( false );
         historySettingsDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
 
@@ -2458,6 +2473,8 @@ public class MainActivity
                 R.layout.dialog_overlay_settings,
                 null,
                 false );
+        dialogOverlaySettingsBinding.hint.setText(
+                getString(R.string.dialog_overlay_settings_title, getString(R.string.app_name)));
         overlaySettingsDialog.setCancelable( false );
         overlaySettingsDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
 
@@ -2533,7 +2550,8 @@ public class MainActivity
 
         if (configFault) {
             Log.i(Const.LOG_TAG, "networkErrorCancelClicked(): no configuration available, quit");
-            Toast.makeText(this, R.string.critical_server_failure, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.critical_server_failure,
+                    getString(R.string.app_name)), Toast.LENGTH_LONG).show();
             finish();
             return;
         }

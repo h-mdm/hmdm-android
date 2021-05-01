@@ -18,10 +18,7 @@
   -->
 
 <resources>
-	<string name="app_name">Headwind MDM</string>
 	<string name="admin_title">管理员</string>
-	<string name="vendor">(c)2020 h-mdm.com</string>
-	<string name="demo_text">Headwind MDM © 2020 h-mdm.com</string>
 	<string name="install_error">安装错误</string>
 	<string name="dialog_enter_device_id_error">该ID未在%s处註册。从控制面板的“设备”标籤中获取ID。</string>
 	<string name="dialog_enter_device_id_qrcode">二维码</string>
@@ -45,12 +42,12 @@
 	<string name="main_activity_reset">重启</string>
 	<string name="main_activity_cancel">取消</string>
 	<string name="main_activity_details">细节</string>
-	<string name="select_system_launcher">选择Headwind MDM作为默认启动器，然後选中“始终”：</string>
+	<string name="select_system_launcher">选择%s作为默认启动器，然後选中“始终”：</string>
 	<string name="dialog_network_error_title">连接到%s时出错。请检查互联网连接，然後重试。</string>
 	<string name="main_activity_update_config">从服务器请求配置文件</string>
 	<string name="main_activity_applications_update">更新应用程序</string>
-	<string name="dialog_overlay_settings_title">请允许该应用在其他窗口上绘製。现在将打开一个设置表。找到\" Headwind MDM \"项，允许在其他窗口上绘製，然後点击\" Back \"。如果找不到设置，请点击“跳过”（该应用程序可能无法正常运行！）</string>
-	<string name="dialog_history_settings_title">请允许该应用使用历史记录。现在将打开一个设置表。找到\" Headwind MDM \"项，允许访问应用程序历史记录，然後点击\" Back \"。如果找不到设置，请点击“跳过”（该应用程序可能无法正常运行！）</string>
+	<string name="dialog_overlay_settings_title">请允许该应用在其他窗口上绘製。现在将打开一个设置表。找到\"%s\"项，允许在其他窗口上绘製，然後点击\" Back \"。如果找不到设置，请点击“跳过”（该应用程序可能无法正常运行！）</string>
+	<string name="dialog_history_settings_title">请允许该应用使用历史记录。现在将打开一个设置表。找到\"%s\"项，允许访问应用程序历史记录，然後点击\" Back \"。如果找不到设置，请点击“跳过”（该应用程序可能无法正常运行！）</string>
 	<string name="dialog_history_settings_continue">继续</string>
 	<string name="dialog_history_settings_skip">跳下一步</string>
 	<string name="dialog_unknown_sources_title">请允许从未知来源进行安装。现在将打开一个设置表。找到“未知来源”，允许安装，然後单击“上一步”。</string>
@@ -58,11 +55,11 @@
 	<string name="dialog_miui_permissions_title">MIUI要求手动设置自定义权限。现在将打开“应用程序权限”窗口。轻按\"其他权限\"，允许\"在後台运行时显示弹出窗口\"，然後单击\"返回\"。</string>
 	<string name="dialog_miui_developer_title">MIUI需要手动设置设备。在信息屏幕上，点击TAP 7 TIMES \" BUILD NUMBER \"。这将启用开发人员设置。</string>
 	<string name="dialog_miui_optimization_title">MIUI需要手动设置设备。开发人员设置窗口现在将打开。向下滚动屏幕，然後取消选中“ MIUI优化”。</string>
-	<string name="dialog_administrator_mode_message">请允许该应用在设备管理员模式下运行。现在将打开一个设置表。选择\"设备管理员\"，找到\"Headwind MDM \"项目，激活（Activate）管理员，然後点击\"返回\"。</string>
+	<string name="dialog_administrator_mode_message">请允许该应用在设备管理员模式下运行。现在将打开一个设置表。选择\"设备管理员\"，找到\"%s\"项目，激活（Activate）管理员，然後点击\"返回\"。</string>
 	<string name="dialog_administrator_mode_continue">继续</string>
 	<string name="dialog_administrator_mode_skip">跳跃</string>
-	<string name="accessibility_service_description">通过Headwind MDM Launcher进行主动应用监视</string>
-	<string name="dialog_accessibility_service_message">请允许该应用使用辅助功能。现在将打开一个设置表。找到\" Headwind MDM \"项，允许使用辅助功能，然後点击\" Back \"。</string>
+	<string name="accessibility_service_description">通过MDM应用程序进行活动的应用程序监视</string>
+	<string name="dialog_accessibility_service_message">请允许该应用使用辅助功能。现在将打开一个设置表。找到\"%s\"项，允许使用辅助功能，然後点击\" Back \"。</string>
 	<string name="dialog_accessibility_service_continue">继续</string>
 	<string name="dialog_accessibility_service_skip">跳下一步</string>
 	<string name="access_to_app_denied">管理员已阻止对此应用程序（%s）的访问。点击\'Home \'继续。</string>
@@ -91,7 +88,7 @@
 	<string name="message_turn_off_mobile_data">启用了移动数据。请打开状态栏，然後关闭移动数据。</string>
 	<string name="message_set_password">您的密码质量不够好。设置屏幕将打开。请更改密码，然後单击“上一步”。</string>
 	<string name="switch_off_blockings">关闭限制...</string>
-	<string name="kiosk_mode_requires_overlays">单一模式已禁用：没有权限绘製其他窗口。请允许Headwind MDM在其他窗口上绘製。</string>
+	<string name="kiosk_mode_requires_overlays">单一模式已禁用：没有权限绘製其他窗口。请允许%s在其他窗口上绘製。</string>
 	<string name="enter_admin_password">输入管理员密码</string>
 	<string name="wrong_password">密码错误</string>
 	<string name="dialog_enter_password_login">登录</string>
@@ -103,12 +100,12 @@
 	<string name="dialog_enter_server_ok">OK</string>
 	<string name="dialog_enter_server_title">请输入服务器网址</string>
 	<string name="dialog_enter_server_hint" translatable="false">http://hmdm.example.com:8080/hmdm/</string>
-	<string name="critical_server_failure">由於服务器故障而退出！请解决此问题，然後重新启动Headwind MDM，或将其完全删除并重新安装。</string>
+	<string name="critical_server_failure">由於服务器故障而退出！请解决此问题，然後重新启动%s，或将其完全删除并重新安装。</string>
 	<string name="dialog_permission_title">该应用需要权限才能运行。请授予请求的权限。</string>
 	<string name="main_activity_exit">退出</string>
 	<string name="browser_not_found">由於找不到浏览器，因此无法打开网页。请在设备配置中添加浏览器应用。</string>
 	<string name="location_service_text">设备位置受到监控</string>
-	<string name="qrcode_contents_error">无效的QR码内容。请在Headwind MDM Web面板中生成预配置QR码。</string>
+	<string name="qrcode_contents_error">无效的QR码内容。请在%s Web面板中生成预配置QR码。</string>
 	<string name="device_locked">该设备已被管理员锁定。</string>
 	<string name="fault_loop_detected">启动器发生了无法恢复的故障！请与系统管理员联繫。</string>
 </resources>

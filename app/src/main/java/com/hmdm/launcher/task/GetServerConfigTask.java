@@ -30,6 +30,7 @@ import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.helper.CryptoHelper;
 import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.json.DeviceCreateOptions;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.json.ServerConfigResponse;
 import com.hmdm.launcher.pro.ProUtils;
@@ -56,6 +57,21 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
 
     @Override
     protected Integer doInBackground( Void... voids ) {
+        DeviceCreateOptions createOptions = null;
+        if (settingsHelper.getConfig() == null) {
+            // This is a first start, we need to set up additional options to create a device on demand
+            createOptions = new DeviceCreateOptions();
+            createOptions.setCustomer(settingsHelper.getCreateOptionCustomer());
+            createOptions.setConfiguration(settingsHelper.getCreateOptionConfigName());
+            createOptions.setGroups(settingsHelper.getCreateOptionGroup());
+            if (createOptions.getCustomer() == null &&
+                createOptions.getConfiguration() == null &&
+                createOptions.getGroups() == null) {
+                // No additional options
+                createOptions = null;
+            }
+        }
+
         try {
             serverService = ServerServiceKeeper.getServerServiceInstance(context);
             secondaryServerService = ServerServiceKeeper.getSecondaryServerServiceInstance(context);
@@ -71,7 +87,13 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         }
 
         try {
-            ServerConfig serverConfig = BuildConfig.CHECK_SIGNATURE ? getServerConfigSecure(deviceId, signature) : getServerConfigPlain(deviceId, signature);
+            ServerConfig serverConfig = null;
+            if (createOptions == null) {
+                serverConfig = BuildConfig.CHECK_SIGNATURE ? getServerConfigSecure(deviceId, signature) : getServerConfigPlain(deviceId, signature);
+            } else {
+                serverConfig = BuildConfig.CHECK_SIGNATURE ? createAndGetServerConfigSecure(deviceId, createOptions, signature) :
+                        createAndGetServerConfigPlain(deviceId, createOptions, signature);
+            }
 
             if (serverConfig != null) {
                 if (serverConfig.getNewNumber() != null) {
@@ -85,6 +107,12 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
                 }
 
                 settingsHelper.updateConfig(serverConfig);
+
+                // Device already created, erase the device creation options
+                settingsHelper.setDeviceIdUse(null);
+                settingsHelper.setCreateOptionCustomer(null);
+                settingsHelper.setCreateOptionConfigName(null);
+                settingsHelper.setCreateOptionGroup(null);
 
                 // Prevent from occasional launch in the kiosk mode without any possibility to exit!
                 if (ProUtils.kioskModeRequired(context) &&
@@ -142,6 +170,75 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         if (response == null) {
             response = secondaryServerService.
                     getRawServerConfig(settingsHelper.getServerProject(), deviceId, signature).execute();
+        }
+
+        if (response.isSuccessful()) {
+            String serverResponse = response.body().string();
+
+            // Check response signature
+            String serverSignature = response.headers().get(Const.HEADER_RESPONSE_SIGNATURE);
+            if (serverSignature == null) {
+                Log.e(Const.LOG_TAG, "Missing " + Const.HEADER_RESPONSE_SIGNATURE + " flag, dropping response");
+                return null;
+            }
+
+            // We need to extract data from the response body
+            // Here we assume the specific form of response body: {"status":"OK","message":null,"data":{...}}
+            final String dataMarker = "\"data\":";
+            int pos = serverResponse.indexOf(dataMarker);
+            if (pos == -1) {
+                Log.e(Const.LOG_TAG, "Wrong server response, missing data: " + serverResponse);
+                return null;
+            }
+            String serverData = serverResponse.substring(pos + dataMarker.length(), serverResponse.length() - 1);
+            String calculatedSignature = CryptoHelper.getSHA1String(BuildConfig.REQUEST_SIGNATURE + serverData.replaceAll("\\s", ""));
+            if (!calculatedSignature.equalsIgnoreCase(serverSignature)) {
+                Log.e(Const.LOG_TAG, "Server signature " + serverSignature + " doesn't match calculated signature " + calculatedSignature + ", dropping response");
+                return null;
+            }
+            return new ObjectMapper().readValue(serverData, ServerConfig.class);
+        }
+        return null;
+    }
+
+    // Apply extra device creation options (need to be used only at first start when config=null!)
+    private ServerConfig createAndGetServerConfigPlain(String deviceId, DeviceCreateOptions createOptions, String signature) throws Exception {
+        Response<ServerConfigResponse> response = null;
+        try {
+            response = serverService.
+                    createAndGetServerConfig(settingsHelper.getServerProject(), deviceId, signature, createOptions).execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (response == null) {
+            response = secondaryServerService.
+                    createAndGetServerConfig(settingsHelper.getServerProject(), deviceId, signature, createOptions).execute();
+        }
+
+        if (response.isSuccessful() && Const.STATUS_OK.equals(response.body().getStatus()) && response.body().getData() != null) {
+            SettingsHelper.getInstance(context).setExternalIp(response.headers().get(Const.HEADER_IP_ADDRESS));
+            return response.body().getData();
+        }
+        return null;
+    }
+
+    // Check server signature before accepting server response
+    // This is an additional protection against Man-In-The-Middle attacks
+    // Apply extra device creation options (need to be used only at first start when config=null!)
+    private ServerConfig createAndGetServerConfigSecure(String deviceId, DeviceCreateOptions createOptions, String signature) throws Exception {
+        Response<ResponseBody> response = null;
+
+        try {
+            response = serverService.
+                    createAndGetRawServerConfig(settingsHelper.getServerProject(), deviceId, signature, createOptions).execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (response == null) {
+            response = secondaryServerService.
+                    createAndGetRawServerConfig(settingsHelper.getServerProject(), deviceId, signature, createOptions).execute();
         }
 
         if (response.isSuccessful()) {

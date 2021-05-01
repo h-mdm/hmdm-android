@@ -34,7 +34,7 @@ import java.util.Iterator;
 
 public class PushNotificationProcessor {
     public static void process(PushMessage message, Context context) {
-        RemoteLogger.log(context, Const.LOG_DEBUG, "Got Push Message, type " + message.getMessageType());
+        RemoteLogger.log(context, Const.LOG_INFO, "Got Push Message, type " + message.getMessageType());
         if (message.getMessageType().equals(PushMessage.TYPE_CONFIG_UPDATED)) {
             // Update local configuration
             LocalBroadcastManager.getInstance(context).

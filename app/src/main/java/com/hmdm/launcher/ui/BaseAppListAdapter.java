@@ -220,7 +220,6 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
 
         int switchAdapterDirection = -1;
         switch (keyCode) {
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
             case KeyEvent.KEYCODE_DPAD_RIGHT:
                 if (tryMoveSelection(layoutManager, 1)) {
                     return true;
@@ -228,7 +227,6 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
                     switchAdapterDirection = Const.DIRECTION_RIGHT;
                 };
                 break;
-            case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_DPAD_LEFT:
                 if (tryMoveSelection(layoutManager, -1)) {
                     return true;

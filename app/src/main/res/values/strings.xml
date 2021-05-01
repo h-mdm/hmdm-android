@@ -18,10 +18,9 @@
   -->
 
 <resources>
-    <string name="app_name">Headwind MDM</string>
+    <string name="app_name" translatable="false">Headwind MDM</string>
     <string name="admin_title">Administrator</string>
-    <string name="vendor">(c) 2020 h-mdm.com</string>
-    <string name="demo_text">Headwind MDM © 2020 h-mdm.com</string>
+    <string name="vendor" translatable="false">(c) 2021 h-mdm.com</string>
     <string name="install_error">Error installing </string>
     <string name="dialog_enter_device_id_error">This ID is not registered at %s. Get the ID from \"Devices\" tab of the control panel.</string>
     <string name="dialog_enter_device_id_qrcode">QR code</string>
@@ -45,12 +44,12 @@
     <string name="main_activity_reset">Reset</string>
     <string name="main_activity_cancel">Cancel</string>
     <string name="main_activity_details">Details</string>
-    <string name="select_system_launcher">Select Headwind MDM as a default launcher and check \'Always\':</string>
+    <string name="select_system_launcher">Select %s as a default launcher and check \'Always\':</string>
     <string name="dialog_network_error_title">Error connecting to %s. Please check the Internet connection and try again.</string>
     <string name="main_activity_update_config">Requesting configuration file from server</string>
     <string name="main_activity_applications_update">Updating applications</string>
-    <string name="dialog_overlay_settings_title">Please allow the app to draw over other windows. A settings sheet will now be opened. Find the \"Headwind MDM\" item, allow to draw over other windows, and tap \"Back\". If you can\'t find the setting, tap \"Skip\" (the app may not work as expected!)</string>
-    <string name="dialog_history_settings_title">Please allow the app to use history. A settings sheet will now be opened. Find the \"Headwind MDM\" item, allow access to the app history, and tap \"Back\". If you can\'t find the setting, tap \"Skip\" (the app may not work as expected!)</string>
+    <string name="dialog_overlay_settings_title">Please allow the app to draw over other windows. A settings sheet will now be opened. Find the \"%s\" item, allow to draw over other windows, and tap \"Back\". If you can\'t find the setting, tap \"Skip\" (the app may not work as expected!)</string>
+    <string name="dialog_history_settings_title">Please allow the app to use history. A settings sheet will now be opened. Find the \"%s\" item, allow access to the app history, and tap \"Back\". If you can\'t find the setting, tap \"Skip\" (the app may not work as expected!)</string>
     <string name="dialog_history_settings_continue">Continue</string>
     <string name="dialog_history_settings_skip">Skip</string>
     <string name="dialog_unknown_sources_title">Please allow installation from unknown sources. A settings sheet will now open. Find \"Unknown sources\", allow the installation and click \"Back\".</string>
@@ -58,11 +57,11 @@
     <string name="dialog_miui_permissions_title">MIUI requires manual setup of custom permissions. App permissions window will now open. Tap \"Other permissions\", allow \"Display pop-up windows while running in the background\" and click \"Back\".</string>
     <string name="dialog_miui_developer_title">MIUI requires manual setup of your device. On the info screen, TAP 7 TIMES ON \"BUILD NUMBER\". This will enable developer settings.</string>
     <string name="dialog_miui_optimization_title">MIUI requires manual setup of your device. Developer settings window will now open. Scroll the screen down and uncheck \"MIUI optimization\".</string>
-    <string name="dialog_administrator_mode_message">Please allow the app to work in the device administrator mode. A Settings sheet will now open. Select \"Device administrators\", find the \"Headwind MDM\" item, activate the administrator, and tap \"Back\".</string>
+    <string name="dialog_administrator_mode_message">Please allow the app to work in the device administrator mode. A Settings sheet will now open. Select \"Device administrators\", find the \"%s\" item, activate the administrator, and tap \"Back\".</string>
     <string name="dialog_administrator_mode_continue">Continue</string>
     <string name="dialog_administrator_mode_skip">Skip</string>
-    <string name="accessibility_service_description">Active app monitoring by Headwind MDM Launcher</string>
-    <string name="dialog_accessibility_service_message">Please allow the app to use accessibility services. A Settings sheet will now open. Find the \"Headwind MDM\" item, allow to use accessibility services, and tap \"Back\".</string>
+    <string name="accessibility_service_description">Active app monitoring by the MDM application</string>
+    <string name="dialog_accessibility_service_message">Please allow the app to use accessibility services. A Settings sheet will now open. Find the \"%s\" item, allow to use accessibility services, and tap \"Back\".</string>
     <string name="dialog_accessibility_service_continue">Continue</string>
     <string name="dialog_accessibility_service_skip">Skip</string>
     <string name="access_to_app_denied">Access to this app (%s) is blocked by the administrator. Click \'Home\' to proceed.</string>
@@ -91,7 +90,7 @@
     <string name="message_turn_off_mobile_data">Mobile data are enabled. Please open the status bar and TURN OFF mobile data.</string>
     <string name="message_set_password">Your password quality is not good enough. The settings screen will open. Please change the password and click Back.</string>
     <string name="switch_off_blockings">Switching off restrictions...</string>
-    <string name="kiosk_mode_requires_overlays">Kiosk mode disabled: no permission to draw over other windows. Please allow Headwind MDM to draw over other windows.</string>
+    <string name="kiosk_mode_requires_overlays">Kiosk mode disabled: no permission to draw over other windows. Please allow %s to draw over other windows.</string>
     <string name="enter_admin_password">Enter administrator password</string>
     <string name="wrong_password">Wrong password</string>
     <string name="dialog_enter_password_login">Login</string>
@@ -103,12 +102,12 @@
     <string name="dialog_enter_server_ok">OK</string>
     <string name="dialog_enter_server_title">Please enter the server URL</string>
     <string name="dialog_enter_server_hint" translatable="false">http://hmdm.example.com:8080/hmdm/</string>
-    <string name="critical_server_failure">Quit due to server fault! Please fix the issue and restart Headwind MDM, or remove it completely and reinstall.</string>
+    <string name="critical_server_failure">Quit due to server fault! Please fix the issue and restart %s, or remove it completely and reinstall.</string>
     <string name="dialog_permission_title">The app requires the permissions to run. Please grant the requested permissions.</string>
     <string name="main_activity_exit">Exit</string>
     <string name="browser_not_found">Cannot open the webpage because the browser is not found. Please add a browser app to the device configuration.</string>
     <string name="location_service_text">Device location is monitored</string>
-    <string name="qrcode_contents_error">Invalid QR code contents. Please generate the provisioning QR code in the Headwind MDM web panel.</string>
+    <string name="qrcode_contents_error">Invalid QR code contents. Please generate the provisioning QR code in the %s web panel.</string>
     <string name="device_locked">This device has been locked by the administrator.</string>
     <string name="fault_loop_detected">Oops, the launcher got an unrecoverable fault! Please contact your system administrator.</string>
 </resources>

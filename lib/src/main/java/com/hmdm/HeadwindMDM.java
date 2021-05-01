@@ -125,7 +125,7 @@ public class HeadwindMDM {
     }
 
     public String getServerUrl() {
-        if (!serverPath.equals("")) {
+        if (serverPath != null && !serverPath.equals("")) {
             return serverHost + "/" + serverPath;
         } else {
             return serverHost;

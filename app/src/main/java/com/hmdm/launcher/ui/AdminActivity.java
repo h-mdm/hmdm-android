@@ -131,6 +131,13 @@ public class AdminActivity extends BaseActivity {
         //finish();
     }
 
+    @Override
+    protected void updateSettingsFromQr(String qrcode) {
+        super.updateSettingsFromQr(qrcode);
+        dismissDialog(enterDeviceIdDialog);
+        binding.deviceId.setText(settingsHelper.getDeviceId());
+    }
+
     public void saveServerUrl(View view ) {
         if (saveServerUrlBase()) {
             ServerServiceKeeper.resetServices();

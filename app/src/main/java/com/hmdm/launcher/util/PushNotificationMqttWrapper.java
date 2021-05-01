@@ -84,7 +84,8 @@ public class PushNotificationMqttWrapper {
         return instance;
     }
 
-    public void connect(final Context context, String host, int port, String pushType, final String deviceId, final Runnable onSuccess, final Runnable onFailure) {
+    public void connect(final Context context, String host, int port, String pushType, int keepaliveTime,
+                        final String deviceId, final Runnable onSuccess, final Runnable onFailure) {
         cancelReconnectionAfterFailure(context);
         handler = new Handler(Looper.getMainLooper());
         if (client != null && client.isConnected()) {
@@ -96,11 +97,16 @@ public class PushNotificationMqttWrapper {
         this.context = context;
         MqttAndroidConnectOptions connectOptions = new MqttAndroidConnectOptions();
         connectOptions.setAutomaticReconnect(true);
-        connectOptions.setKeepAliveInterval(15 * 60);
+        connectOptions.setKeepAliveInterval(keepaliveTime);
         connectOptions.setCleanSession(false);
-        connectOptions.setPingType(pushType.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER) ?
-                        MqttAndroidConnectOptions.PING_WORKER :
-                        MqttAndroidConnectOptions.PING_ALARM);
+        if (pushType.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER)) {
+            connectOptions.setPingType(MqttAndroidConnectOptions.PING_WORKER);
+            // For worker, keepalive time cannot be less than 15 minutes
+            connectOptions.setKeepAliveInterval(Const.DEFAULT_PUSH_WORKER_KEEPALIVE_TIME_SEC);
+        } else {
+            connectOptions.setPingType(MqttAndroidConnectOptions.PING_ALARM);
+            connectOptions.setKeepAliveInterval(keepaliveTime);
+        }
         String serverUri = "tcp://" + host + ":" + port;
 
         if (client != null) {
@@ -134,7 +140,7 @@ public class PushNotificationMqttWrapper {
             @Override
             public void connectComplete(boolean reconnect, String serverURI) {
                 if (reconnect || needProcessConnectExtended) {
-                    RemoteLogger.log(context, Const.LOG_DEBUG, "Reconnect complete");
+                    RemoteLogger.log(context, Const.LOG_VERBOSE, "Reconnect complete");
                     if (checkConnectionLoop()) {
                         subscribe(context, deviceId, null, null);
                     } else {
@@ -157,7 +163,7 @@ public class PushNotificationMqttWrapper {
                 public void onFailure(IMqttToken asyncActionToken, Throwable e) {
                     e.printStackTrace();
                     RemoteLogger.log(context, Const.LOG_WARN, "MQTT connection failure");
-                    scheduleReconnectionAfterFailure(context, host, port, pushType, deviceId);
+                    scheduleReconnectionAfterFailure(context, host, port, pushType, keepaliveTime, deviceId);
                     // We fail here but Mqtt client tries to reconnect and we need to subscribe
                     // after connection succeeds. This is done in the extended callback client.
                     // The flag needProcessConnectExtended prevents duplicate subscribe after
@@ -258,12 +264,14 @@ public class PushNotificationMqttWrapper {
         WorkManager.getInstance(context.getApplicationContext()).cancelUniqueWork(WORKER_TAG_MQTT_RECONNECT);
     }
 
-    private void scheduleReconnectionAfterFailure(Context context, String host, int port, String pushType, final String deviceId) {
+    private void scheduleReconnectionAfterFailure(Context context, String host, int port,
+                                                  String pushType, int keepaliveTime, final String deviceId) {
         RemoteLogger.log(context, Const.LOG_INFO, "Scheduling MQTT reconnection in " + MQTT_RECONNECT_INTERVAL_SEC + " sec");
         Data data = new Data.Builder()
                 .putString("host", host)
                 .putInt("port", port)
                 .putString("pushType", pushType)
+                .putInt("keepalive", keepaliveTime)
                 .putString("deviceId", deviceId)
                 .build();
         OneTimeWorkRequest queryRequest =
@@ -292,8 +300,9 @@ public class PushNotificationMqttWrapper {
         public Result doWork() {
             Data data = getInputData();
             PushNotificationMqttWrapper.getInstance().connect(context, data.getString("host"),
-                    data.getInt("port", 0), data.getString("pushType"), data.getString("deviceId"),
-                    null, null);
+                    data.getInt("port", 0), data.getString("pushType"),
+                    data.getInt("keepalive", Const.DEFAULT_PUSH_ALARM_KEEPALIVE_TIME_SEC),
+                    data.getString("deviceId"), null, null);
             return Result.success();
         }
     }

@@ -58,6 +58,7 @@ public class ServerConfig {
     private String passwordReset;
 
     private String pushOptions;
+    private Integer keepaliveTime;
     private String requestUpdates;
 
     private Boolean usbStorage;
@@ -322,6 +323,14 @@ public class ServerConfig {
 
     public void setPushOptions(String pushOptions) {
         this.pushOptions = pushOptions;
+    }
+
+    public Integer getKeepaliveTime() {
+        return keepaliveTime;
+    }
+
+    public void setKeepaliveTime(Integer keepaliveTime) {
+        this.keepaliveTime = keepaliveTime;
     }
 
     public String getRequestUpdates() {

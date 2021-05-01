@@ -89,6 +89,10 @@ public class Const {
     public static final String QR_SERVER_PROJECT_ATTR = "com.hmdm.SERVER_PROJECT";
     public static final String QR_DEVICE_ID_ATTR = "com.hmdm.DEVICE_ID";
     public static final String QR_LEGACY_DEVICE_ID_ATTR = "ru.headwind.kiosk.DEVICE_ID";
+    public static final String QR_DEVICE_ID_USE_ATTR = "com.hmdm.DEVICE_ID_USE";
+    public static final String QR_CUSTOMER_ATTR = "com.hmdm.CUSTOMER";
+    public static final String QR_CONFIG_ATTR = "com.hmdm.CONFIG";
+    public static final String QR_GROUP_ATTR = "com.hmdm.GROUP";
 
     public static final int KIOSK_UNLOCK_CLICK_COUNT = 4;
 
@@ -147,4 +151,7 @@ public class Const {
     public static final int DIRECTION_RIGHT = 1;
     public static final int DIRECTION_UP = 2;
     public static final int DIRECTION_DOWN = 3;
+
+    public static final int DEFAULT_PUSH_ALARM_KEEPALIVE_TIME_SEC = 300;
+    public static final int DEFAULT_PUSH_WORKER_KEEPALIVE_TIME_SEC = 900;
 }

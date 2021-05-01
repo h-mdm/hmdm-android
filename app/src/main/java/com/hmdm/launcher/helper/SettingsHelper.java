@@ -43,6 +43,10 @@ public class SettingsHelper {
     private static final String PREF_KEY_SECONDARY_BASE_URL = ".helpers.SECONDARY_BASE_URL";
     private static final String PREF_KEY_SERVER_PROJECT = ".helpers.SERVER_PROJECT";
     private static final String PREF_KEY_DEVICE_ID = ".helpers.DEVICE_ID";
+    private static final String PREF_KEY_CUSTOMER = ".helpers.CUSTOMER";
+    private static final String PREF_KEY_CONFIG_NAME = ".helpers.CONFIG_NAME";
+    private static final String PREF_KEY_GROUP = ".helpers.GROUP";
+    private static final String PREF_KEY_DEVICE_ID_USE = ".helpers.DEVICE_ID_USE";
     private static final String PREF_KEY_CONFIG = ".helpers.CONFIG";
     private static final String PREF_KEY_IP_ADDRESS = ".helpers.IP_ADDRESS";
     private static final String PREF_QR_PROVISIONING = ".helpers.QR_PROVISIONING";
@@ -151,6 +155,54 @@ public class SettingsHelper {
         return sharedPreferences.edit().putLong(PACKAGE_NAME + PREF_CFG_UPDATE_TIMESTAMP, timestamp).commit();
     }
 
+    public boolean setCreateOptionCustomer(String customer) {
+        if (customer == null) {
+            return sharedPreferences.edit().remove(PACKAGE_NAME + PREF_KEY_CUSTOMER).commit();
+        } else {
+            return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_CUSTOMER, customer ).commit();
+        }
+    }
+
+    public String getCreateOptionCustomer() {
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_CUSTOMER, null);
+    }
+
+    public boolean setDeviceIdUse(String deviceIdUse) {
+        if (deviceIdUse == null) {
+            return sharedPreferences.edit().remove(PACKAGE_NAME + PREF_KEY_DEVICE_ID_USE).commit();
+        } else {
+            return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_DEVICE_ID_USE, deviceIdUse ).commit();
+        }
+    }
+
+    public String getDeviceIdUse() {
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_DEVICE_ID_USE, null);
+    }
+
+    public boolean setCreateOptionConfigName(String configName) {
+        if (configName == null) {
+            return sharedPreferences.edit().remove(PACKAGE_NAME + PREF_KEY_CONFIG_NAME).commit();
+        } else {
+            return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_CONFIG_NAME, configName ).commit();
+        }
+    }
+
+    public String getCreateOptionConfigName() {
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_CONFIG_NAME, null);
+    }
+
+    public boolean setCreateOptionGroup(Set<String> group) {
+        if (group == null) {
+            return sharedPreferences.edit().remove(PACKAGE_NAME + PREF_KEY_GROUP).commit();
+        } else {
+            return sharedPreferences.edit().putStringSet(PACKAGE_NAME + PREF_KEY_GROUP, group).commit();
+        }
+    }
+
+    public Set<String> getCreateOptionGroup() {
+        return sharedPreferences.getStringSet(PACKAGE_NAME + PREF_KEY_GROUP, null);
+    }
+
     public void updateConfig( ServerConfig config ) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -188,6 +240,18 @@ public class SettingsHelper {
             Application app = it.next();
             if (app.getPkg().equals(application.getPkg())) {
                 it.remove();
+                updateConfig(config);
+                return;
+            }
+        }
+    }
+
+    public void removeApplicationUrl(Application application) {
+        Iterator<Application> it = config.getApplications().iterator();
+        while (it.hasNext()) {
+            Application app = it.next();
+            if (app.getPkg().equals(application.getPkg())) {
+                app.setUrl(null);
                 updateConfig(config);
                 return;
             }

@@ -33,6 +33,7 @@
           tools:context="com.hmdm.launcher.ui.MainActivity">
 
         <TextView
+            android:id="@id/hint"
             android:layout_width="@dimen/dialog_enter_device_id_width"
             android:layout_height="wrap_content"
             android:text="@string/dialog_accessibility_service_message"/>
