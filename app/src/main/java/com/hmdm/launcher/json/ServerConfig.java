@@ -67,6 +67,8 @@ public class ServerConfig {
     private Boolean manageTimeout;
     private Integer timeout;
     private Boolean lockVolume;
+    private Boolean manageVolume;
+    private Integer volume;
     private String passwordMode;
     private String timeZone;
     private String allowedClasses;
@@ -78,6 +80,10 @@ public class ServerConfig {
     private Boolean kioskSystemInfo;
     private Boolean kioskKeyguard;
     private String restrictions;
+
+    private String custom1;
+    private String custom2;
+    private String custom3;
 
     private Boolean runDefaultLauncher;
 
@@ -389,6 +395,22 @@ public class ServerConfig {
         this.lockVolume = lockVolume;
     }
 
+    public Boolean getManageVolume() {
+        return manageVolume;
+    }
+
+    public void setManageVolume(Boolean manageVolume) {
+        this.manageVolume = manageVolume;
+    }
+
+    public Integer getVolume() {
+        return volume;
+    }
+
+    public void setVolume(Integer volume) {
+        this.volume = volume;
+    }
+
     public String getPasswordMode() {
         return passwordMode;
     }
@@ -499,6 +521,30 @@ public class ServerConfig {
 
     public void setRestrictions(String restrictions) {
         this.restrictions = restrictions;
+    }
+
+    public String getCustom1() {
+        return custom1;
+    }
+
+    public void setCustom1(String custom1) {
+        this.custom1 = custom1;
+    }
+
+    public String getCustom2() {
+        return custom2;
+    }
+
+    public void setCustom2(String custom2) {
+        this.custom2 = custom2;
+    }
+
+    public String getCustom3() {
+        return custom3;
+    }
+
+    public void setCustom3(String custom3) {
+        this.custom3 = custom3;
     }
 
     public List<RemoteFile> getFiles() {

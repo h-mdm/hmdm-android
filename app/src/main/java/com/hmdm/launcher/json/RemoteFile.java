@@ -33,6 +33,7 @@ public class RemoteFile {
     private boolean remove;
     private String path;
     private String description;
+    private boolean varContent;
 
     public RemoteFile() {}
 
@@ -44,6 +45,7 @@ public class RemoteFile {
         remove = remoteFile.remove;
         path = remoteFile.path;
         description = remoteFile.description;
+        varContent = remoteFile.varContent;
     }
 
     @JsonIgnore
@@ -102,5 +104,13 @@ public class RemoteFile {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public boolean isVarContent() {
+        return varContent;
+    }
+
+    public void setVarContent(boolean varContent) {
+        this.varContent = varContent;
     }
 }

@@ -33,6 +33,9 @@ public class MDMService {
     public static final String KEY_SECONDARY_SERVER_HOST = "SECONDARY_SERVER_HOST";
     public static final String KEY_SERVER_PATH = "SERVER_PATH";
     public static final String KEY_DEVICE_ID = "DEVICE_ID";
+    public static final String KEY_CUSTOM_1 = "CUSTOM_1";
+    public static final String KEY_CUSTOM_2 = "CUSTOM_2";
+    public static final String KEY_CUSTOM_3 = "CUSTOM_3";
 
     private Context context;
     private IMdmApi mdmApi;

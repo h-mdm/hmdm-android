@@ -131,6 +131,7 @@ import com.squareup.picasso.Picasso;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -1324,6 +1325,8 @@ public class MainActivity
                     if (result == null || result != Const.TASK_SUCCESS ) {
                         RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Failed to confirm device reset on server");
                     } else if (Utils.checkAdminMode(MainActivity.this)) {
+                        // no_factory_reset restriction doesn't prevent against admin's reset action
+                        // So we do not need to release this restriction prior to resetting the device
                         if (!Utils.factoryReset(MainActivity.this)) {
                             RemoteLogger.log(MainActivity.this, Const.LOG_WARN, "Device reset failed");
                         }
@@ -1515,7 +1518,11 @@ public class MainActivity
                                 if (finalFile.exists()) {
                                     finalFile.delete();
                                 }
-                                FileUtils.moveFile(file, finalFile);
+                                if (!remoteFile.isVarContent()) {
+                                    FileUtils.moveFile(file, finalFile);
+                                } else {
+                                    createFileFromTemplate(file, finalFile, settingsHelper.getDeviceId(), settingsHelper.getConfig());
+                                }
                                 RemoteFileTable.insert(DatabaseHelper.instance(MainActivity.this).getWritableDatabase(), remoteFile);
                                 remoteFileStatus.installed = true;
                             } catch (Exception e) {
@@ -1935,6 +1942,13 @@ public class MainActivity
 
         if (config.getManageTimeout() != null) {
             Utils.setScreenTimeoutPolicy(config.getManageTimeout(), config.getTimeout(), this);
+        }
+
+        if (config.getManageVolume() != null && config.getManageVolume() && config.getVolume() != null) {
+            Utils.lockVolume(false, this);
+            if (!Utils.setVolume(config.getVolume(), this)) {
+                RemoteLogger.log(this, Const.LOG_WARN, "Failed to set the device volume");
+            }
         }
 
         if (config.getLockVolume() != null) {
@@ -2899,5 +2913,19 @@ public class MainActivity
         intent.putExtra(Const.LAUNCHER_RESTARTER_OLD_VERSION, BuildConfig.VERSION_NAME);
         startActivity(intent);
         Log.i("LauncherRestarter", "Calling launcher restarter from the launcher");
+    }
+
+    // Create a new file from the template file
+    // (replace DEVICE_NUMBER, IMEI, CUSTOM* by their values)
+    private void createFileFromTemplate(File srcFile, File dstFile, String deviceId, ServerConfig config) throws IOException {
+        // We are supposed to process only small text files
+        // So here we are reading the whole file, replacing variables, and save the content
+        // It is not optimal for large files - it would be better to replace in a stream (how?)
+        String content = FileUtils.readFileToString(srcFile);
+        content = content.replace("DEVICE_NUMBER", deviceId)
+                .replace("CUSTOM1", config.getCustom1() != null ? config.getCustom1() : "")
+                .replace("CUSTOM2", config.getCustom2() != null ? config.getCustom2() : "")
+                .replace("CUSTOM3", config.getCustom3() != null ? config.getCustom3() : "");
+        FileUtils.writeStringToFile(dstFile, content);
     }
 }

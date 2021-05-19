@@ -48,8 +48,10 @@ import com.hmdm.launcher.databinding.DialogEnterServerBinding;
 import com.hmdm.launcher.databinding.DialogNetworkErrorBinding;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.DeviceCreateOptions;
+import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.server.ServerUrl;
 import com.hmdm.launcher.util.DeviceInfoProvider;
+import com.hmdm.launcher.util.Utils;
 
 import org.json.JSONObject;
 
@@ -359,6 +361,14 @@ public class BaseActivity extends AppCompatActivity {
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progressDialog.setMessage(getString(R.string.switch_off_blockings));
         progressDialog.show();
+
+        SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
+        if (settingsHelper != null && settingsHelper.getConfig() != null) {
+            ServerConfig config = settingsHelper.getConfig();
+            if (config.getRestrictions() != null && !config.getRestrictions().trim().equals("")) {
+                Utils.releaseUserRestrictions(this, config.getRestrictions());
+            }
+        }
 
         new Handler().postDelayed(new Runnable() {
             @Override

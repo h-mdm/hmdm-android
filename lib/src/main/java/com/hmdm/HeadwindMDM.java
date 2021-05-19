@@ -47,6 +47,9 @@ public class HeadwindMDM {
     private String secondaryServerHost;
     private String serverPath;
     private String deviceId;
+    private String custom1;
+    private String custom2;
+    private String custom3;
 
     private BroadcastReceiver configUpdateReceiver = new BroadcastReceiver() {
         @Override
@@ -140,6 +143,19 @@ public class HeadwindMDM {
         }
     }
 
+    public String getCustom(int number) {
+        switch (number) {
+            case 1:
+                return custom1;
+            case 2:
+                return custom2;
+            case 3:
+                return custom3;
+            default:
+                return null;
+        }
+    }
+
     /* Automatic reconnection mechanism */
 
     public MDMService.ResultHandler resultHandler = new MDMService.ResultHandler() {
@@ -154,6 +170,9 @@ public class HeadwindMDM {
                 secondaryServerHost = data.getString(MDMService.KEY_SECONDARY_SERVER_HOST);
                 serverPath = data.getString(MDMService.KEY_SERVER_PATH);
                 deviceId = data.getString(MDMService.KEY_DEVICE_ID);
+                custom1 = data.getString(MDMService.KEY_CUSTOM_1);
+                custom2 = data.getString(MDMService.KEY_CUSTOM_2);
+                custom3 = data.getString(MDMService.KEY_CUSTOM_3);
             } catch (MDMException e) {
             }
 

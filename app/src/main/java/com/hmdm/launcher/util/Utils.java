@@ -35,6 +35,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PermissionInfo;
 import android.content.pm.ResolveInfo;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.UserManager;
@@ -492,6 +493,37 @@ public class Utils {
             return false;
         }
         return true;
+    }
+
+    public static boolean setVolume(int percent, Context context) {
+        int[] streams = {
+            AudioManager.STREAM_VOICE_CALL,
+            AudioManager.STREAM_SYSTEM,
+            AudioManager.STREAM_RING,
+            AudioManager.STREAM_MUSIC,
+            AudioManager.STREAM_ALARM
+        };
+        try {
+            AudioManager audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
+            for (int s : streams) {
+                setVolumeInternal(audioManager, s, percent);
+
+                int v = audioManager.getStreamVolume(s);
+                if (v == 0) {
+                    v = 1;
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private static void setVolumeInternal(AudioManager audioManager, int stream, int percent) throws Exception {
+        int maxVolume = audioManager.getStreamMaxVolume(stream);
+        int volume = (maxVolume * percent) / 100;
+        audioManager.setStreamVolume(stream, volume, 0);
     }
 
     public static boolean disableScreenshots(Boolean disabled, Context context) {

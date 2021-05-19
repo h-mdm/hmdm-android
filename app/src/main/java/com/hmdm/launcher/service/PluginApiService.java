@@ -39,6 +39,9 @@ public class PluginApiService extends Service {
     public static final String KEY_SECONDARY_SERVER_HOST = "SECONDARY_SERVER_HOST";
     public static final String KEY_SERVER_PATH = "SERVER_PATH";
     public static final String KEY_DEVICE_ID = "DEVICE_ID";
+    public static final String KEY_CUSTOM_1 = "CUSTOM_1";
+    public static final String KEY_CUSTOM_2 = "CUSTOM_2";
+    public static final String KEY_CUSTOM_3 = "CUSTOM_3";
 
     @Override
     public void onCreate() {
@@ -65,6 +68,15 @@ public class PluginApiService extends Service {
                 bundle.putString(KEY_SECONDARY_SERVER_HOST, settingsHelper.getSecondaryBaseUrl());
                 bundle.putString(KEY_SERVER_PATH, settingsHelper.getServerProject());
                 bundle.putString(KEY_DEVICE_ID, settingsHelper.getDeviceId());
+                if (settingsHelper.getConfig().getCustom1() != null) {
+                    bundle.putString(KEY_CUSTOM_1, settingsHelper.getConfig().getCustom1());
+                }
+                if (settingsHelper.getConfig().getCustom2() != null) {
+                    bundle.putString(KEY_CUSTOM_2, settingsHelper.getConfig().getCustom2());
+                }
+                if (settingsHelper.getConfig().getCustom3() != null) {
+                    bundle.putString(KEY_CUSTOM_3, settingsHelper.getConfig().getCustom3());
+                }
                 return bundle;
             }
         }
