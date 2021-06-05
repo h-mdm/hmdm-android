@@ -37,6 +37,8 @@
     <string name="main_app_downloading_error">فشل تحميل الحزمة</string>
     <string name="main_app_removing">إلغاء تثبيت التطبيق</string>
     <string name="main_activity_repeat">أعد المحاولة</string>
+    <string name="main_activity_reset">إعادة تعيين</string>
+    <string name="main_activity_wifi">WiFi</string>
     <string name="main_activity_cancel">إلغاء</string>
     <string name="main_activity_details">تفاصيل</string>
     <string name="select_system_launcher">حدد %s كمشغل افتراضي وحدد \"دائمًا\":</string>
@@ -102,7 +104,6 @@
     <string name="main_file_downloading">تحميل الملف</string>
     <string name="main_file_downloading_error">فشل تحميل الملف</string>
     <string name="message_set_password">جودة كلمة المرور الخاصة بك غير كافية. ستفتح شاشة الإعدادات الآن. يرجى تغيير كلمة المرور الخاصة بك والنقر فوق \"رجوع\".</string>
-    <string name="main_activity_reset">إعادة تعيين</string>
     <string name="device_locked">تم قفل هذا الجهاز من قبل المسؤول.</string>
     <string name="fault_loop_detected">المشغل معطل ولا يمكن استعادته! الرجاء الإبلاغ عن هذه المشكلة إلى المسؤول.</string>
     <string name="dialog_miui_optimization_title">يتطلب MIUI التكوين اليدوي. سيتم الآن فتح شاشة إعدادات المطور. قم بالتمرير لأسفل الشاشة وإيقاف تشغيل علامة \"MIUI التحسين\".</string>

@@ -2,6 +2,7 @@ package com.hmdm.launcher.helper;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Build;
 
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
@@ -63,7 +64,7 @@ public class MigrationHelper {
                 }
 
                 try {
-                    response = newServer.getServerConfig(serverUrl.serverProject, deviceId, signature).execute();
+                    response = newServer.getServerConfig(serverUrl.serverProject, deviceId, signature, Build.CPU_ABI).execute();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

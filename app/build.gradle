@@ -30,14 +30,14 @@ repositories {
 }
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    compileSdkVersion 30
+    buildToolsVersion "30.0.1"
     defaultConfig {
         applicationId "com.hmdm.launcher"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 133
-        versionName "3.63"
+        versionCode 201
+        versionName "4.01"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true

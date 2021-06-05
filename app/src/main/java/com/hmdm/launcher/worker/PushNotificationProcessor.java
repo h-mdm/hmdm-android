@@ -22,9 +22,8 @@ package com.hmdm.launcher.worker;
 import android.content.Context;
 import android.content.Intent;
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import com.hmdm.launcher.Const;
+import com.hmdm.launcher.helper.ConfigUpdater;
 import com.hmdm.launcher.json.PushMessage;
 import com.hmdm.launcher.util.RemoteLogger;
 
@@ -37,8 +36,7 @@ public class PushNotificationProcessor {
         RemoteLogger.log(context, Const.LOG_INFO, "Got Push Message, type " + message.getMessageType());
         if (message.getMessageType().equals(PushMessage.TYPE_CONFIG_UPDATED)) {
             // Update local configuration
-            LocalBroadcastManager.getInstance(context).
-                    sendBroadcast(new Intent(Const.ACTION_UPDATE_CONFIGURATION));
+            ConfigUpdater.notifyConfigUpdate(context);
         } else if (message.getMessageType().equals(PushMessage.TYPE_RUN_APP)) {
             // Run application
             runApplication(context, message.getPayloadJSON());

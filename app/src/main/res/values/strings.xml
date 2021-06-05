@@ -42,6 +42,7 @@
     <string name="main_file_downloading_error">Failed to download the file</string>
     <string name="main_activity_repeat">Retry</string>
     <string name="main_activity_reset">Reset</string>
+    <string name="main_activity_wifi">WiFi</string>
     <string name="main_activity_cancel">Cancel</string>
     <string name="main_activity_details">Details</string>
     <string name="select_system_launcher">Select %s as a default launcher and check \'Always\':</string>

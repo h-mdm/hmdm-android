@@ -92,6 +92,8 @@ public class ServerConfig {
     private boolean lockSafeSettings;
     private boolean disableScreenshots;
 
+    private boolean showWifi;
+
     private List<Application> applications = new LinkedList();
 
     private List<ApplicationSetting> applicationSettings = new LinkedList();
@@ -513,6 +515,14 @@ public class ServerConfig {
 
     public void setDisableScreenshots(boolean disableScreenshots) {
         this.disableScreenshots = disableScreenshots;
+    }
+
+    public boolean isShowWifi() {
+        return showWifi;
+    }
+
+    public void setShowWifi(boolean showWifi) {
+        this.showWifi = showWifi;
     }
 
     public String getRestrictions() {

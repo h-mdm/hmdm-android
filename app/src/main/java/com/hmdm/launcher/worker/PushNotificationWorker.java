@@ -20,10 +20,8 @@
 package com.hmdm.launcher.worker;
 
 import android.content.Context;
-import android.content.Intent;
 
 import androidx.annotation.NonNull;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
@@ -31,6 +29,7 @@ import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import com.hmdm.launcher.Const;
+import com.hmdm.launcher.helper.ConfigUpdater;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.PushMessage;
 import com.hmdm.launcher.json.PushResponse;
@@ -157,8 +156,7 @@ public class PushNotificationWorker extends Worker {
         }
         RemoteLogger.log(context, Const.LOG_DEBUG, "Forcing configuration update");
         settingsHelper.setConfigUpdateTimestamp(now);
-        LocalBroadcastManager.getInstance(context).
-                sendBroadcast(new Intent(Const.ACTION_UPDATE_CONFIGURATION));
+        ConfigUpdater.notifyConfigUpdate(context);
         return Result.success();
     }
 }

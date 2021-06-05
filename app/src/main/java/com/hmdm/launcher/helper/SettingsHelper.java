@@ -51,6 +51,7 @@ public class SettingsHelper {
     private static final String PREF_KEY_IP_ADDRESS = ".helpers.IP_ADDRESS";
     private static final String PREF_QR_PROVISIONING = ".helpers.QR_PROVISIONING";
     private static final String PREF_CFG_UPDATE_TIMESTAMP = ".helpers.CFG_UPDATE_TIMESTAMP";
+    private static final String PREF_KEY_ACTIVITY_RUNNING = ".helpers.ACTIVITY_RUNNING";
     // This prefix is for the compatibility with a legacy package name
     private static String PACKAGE_NAME;
 
@@ -145,6 +146,14 @@ public class SettingsHelper {
             externalIp = "";
         }
         return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_IP_ADDRESS, externalIp ).commit();
+    }
+
+    public boolean isMainActivityRunning() {
+        return sharedPreferences.getBoolean(PACKAGE_NAME + PREF_KEY_ACTIVITY_RUNNING, false );
+    }
+
+    public boolean setMainActivityRunning(boolean running) {
+        return sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_KEY_ACTIVITY_RUNNING, running ).commit();
     }
 
     public long getConfigUpdateTimestamp() {

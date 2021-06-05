@@ -40,6 +40,7 @@
 	<string name="main_file_downloading_error">下载文件失败</string>
 	<string name="main_activity_repeat">重试</string>
 	<string name="main_activity_reset">重启</string>
+	<string name="main_activity_wifi">WiFi</string>
 	<string name="main_activity_cancel">取消</string>
 	<string name="main_activity_details">细节</string>
 	<string name="select_system_launcher">选择%s作为默认启动器，然後选中“始终”：</string>

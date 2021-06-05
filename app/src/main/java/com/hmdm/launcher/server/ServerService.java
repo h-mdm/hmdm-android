@@ -43,19 +43,34 @@ import retrofit2.http.Path;
 
 public interface ServerService {
 
-    @POST("{project}/rest/public/sync/configuration/{number}")
-    Call<ResponseBody> createAndGetRawServerConfig(@Path("project") String project, @Path("number") String number,
-            @Header("X-Request-Signature") String signature, @Body DeviceCreateOptions createOptions);
-
-    @GET("{project}/rest/public/sync/configuration/{number}")
-    Call<ResponseBody> getRawServerConfig(@Path("project") String project, @Path("number") String number, @Header("X-Request-Signature") String signature);
+    static final String REQUEST_SIGNATURE_HEADER = "X-Request-Signature";
+    static final String CPU_ARCH_HEADER = "X-CPU-Arch";
 
     @POST("{project}/rest/public/sync/configuration/{number}")
-    Call<ServerConfigResponse> createAndGetServerConfig(@Path("project") String project, @Path("number") String number,
-            @Header("X-Request-Signature") String signature, @Body DeviceCreateOptions createOptions);
+    Call<ResponseBody> createAndGetRawServerConfig(@Path("project") String project,
+                                                   @Path("number") String number,
+                                                   @Header(REQUEST_SIGNATURE_HEADER) String signature,
+                                                   @Header(CPU_ARCH_HEADER) String cpuArch,
+                                                   @Body DeviceCreateOptions createOptions);
 
     @GET("{project}/rest/public/sync/configuration/{number}")
-    Call<ServerConfigResponse> getServerConfig(@Path("project") String project, @Path("number") String number, @Header("X-Request-Signature") String signature);
+    Call<ResponseBody> getRawServerConfig(@Path("project") String project,
+                                          @Path("number") String number,
+                                          @Header(REQUEST_SIGNATURE_HEADER) String signature,
+                                          @Header(CPU_ARCH_HEADER) String cpuArch);
+
+    @POST("{project}/rest/public/sync/configuration/{number}")
+    Call<ServerConfigResponse> createAndGetServerConfig(@Path("project") String project,
+                                                        @Path("number") String number,
+                                                        @Header(REQUEST_SIGNATURE_HEADER) String signature,
+                                                        @Header(CPU_ARCH_HEADER) String cpuArch,
+                                                        @Body DeviceCreateOptions createOptions);
+
+    @GET("{project}/rest/public/sync/configuration/{number}")
+    Call<ServerConfigResponse> getServerConfig(@Path("project") String project,
+                                               @Path("number") String number,
+                                               @Header(REQUEST_SIGNATURE_HEADER) String signature,
+                                               @Header(CPU_ARCH_HEADER) String cpuArch);
 
     @POST("{project}/rest/public/sync/info")
     @Headers("Content-Type: application/json")

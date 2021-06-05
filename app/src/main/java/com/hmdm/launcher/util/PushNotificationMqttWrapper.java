@@ -60,7 +60,7 @@ public class PushNotificationMqttWrapper {
     private static PushNotificationMqttWrapper instance;
 
     private MqttAndroidClient client;
-    private Handler handler;
+    private Handler handler = new Handler(Looper.getMainLooper());
     private BroadcastReceiver debugReceiver;
     private Context context;
     private boolean needProcessConnectExtended;
@@ -86,15 +86,14 @@ public class PushNotificationMqttWrapper {
 
     public void connect(final Context context, String host, int port, String pushType, int keepaliveTime,
                         final String deviceId, final Runnable onSuccess, final Runnable onFailure) {
+        this.context = context;
         cancelReconnectionAfterFailure(context);
-        handler = new Handler(Looper.getMainLooper());
         if (client != null && client.isConnected()) {
             if (onSuccess != null) {
                 handler.post(onSuccess);
             }
             return;
         }
-        this.context = context;
         MqttAndroidConnectOptions connectOptions = new MqttAndroidConnectOptions();
         connectOptions.setAutomaticReconnect(true);
         connectOptions.setKeepAliveInterval(keepaliveTime);

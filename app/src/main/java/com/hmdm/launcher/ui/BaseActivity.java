@@ -223,7 +223,10 @@ public class BaseActivity extends AppCompatActivity {
         System.exit(0);
     }
 
-    protected void createAndShowNetworkErrorDialog(String serverName, String serverPath, boolean showResetButton) {
+    protected void createAndShowNetworkErrorDialog(String serverName,
+                                                   String serverPath,
+                                                   boolean showResetButton,
+                                                   boolean showWifiButton) {
         dismissDialog(networkErrorDialog);
         networkErrorDialog = new Dialog( this );
         dialogNetworkErrorBinding = DataBindingUtil.inflate(
@@ -242,6 +245,7 @@ public class BaseActivity extends AppCompatActivity {
         dialogNetworkErrorBinding.title.setText(getString(R.string.dialog_network_error_title, serverUrl));
 
         dialogNetworkErrorBinding.resetButton.setVisibility(showResetButton ? View.VISIBLE : View.GONE);
+        dialogNetworkErrorBinding.wifiButton.setVisibility(showWifiButton ? View.VISIBLE : View.GONE);
 
         networkErrorDialog.setContentView( dialogNetworkErrorBinding.getRoot() );
         networkErrorDialog.show();
