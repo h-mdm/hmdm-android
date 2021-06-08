@@ -437,7 +437,7 @@ public class MainActivity
         }
 
         if (!BuildConfig.SYSTEM_PRIVILEGES) {
-            checkAndStartLauncher();
+            setDefaultLauncherEarly();
         } else {
             setSelfAsDeviceOwner();
         }
@@ -551,7 +551,7 @@ public class MainActivity
 
             @Override
             protected void onPostExecute(Void v) {
-                checkAndStartLauncher();
+                setDefaultLauncherEarly();
             }
         }.execute();
     }
@@ -600,6 +600,33 @@ public class MainActivity
                 }
             }
         }
+    }
+
+    private void setDefaultLauncherEarly() {
+        ServerConfig config = SettingsHelper.getInstance(this).getConfig();
+        if (config == null && Utils.isDeviceOwner(this)) {
+            // At first start, temporarily set Headwind MDM as a default launcher
+            // to prevent the user from clicking Home to stop running Headwind MDM
+            String defaultLauncher = Utils.getDefaultLauncher(this);
+
+            // As per the documentation, setting the default preferred activity should not be done on the main thread
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    if (!getPackageName().equalsIgnoreCase(defaultLauncher)) {
+                        Utils.setDefaultLauncher(MainActivity.this);
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void v) {
+                    checkAndStartLauncher();
+                }
+            }.execute();
+            return;
+        }
+        checkAndStartLauncher();
     }
 
     private void checkAndStartLauncher() {

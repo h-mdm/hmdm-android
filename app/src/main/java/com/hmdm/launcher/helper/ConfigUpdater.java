@@ -569,7 +569,46 @@ public class ConfigUpdater {
                         //updateMessageForApplicationRemoving( application.getName() );
                         uninstallApplication(application.getPkg());
 
-                    } else if ( application.getUrl() != null && !application.getUrl().startsWith("market://details") ) {
+                    } else if (application.getUrl() == null) {
+                        handler.post( new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.i(Const.LOG_TAG, "loadAndInstallApplications(): proceed to next app");
+                                loadAndInstallApplications();
+                            }
+                        } );
+
+                    } else if (application.getUrl().startsWith("market://details")) {
+                        RemoteLogger.log(context, Const.LOG_INFO, "Installing app " + application.getPkg() + " from Google Play");
+                        installApplicationFromPlayMarket(application.getUrl(), application.getPkg());
+                        applicationStatus = new ApplicationStatus();
+                        applicationStatus.application = application;
+                        applicationStatus.installed = true;
+
+                    } else if (application.getUrl().startsWith("file:///")) {
+                        RemoteLogger.log(context, Const.LOG_INFO, "Installing app " + application.getPkg() + " from SD card");
+                        applicationStatus = new ApplicationStatus();
+                        applicationStatus.application = application;
+                        File file = null;
+                        try {
+                            file = new File(new URL(application.getUrl()).toURI());
+                            if (file != null) {
+                                if (uiNotifier != null) {
+                                    uiNotifier.onAppInstalling(application);
+                                }
+                                // onAppInstalling() method contents
+                                //updateMessageForApplicationInstalling(application.getName());
+                                installApplication(file, application.getPkg(), application.getVersion());
+                                applicationStatus.installed = true;
+                            } else {
+                                applicationStatus.installed = false;
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            applicationStatus.installed = false;
+                        }
+
+                    } else {
                         if (uiNotifier != null) {
                             uiNotifier.onAppDownloading(application);
                         }
@@ -618,20 +657,6 @@ public class ConfigUpdater {
                         } else {
                             applicationStatus.installed = false;
                         }
-                    } else if (application.getUrl().startsWith("market://details")) {
-                        RemoteLogger.log(context, Const.LOG_INFO, "Installing app " + application.getPkg() + " from Google Play");
-                        installApplicationFromPlayMarket(application.getUrl(), application.getPkg());
-                        applicationStatus = new ApplicationStatus();
-                        applicationStatus.application = application;
-                        applicationStatus.installed = true;
-                    } else {
-                        handler.post( new Runnable() {
-                            @Override
-                            public void run() {
-                                Log.i(Const.LOG_TAG, "loadAndInstallApplications(): proceed to next app");
-                                loadAndInstallApplications();
-                            }
-                        } );
                     }
 
                     return applicationStatus;
