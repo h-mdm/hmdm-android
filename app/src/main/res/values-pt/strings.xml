@@ -1,0 +1,114 @@
+<!--
+  ~ Headwind MDM: Open Source Android MDM Software
+  ~ https://h-mdm.com
+  ~
+  ~ Copyright (C) 2019 Headwind Solutions LLC (http://h-sms.com)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resources>
+    <string name="app_name" translatable="false">Headwind MDM</string>
+    <string name="admin_title">Administrador</string>
+    <string name="vendor" translatable="false">(c) 2021 h-mdm.com</string>
+    <string name="install_error">Erro na Instalação </string>
+    <string name="dialog_enter_device_id_error">O ID não está registrado em %s. Verifique o ID na aba \"Dispositivos\" do painel de controle.</string>
+    <string name="dialog_enter_device_id_qrcode">QR code</string>
+    <string name="dialog_enter_device_id_variants">Variantes</string>
+    <string name="dialog_enter_device_id_save">Salvar</string>
+    <string name="dialog_enter_device_id_exit">Sair</string>
+    <string name="dialog_enter_device_id_title">Digite o ID do Dispositivo em %s</string>
+    <string name="main_start_preparations">Preparar para iniciar</string>
+    <string name="main_downloading_configuration">Atualizando arquivo de configuração</string>
+    <string name="main_downloading_content">Atualizando</string>
+    <string name="main_update_applications">Instalando e atualizando aplicativos</string>
+    <string name="dialog_root_message">Você precisa do acesso ROOT</string>
+    <string name="main_application_start">Iniciando Aplicativo</string>
+    <string name="main_app_installing">Instalando Aplicativo</string>
+    <string name="main_app_downloading">Efetuando Download do Aplicativo</string>
+    <string name="main_app_downloading_error">Falha ao efetuar o download do aplicativo</string>
+    <string name="main_app_removing">Removendo Aplicativo</string>
+    <string name="main_file_downloading">Efetuando Download do Arquivo</string>
+    <string name="main_file_downloading_error">Falha ao efetuar o download do arquivo</string>
+    <string name="main_activity_repeat">Repetir</string>
+    <string name="main_activity_reset">Resetar</string>
+    <string name="main_activity_wifi">WiFi</string>
+    <string name="main_activity_cancel">Cancelar</string>
+    <string name="main_activity_details">Detalhes</string>
+    <string name="select_system_launcher">Selecione %s como o launcher padrão e marque a opção \'Sempre\':</string>
+    <string name="dialog_network_error_title">Erro ao conectar em %s. Por favor verifique a conexão com a internet e tente novamente.</string>
+    <string name="main_activity_update_config">Requisitando arquivo de configuração do servidor</string>
+    <string name="main_activity_applications_update">Atualizar aplicativos</string>
+    <string name="dialog_overlay_settings_title">Por favor permita a sobreposição de aplicativos. Uma tela de configurações vai ser aberta. Procure o app \"%s\", e de a permissão especial depois toque em \"Voltar\". Se você não achar a configuração, toque em \"Pular\"! (Porém o aplicativo pode não funcionar como esperado!)</string>
+    <string name="dialog_history_settings_title">Por favor permita o acesso ao histórico de uso. Uma tela de configurações vai ser aberta. Procure o app \"%s\", e de a permissão especial depois toque em \"Voltar\". Se você não achar a configuração, toque em \"Pular\"! (Porém o aplicativo pode não funcionar como esperado!)</string>
+    <string name="dialog_history_settings_continue">Continuar</string>
+    <string name="dialog_history_settings_skip">Pular</string>
+    <string name="dialog_unknown_sources_title">Por favor permita a instalação de aplicativos de fonte desconhecida. Uma tela de configurações vai ser aberta. Procure \"Fontes desconhecidas\", toque em permitir a instalação e toque em \"Voltar\".</string>
+    <string name="dialog_unknown_sources_continue">Continuar</string>
+    <string name="dialog_miui_permissions_title">MIUI requer uma configuração manual no seu device. A tela de permissões do aplicativo vai ser aberta. Toque em \"Outras permissões\", ative \"Mostrar Janelas pop-up enquanto está em segundo plano\" e toque em \"Voltar\".</string>
+    <string name="dialog_miui_developer_title">MIUI requer uma configuração manual no seu device. Na tela de informações do dispositivo, TOQUE 7 VEZES EM \"NÚMERO DA VERSÃO\". Isso vai ativar as opções de desenvolvedor.</string>
+    <string name="dialog_miui_optimization_title">MIUI requer uma configuração manual no seu device. Developer settings window will now open. Scroll the screen down and uncheck \"MIUI optimization\".</string>
+    <string name="dialog_administrator_mode_message">Por favor permita que o aplicativo trabalhe no modo administrador do dispositivo. Uma tela de configurações vai ser aberta. Selecione \"Administrador do Dispositivo\", procure por \"%s\", ative como administrador, e toque em \"Voltar\".</string>
+    <string name="dialog_administrator_mode_continue">Continuar</string>
+    <string name="dialog_administrator_mode_skip">Pular</string>
+    <string name="accessibility_service_description">Aplicativo ativo de monitoramento pela aplicação MDM</string>
+    <string name="dialog_accessibility_service_message">Por favor permita o acesso aos serviços de acessibilidade. Uma tela de configurações vai ser aberta. Procure o item \"%s\", permita o acesso aos serviços de acessibilidade, e toque em \"Voltar\".</string>
+    <string name="dialog_accessibility_service_continue">Continuar</string>
+    <string name="dialog_accessibility_service_skip">Pular</string>
+    <string name="access_to_app_denied">O Acesso ao aplicativo (%s) está bloqueado pelo administrador. Toque em \'Home\' para continuar.</string>
+    <string name="dialog_app_not_allowed_close">Fechar</string>
+    <string name="dialog_app_not_allowed_admin">Administrador</string>
+    <string name="device_id">ID do Dispositivo</string>
+    <string name="imei">IMEI</string>
+    <string name="serial_number">Número do Serial</string>
+    <string name="phone_number">Número do Telefone</string>
+    <string name="launcher_version">Versão do Launcher</string>
+    <string name="close">Fechar</string>
+    <string name="admin_change_device_id">Alterar ID do dispositivo</string>
+    <string name="admin_change_server_url">Alterar URL do Servidor</string>
+    <string name="admin_allow_settings">Abrir configurações</string>
+    <string name="settings_allowed">Você pode alterar as permissões durante 3 minutos.</string>
+    <string name="admin_refresh">Atualizar Configuração</string>
+    <string name="admin_exit">Sair do Launcher do sistema</string>
+    <string name="admin_reset_permissions">Resetar Permissões</string>
+    <string name="admin_reset_network">Resetar políticas de rede</string>
+    <string name="admin_reset_network_hint">Políticas de rede foram limpas. Você pode ativar a internet e reiniciar a configuração.</string>
+    <string name="reboot">Reiniciar Dispositivo</string>
+    <string name="reboot_failed">Você não tem permissões para reiniciar o dispositivo.</string>
+    <string name="message_turn_on_gps">A Tela de configurações vai abrir. Por favor ATIVE o GPS na tela e toque em voltar.</string>
+    <string name="message_turn_off_gps">A Tela de configurações vai abrir. Por favor DESLIGUE o GPS na tela e toque em voltar.</string>
+    <string name="message_turn_on_mobile_data">Rede de Dados do Celular está desativada! Por favor abra a barra de status e ATIVE a rede de dados.</string>
+    <string name="message_turn_off_mobile_data">Rede de Dados do Celular está ativada. Por favor abra a barra de status e DESATIVE a rede de dados.</string>
+    <string name="message_set_password">Sua senha não está com uma senha de boa qualidade. A tela de configurações vai ser aberta. Por favor altere sua senha e toque em Voltar.</string>
+    <string name="switch_off_blockings">Desligando Restrições...</string>
+    <string name="kiosk_mode_requires_overlays">Modo Kiosk desativado: Sem permissões para sobrepor outros aplicativos. Por favor habilite %s para sobrepor os aplicativos.</string>
+    <string name="enter_admin_password">Digite a senha do Administrador</string>
+    <string name="wrong_password">Senha inválida</string>
+    <string name="dialog_enter_password_login">Login</string>
+    <string name="dialog_enter_password_cancel">Cancelar</string>
+    <string name="internal_error">Ocorreu um erro interno no aplicativo. Por favor reinicie o dispositivo e tente novamente.</string>
+    <string name="empty_configuration">Configuração não efetuada, tente buscar a configuração do servidor novamente!</string>
+    <string name="permissions_reset_hint">Feche o painel administrador para verificar e buscar permissões.</string>
+    <string name="dialog_enter_server_error">Por favor digite uma URL válida do servidor.</string>
+    <string name="dialog_enter_server_ok">OK</string>
+    <string name="dialog_enter_server_title">Digite a URL do servidor</string>
+    <string name="dialog_enter_server_hint" translatable="false">http://hmdm.example.com:8080/hmdm/</string>
+    <string name="critical_server_failure">Ocorreu um problema no servidor! Por favor corrija o erro e reinicie %s, ou remova completamente e reinstale.</string>
+    <string name="dialog_permission_title">O Aplicativo requer permissões para iniciar. Por favor garanta as permissões necessárias.</string>
+    <string name="main_activity_exit">Sair</string>
+    <string name="browser_not_found">A página web não pode ser aberta porque um navegador não foi encontrado. Por favor adicione o navegador nas configurações do dispositivo.</string>
+    <string name="location_service_text">Localização do dispositivo está ativa</string>
+    <string name="qrcode_contents_error">QR code com conteúdo inválido. Por favor gere o QR Code de provisionamento no painel administrativo %s.</string>
+    <string name="device_locked">Este dispositivo está bloqueado pelo administrador.</string>
+    <string name="fault_loop_detected">Oops, ocorreu uma falha no launcher do seu dispositivo! Por favor contate o administrador do sistema.</string>
+</resources>

@@ -85,7 +85,13 @@ public class XapkUtils {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             return;
         }
-
+        if (files == null) {
+            RemoteLogger.log(context, Const.LOG_WARN, "Failed to unpack XAPK for " + packageName + " - ignoring installation");
+            if (errorHandler != null) {
+                errorHandler.onInstallError();
+            }
+            return;
+        }
         long totalSize = 0;
         for (File file : files) {
             totalSize += file.length();

@@ -110,6 +110,7 @@ import com.hmdm.launcher.util.AppInfo;
 import com.hmdm.launcher.util.CrashLoopProtection;
 import com.hmdm.launcher.util.DeviceInfoProvider;
 import com.hmdm.launcher.util.InstallUtils;
+import com.hmdm.launcher.util.PreferenceLogger;
 import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.SystemUtils;
 import com.hmdm.launcher.util.Utils;
@@ -833,7 +834,9 @@ public class MainActivity
         ServerConfig config = settingsHelper.getConfig();
         if (ProUtils.kioskModeRequired(this) && !settingsHelper.getConfig().getMainApp().equals(getPackageName())) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                    !Settings.canDrawOverlays( this )) {
+                    !Settings.canDrawOverlays( this ) &&
+                    !BuildConfig.ENABLE_KIOSK_WITHOUT_OVERLAYS) {
+                RemoteLogger.log(this, Const.LOG_WARN, "Kiosk mode disabled: no permission to draw over other windows.");
                 Toast.makeText(this, getString(R.string.kiosk_mode_requires_overlays,
                         getString(R.string.app_name)), Toast.LENGTH_LONG).show();
                 config.setKioskMode(false);
@@ -842,21 +845,23 @@ public class MainActivity
                 return;
             }
             View kioskUnlockButton = ProUtils.createKioskUnlockButton(this);
-            kioskUnlockButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    kioskUnlockCounter++;
-                    if (kioskUnlockCounter >= Const.KIOSK_UNLOCK_CLICK_COUNT ) {
-                        // We are in the main app: let's open launcher activity
-                        interruptResumeFlow = true;
-                        Intent restoreLauncherIntent = new Intent(MainActivity.this, MainActivity.class);
-                        restoreLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                        startActivity(restoreLauncherIntent);
-                        createAndShowEnterPasswordDialog();
-                        kioskUnlockCounter = 0;
+            if (kioskUnlockButton != null) {
+                kioskUnlockButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        kioskUnlockCounter++;
+                        if (kioskUnlockCounter >= Const.KIOSK_UNLOCK_CLICK_COUNT) {
+                            // We are in the main app: let's open launcher activity
+                            interruptResumeFlow = true;
+                            Intent restoreLauncherIntent = new Intent(MainActivity.this, MainActivity.class);
+                            restoreLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                            startActivity(restoreLauncherIntent);
+                            createAndShowEnterPasswordDialog();
+                            kioskUnlockCounter = 0;
+                        }
                     }
-                }
-            });
+                });
+            }
         } else {
             createLauncherButtons();
         }
@@ -875,6 +880,7 @@ public class MainActivity
             // For common public version, here's an option to change the server in non-MDM mode
             createAndShowServerDialog(false, settingsHelper.getBaseUrl(), settingsHelper.getServerProject());
         } else if ( settingsHelper.getDeviceId().length() == 0 ) {
+            Log.d(Const.LOG_TAG, "Device ID is empty");
             if (!SystemUtils.autoSetDeviceId(this)) {
                 createAndShowEnterDeviceIdDialog(false, null);
             } else {
@@ -1249,7 +1255,14 @@ public class MainActivity
 
     @Override
     public void onConfigUpdateComplete() {
+        SharedPreferences preferences = getApplicationContext().getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE);
+        String deviceAdminLog = PreferenceLogger.getLogString(preferences);
+        if (deviceAdminLog != null && !deviceAdminLog.equals("")) {
+            RemoteLogger.log(this, Const.LOG_DEBUG, deviceAdminLog);
+            PreferenceLogger.clearLogString(preferences);
+        }
         Log.i(Const.LOG_TAG, "Showing content from setActions()");
+        settingsHelper.refreshConfig(this);         // Avoid NPE in showContent()
         showContent(settingsHelper.getConfig());
     }
 

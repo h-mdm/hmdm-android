@@ -156,6 +156,7 @@ public class BaseActivity extends AppCompatActivity {
                     updateSettingsFromQr(result.getContents());
                 }
             } else {
+                Log.d(Const.LOG_TAG, "Failed to parse QR code!");
                 super.onActivityResult(requestCode, resultCode, data);
             }
         } catch (Exception e) {
@@ -165,6 +166,7 @@ public class BaseActivity extends AppCompatActivity {
 
     protected void updateSettingsFromQr(String qrcode) {
         try {
+            Log.d(Const.LOG_TAG, "Get initial settings from the QR code");
             SettingsHelper settingsHelper = SettingsHelper.getInstance(getApplicationContext());
             JSONObject qr = new JSONObject(qrcode);
             JSONObject extras = qr.getJSONObject(DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
@@ -175,12 +177,22 @@ public class BaseActivity extends AppCompatActivity {
                 deviceId = extras.optString(Const.QR_LEGACY_DEVICE_ID_ATTR, null);
             }
             if (deviceId != null) {
+                Log.d(Const.LOG_TAG, "Device ID: " + deviceId);
                 settingsHelper.setDeviceId(deviceId);
+            } else {
+                Log.d(Const.LOG_TAG, "Device ID is null");
+                String deviceIdUse = extras.optString(Const.QR_DEVICE_ID_USE_ATTR, null);
+                if (deviceIdUse != null) {
+                    Log.d(Const.LOG_TAG, "Device ID use: " + deviceIdUse);
+                    // Save for further automatic choice of the device ID
+                    settingsHelper.setDeviceIdUse(deviceIdUse);
+                }
             }
 
             String baseUrl = extras.optString(Const.QR_BASE_URL_ATTR, null);
             String secondaryBaseUrl = extras.optString(Const.QR_SECONDARY_BASE_URL_ATTR, null);
             if (baseUrl != null) {
+                Log.d(Const.LOG_TAG, "Base URL: " + baseUrl);
                 settingsHelper.setBaseUrl(baseUrl);
                 // If we don't set the secondary base URL, it will point to app.h-mdm.com by default which is wrong
                 if (secondaryBaseUrl == null) {
@@ -188,11 +200,13 @@ public class BaseActivity extends AppCompatActivity {
                 }
             }
             if (secondaryBaseUrl != null) {
+                Log.d(Const.LOG_TAG, "Secondary base URL: " + baseUrl);
                 settingsHelper.setSecondaryBaseUrl(secondaryBaseUrl);
             }
 
             String serverProject = extras.optString(Const.QR_SERVER_PROJECT_ATTR, null);
             if (serverProject != null) {
+                Log.d(Const.LOG_TAG, "Project path: " + serverProject);
                 settingsHelper.setServerProject(serverProject);
             }
 
@@ -200,10 +214,12 @@ public class BaseActivity extends AppCompatActivity {
             createOptions.setCustomer(extras.optString(Const.QR_CUSTOMER_ATTR, null));
             createOptions.setConfiguration(extras.optString(Const.QR_CONFIG_ATTR, null));
             createOptions.setGroups(extras.optString(Const.QR_GROUP_ATTR, null));
-            if (createOptions.getCustomer() != null) {
+            if (createOptions.getCustomer() != createOptions.getCustomer()) {
+                Log.d(Const.LOG_TAG, "Customer: " + serverProject);
                 settingsHelper.setCreateOptionCustomer(createOptions.getCustomer());
             }
             if (createOptions.getConfiguration() != null) {
+                Log.d(Const.LOG_TAG, "Configuration: " + createOptions.getConfiguration());
                 settingsHelper.setCreateOptionConfigName(createOptions.getConfiguration());
             }
             if (createOptions.getGroups() != null) {
@@ -211,6 +227,8 @@ public class BaseActivity extends AppCompatActivity {
             }
 
         } catch (Exception e) {
+            Log.w(Const.LOG_TAG, "Invalid QR code contents, got an exception!");
+            e.printStackTrace();
             Toast.makeText(this, getString(R.string.qrcode_contents_error,
                     getString(R.string.app_name)), Toast.LENGTH_LONG).show();
         }
@@ -248,7 +266,12 @@ public class BaseActivity extends AppCompatActivity {
         dialogNetworkErrorBinding.wifiButton.setVisibility(showWifiButton ? View.VISIBLE : View.GONE);
 
         networkErrorDialog.setContentView( dialogNetworkErrorBinding.getRoot() );
-        networkErrorDialog.show();
+        try {
+            networkErrorDialog.show();
+        } catch (Exception e) {
+            // Unable to add window -- token is not valid; is your activity running?
+            e.printStackTrace();
+        }
     }
 
 

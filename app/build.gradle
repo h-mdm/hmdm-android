@@ -36,8 +36,8 @@ android {
         applicationId "com.hmdm.launcher"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 202
-        versionName "4.02"
+        versionCode 204
+        versionName "4.04"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true
@@ -77,6 +77,11 @@ android {
         // If set to true, the server URL will be requested in UI in non-MDM mode even if it is hardcoded in build.gradle
         // See the related "if" statement in MainActivity.java
         buildConfigField("Boolean", "REQUEST_SERVER_URL", "false")
+        // Set to true to debug admin receiver via remote logging
+        buildConfigField("Boolean", "DEVICE_ADMIN_DEBUG", "false")
+        // Set to true to enable kiosk mode even if the app can't draw over other windows
+        // This may be required for weak devices where drawing over other windows is disabled by OS
+        buildConfigField("Boolean", "ENABLE_KIOSK_WITHOUT_OVERLAYS", "false")
     }
     buildTypes {
         release {

@@ -339,7 +339,8 @@ public class InstallUtils {
         }
 
         if (file.getName().endsWith(".xapk")) {
-            XapkUtils.install(context, XapkUtils.extract(context, file), packageName, errorHandler);
+            List<File> files = XapkUtils.extract(context, file);
+            XapkUtils.install(context, files, packageName, errorHandler);
             return;
         }
 

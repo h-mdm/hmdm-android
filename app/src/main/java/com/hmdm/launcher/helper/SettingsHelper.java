@@ -77,6 +77,13 @@ public class SettingsHelper {
         initConfig();
     }
 
+    public void refreshConfig(Context context) {
+        if (config == null) {
+            sharedPreferences = context.getSharedPreferences(PACKAGE_NAME + PREFERENCES_ID, Context.MODE_PRIVATE );
+            initConfig();
+        }
+    }
+
     private void initConfig() {
         try {
             if ( sharedPreferences.contains(PACKAGE_NAME + PREF_KEY_CONFIG) ) {

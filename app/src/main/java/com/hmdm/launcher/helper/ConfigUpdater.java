@@ -34,6 +34,7 @@ import com.hmdm.launcher.util.DeviceInfoProvider;
 import com.hmdm.launcher.util.InstallUtils;
 import com.hmdm.launcher.util.PushNotificationMqttWrapper;
 import com.hmdm.launcher.util.RemoteLogger;
+import com.hmdm.launcher.util.SystemUtils;
 import com.hmdm.launcher.util.Utils;
 
 import org.apache.commons.io.FileUtils;
@@ -783,6 +784,13 @@ public class ConfigUpdater {
                                         // TODO: in the future, the rights must be configurable on the server
                                         Utils.autoGrantRequestedPermissions(context, packageName);
                                     }
+                                    if (BuildConfig.SYSTEM_PRIVILEGES && packageName.equals(Const.APUPPET_PACKAGE_NAME)) {
+                                        // Automatically grant required permissions to aPuppet if we can
+                                        SystemUtils.autoSetAccessibilityPermission(context,
+                                                Const.APUPPET_PACKAGE_NAME, Const.APUPPET_SERVICE_CLASS_NAME);
+                                        SystemUtils.autoSetOverlayPermission(context,
+                                                Const.APUPPET_PACKAGE_NAME);
+                                    }
                                     if (uiNotifier != null) {
                                         uiNotifier.onAppInstallComplete(packageName);
                                     }
@@ -819,7 +827,12 @@ public class ConfigUpdater {
 
     private void unregisterAppInstallReceiver() {
         if (appInstallReceiver != null) {
-            context.unregisterReceiver(appInstallReceiver);
+            try {
+                context.unregisterReceiver(appInstallReceiver);
+            } catch (Exception e) {
+                // Receiver not registered
+                e.printStackTrace();
+            }
             appInstallReceiver = null;
         }
     }

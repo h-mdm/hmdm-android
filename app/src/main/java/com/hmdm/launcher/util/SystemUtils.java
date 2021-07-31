@@ -1,8 +1,13 @@
 package com.hmdm.launcher.util;
 
+import android.annotation.TargetApi;
+import android.app.AppOpsManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.Build;
+import android.provider.Settings;
 import android.util.Log;
 
 import com.hmdm.launcher.BuildConfig;
@@ -11,6 +16,7 @@ import com.hmdm.launcher.helper.SettingsHelper;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 
 /**
  * These utils are used only in the 'system' flavor
@@ -73,6 +79,7 @@ public class SystemUtils {
     public static boolean autoSetDeviceId(Context context) {
         String deviceIdUse = SettingsHelper.getInstance(context).getDeviceIdUse();
         String deviceId = null;
+        Log.d(Const.LOG_TAG, "Device ID choice: " + deviceIdUse);
         if (BuildConfig.DEVICE_ID_CHOICE.equals("imei") || "imei".equals(deviceIdUse)) {
             deviceId = DeviceInfoProvider.getImei(context);
         } else if (BuildConfig.DEVICE_ID_CHOICE.equals("serial") || "serial".equals(deviceIdUse)) {
@@ -129,5 +136,40 @@ public class SystemUtils {
             return false;
         }
         return true;
+    }
+
+    // https://stackoverflow.com/questions/10061154/how-to-programmatically-enable-disable-accessibility-service-in-android
+    public static void autoSetAccessibilityPermission(Context context, String packageName, String className) {
+        Settings.Secure.putString(context.getContentResolver(),
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, packageName + "/" + className);
+        Settings.Secure.putString(context.getContentResolver(),
+                Settings.Secure.ACCESSIBILITY_ENABLED, "1");
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    public static void autoSetOverlayPermission(Context context, String packageName) {
+        PackageManager packageManager = context.getPackageManager();
+        int uid = 0;
+        try {
+            ApplicationInfo applicationInfo = packageManager.getApplicationInfo(packageName, 0);
+            uid = applicationInfo.uid;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        AppOpsManager appOpsManager = (AppOpsManager)context.getSystemService(Context.APP_OPS_SERVICE);
+        final int OP_SYSTEM_ALERT_WINDOW = 24;
+
+        // src/com/android/settings/applications/DrawOverlayDetails.java
+        // See method: void setCanDrawOverlay(boolean newState)
+        try {
+            Class clazz = AppOpsManager.class;
+            Method method = clazz.getDeclaredMethod("setMode", int.class, int.class, String.class, int.class);
+            method.invoke(appOpsManager, OP_SYSTEM_ALERT_WINDOW, uid, packageName, AppOpsManager.MODE_ALLOWED);
+            Log.d(Const.LOG_TAG, "Overlay permission granted to " + packageName);
+        } catch (Exception e) {
+            Log.e(Const.LOG_TAG, Log.getStackTraceString(e));
+        }
     }
 }

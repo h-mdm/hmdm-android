@@ -118,7 +118,8 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
                 if (ProUtils.kioskModeRequired(context) &&
                         !settingsHelper.getConfig().getMainApp().equals(context.getPackageName()) &&
                         Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                        !Settings.canDrawOverlays(context)) {
+                        !Settings.canDrawOverlays(context) && !BuildConfig.ENABLE_KIOSK_WITHOUT_OVERLAYS) {
+                        RemoteLogger.log(context, Const.LOG_WARN, "Kiosk mode disabled: no permission to draw over other windows.");
                         settingsHelper.getConfig().setKioskMode(false);
                         settingsHelper.updateConfig(settingsHelper.getConfig());
                 }

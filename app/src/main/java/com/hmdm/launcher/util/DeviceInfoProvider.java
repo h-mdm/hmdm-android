@@ -33,6 +33,7 @@ import android.os.Environment;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
@@ -222,18 +223,26 @@ public class DeviceInfoProvider {
         String serialNumber = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             try {
-                return Build.getSerial();
+                String s = Build.getSerial();
+                Log.d(Const.LOG_TAG, "Serial number: " + s);
+                return s;
             } catch (SecurityException e) {
+                Log.w(Const.LOG_TAG, "Failed to get serial number from Build.getSerial()");
+                e.printStackTrace();
             }
         }
         try {
             Class<?> c = Class.forName("android.os.SystemProperties");
             Method get = c.getMethod("get", String.class);
             serialNumber = (String) get.invoke(c, "ril.serialnumber");
-        } catch (Exception ignored) { /*noop*/ }
+        } catch (Exception e) {
+            Log.w(Const.LOG_TAG, "Failed to get serial number from ril.serialnumber");
+            e.printStackTrace();
+        }
         if (serialNumber != null && !serialNumber.equals("")) {
             return serialNumber;
         }
+        Log.d(Const.LOG_TAG, "Build.SERIAL=" + Build.SERIAL);
         return Build.SERIAL;
     }
 

@@ -222,7 +222,7 @@ public class PushNotificationMqttWrapper {
                 RemoteLogger.log(context, Const.LOG_DEBUG, "MQTT connection established");
                 handler.post(onSuccess);
             }
-        } catch (MqttException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             RemoteLogger.log(context, Const.LOG_DEBUG, "Exception while subscribing: " + e.getMessage());
             if (onFailure != null) {
