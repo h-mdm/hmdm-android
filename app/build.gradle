@@ -36,8 +36,8 @@ android {
         applicationId "com.hmdm.launcher"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 204
-        versionName "4.04"
+        versionCode 206
+        versionName "4.06"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true
@@ -82,6 +82,8 @@ android {
         // Set to true to enable kiosk mode even if the app can't draw over other windows
         // This may be required for weak devices where drawing over other windows is disabled by OS
         buildConfigField("Boolean", "ENABLE_KIOSK_WITHOUT_OVERLAYS", "false")
+        // Foreground service for MQTT: prevents OS from killing MQTT service on weak devices
+        buildConfigField("Boolean", "MQTT_SERVICE_FOREGROUND", "true")
     }
     buildTypes {
         release {

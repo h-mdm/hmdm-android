@@ -109,4 +109,5 @@
 	<string name="qrcode_contents_error">无效的QR码内容。请在%s Web面板中生成预配置QR码。</string>
 	<string name="device_locked">该设备已被管理员锁定。</string>
 	<string name="fault_loop_detected">启动器发生了无法恢复的故障！请与系统管理员联繫。</string>
+	<string name="mqtt_service_text">推送通知处于活动状态</string>
 </resources>

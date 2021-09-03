@@ -108,4 +108,5 @@
     <string name="qrcode_contents_error">Неверное содержимое QR кода. Пожалуйста, сформируйте QR код на сервере %s.</string>
     <string name="device_locked">Это устройство заблокировано администратором.</string>
     <string name="fault_loop_detected">Лаунчер сломался и его не восстановить! Пожалуйста, сообщите об этой проблеме администратору.</string>
+    <string name="mqtt_service_text">Push-уведомления активны</string>
 </resources>

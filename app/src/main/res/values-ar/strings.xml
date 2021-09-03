@@ -108,4 +108,5 @@
     <string name="fault_loop_detected">المشغل معطل ولا يمكن استعادته! الرجاء الإبلاغ عن هذه المشكلة إلى المسؤول.</string>
     <string name="dialog_miui_optimization_title">يتطلب MIUI التكوين اليدوي. سيتم الآن فتح شاشة إعدادات المطور. قم بالتمرير لأسفل الشاشة وإيقاف تشغيل علامة \"MIUI التحسين\".</string>
     <string name="dialog_miui_developer_title">يتطلب MIUI الاعدادات اليدوي. ستفتح الشاشة الآن ، اضغط على 7 مرات على \"رقم التجميع\". سيؤدي هذا إلى فتح إعدادات المطور.</string>
+    <string name="mqtt_service_text">التنبيهات الفورية نشطة</string>
 </resources>

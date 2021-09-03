@@ -156,7 +156,7 @@ public class PushNotificationWorker extends Worker {
         }
         RemoteLogger.log(context, Const.LOG_DEBUG, "Forcing configuration update");
         settingsHelper.setConfigUpdateTimestamp(now);
-        ConfigUpdater.notifyConfigUpdate(context);
+        ConfigUpdater.forceConfigUpdate(context);
         return Result.success();
     }
 }

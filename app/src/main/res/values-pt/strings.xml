@@ -111,4 +111,5 @@
     <string name="qrcode_contents_error">QR code com conteúdo inválido. Por favor gere o QR Code de provisionamento no painel administrativo %s.</string>
     <string name="device_locked">Este dispositivo está bloqueado pelo administrador.</string>
     <string name="fault_loop_detected">Oops, ocorreu uma falha no launcher do seu dispositivo! Por favor contate o administrador do sistema.</string>
+    <string name="mqtt_service_text">As notificações push estão ativas</string>
 </resources>

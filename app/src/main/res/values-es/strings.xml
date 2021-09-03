@@ -109,4 +109,5 @@
     <string name="qrcode_contents_error">Codigo QR invalido. Por favor, genere un nuevo QR desde el panel de administrador de %s.</string>
     <string name="device_locked">Este dispositivo ha sido bloqueado por el administrador.</string>
     <string name="fault_loop_detected">Lo sentimos, la aplicacion encontro un error inrecuperable. Por favor, contacte con su administrador de sistemas.</string>
+    <string name="mqtt_service_text">Las notificaciones push están activas</string>
 </resources>

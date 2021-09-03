@@ -16,6 +16,9 @@
 package org.eclipse.paho.android.service;
 
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -29,7 +32,11 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 
+import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import com.hmdm.launcher.BuildConfig;
+import com.hmdm.launcher.R;
 
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -242,7 +249,16 @@ public class MqttService extends Service implements MqttTraceHandler {
 	// An intent receiver to deal with changes in network connectivity
 	private NetworkConnectionIntentReceiver networkConnectionMonitor;
 
-  //a receiver to recognise when the user changes the "background data" preference
+	// A flag preventing multiple notifications for the foreground service
+    boolean started = false;
+
+    // Notification ID for the foreground service
+    private static final int NOTIFICATION_ID = 113;
+
+    // Channel ID for the foreground service
+    public static String CHANNEL_ID = MqttService.class.getName();
+
+    //a receiver to recognise when the user changes the "background data" preference
   // and a flag to track that preference
   // Only really relevant below android version ICE_CREAM_SANDWICH - see
   // android docs
@@ -676,10 +692,36 @@ public class MqttService extends Service implements MqttTraceHandler {
     // process restarted
 	registerBroadcastReceivers();
 
+	if (BuildConfig.MQTT_SERVICE_FOREGROUND && !started) {
+        startAsForeground();
+        started = true;
+    }
+
     return START_STICKY;
   }
 
-  /**
+    private void startAsForeground() {
+        NotificationCompat.Builder builder;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Notification Channel", NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.createNotificationChannel(channel);
+            builder = new NotificationCompat.Builder(this, CHANNEL_ID);
+        } else {
+            builder = new NotificationCompat.Builder( this );
+        }
+        Notification notification = builder
+                .setContentTitle( getString( R.string.app_name ) )
+                .setTicker( getString( R.string.app_name ) )
+                .setContentText( getString( R.string.mqtt_service_text ) )
+                .setSmallIcon( R.drawable.ic_mqtt_service ).build();
+
+        startForeground(NOTIFICATION_ID, notification );
+    }
+
+
+    /**
    * Identify the callbackId to be passed when making tracing calls back into
    * the Activity
    *

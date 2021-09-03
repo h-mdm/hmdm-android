@@ -22,11 +22,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.SparseArray;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import com.hmdm.launcher.BuildConfig;
 
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
@@ -430,7 +433,9 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 		if (mqttService == null) { // First time - must bind to the service
 			Intent serviceStartIntent = new Intent();
 			serviceStartIntent.setClassName(myContext, SERVICE_NAME);
-			Object service = myContext.startService(serviceStartIntent);
+			Object service = BuildConfig.MQTT_SERVICE_FOREGROUND && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ?
+					myContext.startForegroundService(serviceStartIntent) :
+					myContext.startService(serviceStartIntent);
 			if (service == null) {
 				IMqttActionListener listener = token.getActionCallback();
 				if (listener != null) {

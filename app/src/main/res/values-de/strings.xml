@@ -109,4 +109,5 @@
     <string name="qrcode_contents_error">Ungültiger Inhalt des QR-Codes. Bitte generieren Sie den Bereitstellungs-QR-Code im Webpanel von %s.</string>
     <string name="device_locked">Dieses Gerät wurde vom Administrator gesperrt.</string>
     <string name="fault_loop_detected">Hoppla, der Launcher hat einen nicht behebbaren Fehler! Bitte wenden Sie sich an Ihren Systemadministrator.</string>
+    <string name="mqtt_service_text">Push-Benachrichtigungen sind aktiv</string>
 </resources>

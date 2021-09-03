@@ -108,4 +108,5 @@
     <string name="qrcode_contents_error">Contenu du code QR non valide. Veuillez générer le code QR de provisionnement dans le panneau Web %s.</string>
     <string name="device_locked">Cet appareil a été verrouillé par l\'administrateur.</string>
     <string name="fault_loop_detected">Oups, le lanceur a eu une faute irrémédiable! Veuillez contacter votre administrateur système.</string>
+    <string name="mqtt_service_text">Les notifications push sont actives</string>
 </resources>

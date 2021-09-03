@@ -466,7 +466,7 @@ public class MainActivity
             e.printStackTrace();
 
             // Repeat an attempt to start services after one second
-            new Handler().postDelayed(new Runnable() {
+            handler.postDelayed(new Runnable() {
                 public void run() {
                     try {
                         startServices();
@@ -1104,7 +1104,7 @@ public class MainActivity
             e.printStackTrace();
 
             // Repeat an attempt to start service after one second
-            new Handler().postDelayed(new Runnable() {
+            handler.postDelayed(new Runnable() {
                 public void run() {
                     try {
                         startLocationService();
@@ -1141,7 +1141,8 @@ public class MainActivity
 
     @Override
     public void onConfigUpdateNetworkError() {
-        if (ProUtils.isKioskModeRunning(this)) {
+        if (ProUtils.isKioskModeRunning(this) && settingsHelper.getConfig() != null &&
+                !getPackageName().equals(settingsHelper.getConfig().getMainApp())) {
             interruptResumeFlow = true;
             Intent restoreLauncherIntent = new Intent(MainActivity.this, MainActivity.class);
             restoreLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
@@ -1488,7 +1489,12 @@ public class MainActivity
                     Log.e(Const.LOG_TAG, "Kiosk mode failed, proceed with the default flow");
                 }
             } else {
-                Log.e(Const.LOG_TAG, "Kiosk mode disabled: please setup the main app!");
+                if (kioskApp.equals(getPackageName()) && ProUtils.isKioskModeRunning(this)) {
+                    // Here we go if the configuration is changed when launcher is in the kiosk mode
+                    ProUtils.updateKioskAllowedApps(kioskApp, this, false);
+                } else {
+                    Log.e(Const.LOG_TAG, "Kiosk mode disabled: please setup the main app!");
+                }
             }
         } else {
             if (ProUtils.isKioskModeRunning(this)) {
@@ -1498,6 +1504,7 @@ public class MainActivity
             }
         }
 
+        // TODO: Somehow binding is null here which causes a crash. Not sure why this could happen.
         if ( config.getBackgroundColor() != null ) {
             try {
                 binding.activityMainContentWrapper.setBackgroundColor(Color.parseColor(config.getBackgroundColor()));
@@ -1717,7 +1724,6 @@ public class MainActivity
         if (applicationsForRun.size() == 0) {
             return;
         }
-        Handler handler = new Handler();
         int pause = PAUSE_BETWEEN_AUTORUNS_SEC;
         while (applicationsForRun.size() > 0) {
             final Application application = applicationsForRun.get(0);
@@ -2294,7 +2300,7 @@ public class MainActivity
             LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_STOP_CONTROL));
         }
         // Delayed start prevents the race of ENABLE_SETTINGS handle and tapping "Next" button
-        new Handler().postDelayed(new Runnable() {
+        handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 createAndShowSystemSettingDialog(message, settingsIntent, requestCode);
@@ -2329,7 +2335,7 @@ public class MainActivity
                 // This is not necessary: the problem is resolved by clicking "Continue" in a popup window
                 /*LocalBroadcastManager.getInstance( MainActivity.this ).sendBroadcast( new Intent( Const.ACTION_ENABLE_SETTINGS ) );
                 // Open settings with a slight delay so Broadcast would certainly be handled
-                new Handler().postDelayed(new Runnable() {
+                handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         startActivity(settingsIntent);

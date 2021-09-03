@@ -92,6 +92,10 @@ public class ConfigUpdater {
         }
     }
 
+    public static void forceConfigUpdate(final Context context) {
+        new ConfigUpdater().updateConfig(context, null, false);
+    }
+
     public void updateConfig(final Context context, final UINotifier uiNotifier, final boolean abortOnError) {
         if ( configInitializing ) {
             Log.i(Const.LOG_TAG, "updateConfig(): configInitializing=true, exiting");

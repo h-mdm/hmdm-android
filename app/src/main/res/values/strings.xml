@@ -111,4 +111,5 @@
     <string name="qrcode_contents_error">Invalid QR code contents. Please generate the provisioning QR code in the %s web panel.</string>
     <string name="device_locked">This device has been locked by the administrator.</string>
     <string name="fault_loop_detected">Oops, the launcher got an unrecoverable fault! Please contact your system administrator.</string>
+    <string name="mqtt_service_text">Push notifications are active</string>
 </resources>

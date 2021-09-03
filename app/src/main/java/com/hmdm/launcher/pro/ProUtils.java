@@ -90,6 +90,11 @@ public class ProUtils {
         return false;
     }
 
+    // Update app list in the kiosk mode
+    public static void updateKioskAllowedApps(String kioskApp, Activity activity, boolean enableSettings) {
+        // Stub
+    }
+
     public static void unlockKiosk(Activity activity) {
         // Stub
     }
