@@ -389,12 +389,21 @@ public class MainActivity
         settingsHelper.setMainActivityRunning(true);
     }
 
-    @Override
-    protected void onSaveInstanceState( Bundle outState ) {
-        int orientation = getResources().getConfiguration().orientation;
-        outState.putInt( Const.ORIENTATION, orientation );
+    // On some Android firmwares, onResume is called before onCreate, so the fields are not initialized
+    // Here we initialize all required fields to avoid crash at startup
+    private void reinitApp() {
+        if (binding == null) {
+            binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+            binding.setMessage(getString(R.string.main_start_preparations));
+            binding.setLoading(true);
+        }
 
-        super.onSaveInstanceState( outState );
+        if (settingsHelper == null) {
+            settingsHelper = SettingsHelper.getInstance(this);
+        }
+        if (preferences == null) {
+            preferences = getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE);
+        }
     }
 
     @Override
@@ -420,11 +429,9 @@ public class MainActivity
 
         isBackground = false;
 
-        // Protection against NPE crash (why it could become null?!)
-        if (preferences == null) {
-            settingsHelper = SettingsHelper.getInstance(this);
-            preferences = getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE);
-        }
+        // On some Android firmwares, onResume is called before onCreate, so the fields are not initialized
+        // Here we initialize all required fields to avoid crash at startup
+        reinitApp();
 
         // Lock orientation of progress activity to avoid hangups on rotation while initial configuration
         setRequestedOrientation(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ?
@@ -636,7 +643,7 @@ public class MainActivity
         preferences.edit().putInt(Const.PREFERENCES_DEVICE_OWNER, deviceOwner ?
             Const.PREFERENCES_ON : Const.PREFERENCES_OFF).commit();
         if (deviceOwner) {
-            Utils.autoGrantRequestedPermissions(this, getPackageName());
+            Utils.autoGrantRequestedPermissions(this, getPackageName(), true);
         }
 
         int miuiPermissionMode = preferences.getInt(Const.PREFERENCES_MIUI_PERMISSIONS, -1);

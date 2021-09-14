@@ -19,6 +19,7 @@
 
 package com.hmdm.launcher.util;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -69,13 +70,37 @@ public class Utils {
 
     // Automatically get dangerous permissions
     @TargetApi(Build.VERSION_CODES.M)
-    public static boolean autoGrantRequestedPermissions(Context context, String packageName) {
+    public static boolean autoGrantRequestedPermissions(Context context, String packageName, boolean forceSdCardPermissions) {
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(
                 Context.DEVICE_POLICY_SERVICE);
         ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
 
         try {
             List<String> permissions = getRuntimePermissions(context.getPackageManager(), packageName);
+
+            // Some devices do not include SD card permissions in the list of runtime permissions
+            // So the files could not be read or written.
+            // Here we add SD card permissions manually (device owner can grant them!)
+            // This is done for the Headwind MDM launcher only
+            if (forceSdCardPermissions) {
+                boolean hasReadExtStorage = false;
+                boolean hasWriteExtStorage = false;
+                for (String s : permissions) {
+                    if (s.equals(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                        hasReadExtStorage = true;
+                    }
+                    if (s.equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                        hasWriteExtStorage = true;
+                    }
+                }
+                if (!hasReadExtStorage) {
+                    permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+                }
+                if (!hasWriteExtStorage) {
+                    permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                }
+            }
+
             for (String permission : permissions) {
                 if (devicePolicyManager.getPermissionGrantState(adminComponentName,
                         packageName, permission) != PERMISSION_GRANT_STATE_GRANTED) {

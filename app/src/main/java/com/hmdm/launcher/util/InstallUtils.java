@@ -368,6 +368,8 @@ public class InstallUtils {
             Log.i(Const.LOG_TAG, "Installation session committed");
 
         } catch (Exception e) {
+            Log.w(Const.LOG_TAG, "PackageInstaller error: " + e.getMessage());
+            e.printStackTrace();
             errorHandler.onInstallError();
         }
     }

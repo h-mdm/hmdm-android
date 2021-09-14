@@ -596,8 +596,10 @@ public class ConfigUpdater {
                         applicationStatus.application = application;
                         File file = null;
                         try {
+                            Log.d(Const.LOG_TAG, "URL: " + application.getUrl());
                             file = new File(new URL(application.getUrl()).toURI());
                             if (file != null) {
+                                Log.d(Const.LOG_TAG, "Path: " + file.getAbsolutePath());
                                 if (uiNotifier != null) {
                                     uiNotifier.onAppInstalling(application);
                                 }
@@ -786,7 +788,7 @@ public class ConfigUpdater {
                                     if (Utils.isDeviceOwner(context)) {
                                         // Always grant all dangerous rights to the app
                                         // TODO: in the future, the rights must be configurable on the server
-                                        Utils.autoGrantRequestedPermissions(context, packageName);
+                                        Utils.autoGrantRequestedPermissions(context, packageName, false);
                                     }
                                     if (BuildConfig.SYSTEM_PRIVILEGES && packageName.equals(Const.APUPPET_PACKAGE_NAME)) {
                                         // Automatically grant required permissions to aPuppet if we can
