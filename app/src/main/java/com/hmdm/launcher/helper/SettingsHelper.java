@@ -52,6 +52,7 @@ public class SettingsHelper {
     private static final String PREF_QR_PROVISIONING = ".helpers.QR_PROVISIONING";
     private static final String PREF_CFG_UPDATE_TIMESTAMP = ".helpers.CFG_UPDATE_TIMESTAMP";
     private static final String PREF_KEY_ACTIVITY_RUNNING = ".helpers.ACTIVITY_RUNNING";
+    private static final String PREF_KEY_RESTORE_LAUNCHER = ".helpers.NEED_LAUNCHER_RESET";
     // This prefix is for the compatibility with a legacy package name
     private static String PACKAGE_NAME;
 
@@ -161,6 +162,14 @@ public class SettingsHelper {
 
     public boolean setMainActivityRunning(boolean running) {
         return sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_KEY_ACTIVITY_RUNNING, running ).commit();
+    }
+
+    public boolean isRestoreLauncher() {
+        return sharedPreferences.getBoolean(PACKAGE_NAME + PREF_KEY_RESTORE_LAUNCHER, false);
+    }
+
+    public boolean setRestoreLauncher(boolean restore) {
+        return sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_KEY_RESTORE_LAUNCHER, restore ).commit();
     }
 
     public long getConfigUpdateTimestamp() {

@@ -47,8 +47,8 @@
     <string name="dialog_network_error_title">Error conectando a %s. Por favor, verifique la coneccion a Internet y reintente.</string>
     <string name="main_activity_update_config">Solicitando archivo de configuracion desde el servidor</string>
     <string name="main_activity_applications_update">Actualizando aplicaciones</string>
-    <string name="dialog_overlay_settings_title">Por favor, permita sobreponerse sobre ventanas. La pantalla de configuracion sera abierta ahora. Verifique que \"%s\" este, permita sobreponer sobre otras ventanas, y presione \"Atras\". Si no puede encontrar la configuracion, presione \"Omitir\" (¡la aplicacion podria no funcionar correctamente!)</string>
-    <string name="dialog_history_settings_title">Please allow the app to use history. A settings sheet will now be opened. Find the \"%s\" item, allow access to the app history, and tap \"Back\". If you can\'t find the setting, tap \"Skip\" (the app may not work as expected!)</string>
+    <string name="dialog_overlay_settings_title">Permita que la aplicación se dibuje sobre otras ventanas.\n\nEsta opción habilita la salida de emergencia del modo quiosco.\n\nToca \"Continuar\" para abrir una hoja de configuración. Busque el elemento \"%s\", conceda el permiso y toque \"Atrás\".</string>
+    <string name="dialog_history_settings_title">Permita que la aplicación acceda a los datos de uso.\n\nEsta opción habilita el control de aplicaciones y configuraciones.\n\nEsta opción puede hacer que la batería se agote más rápido. Para ahorrar batería, omita esta opción (utilice los servicios de accesibilidad o el modo quiosco).\n\nToca \"Continuar\" para abrir una hoja de configuración. Busque el elemento \"%s\", conceda el permiso y toque \"Atrás\".</string>
     <string name="dialog_history_settings_continue">Continuar</string>
     <string name="dialog_history_settings_skip">Omitir</string>
     <string name="dialog_unknown_sources_title">Por favor, permita la instalacion desde fuentes desconocidas. La pantalla de configuracion sera abierta ahora. Encuentre la opcion \"Fuentes Desconocidas\", permita la instalacion y presione \"Atras\".</string>

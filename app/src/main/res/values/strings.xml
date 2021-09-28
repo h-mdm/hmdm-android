@@ -49,8 +49,8 @@
     <string name="dialog_network_error_title">Error connecting to %s. Please check the Internet connection and try again.</string>
     <string name="main_activity_update_config">Requesting configuration file from server</string>
     <string name="main_activity_applications_update">Updating applications</string>
-    <string name="dialog_overlay_settings_title">Please allow the app to draw over other windows. A settings sheet will now be opened. Find the \"%s\" item, allow to draw over other windows, and tap \"Back\". If you can\'t find the setting, tap \"Skip\" (the app may not work as expected!)</string>
-    <string name="dialog_history_settings_title">Please allow the app to use history. A settings sheet will now be opened. Find the \"%s\" item, allow access to the app history, and tap \"Back\". If you can\'t find the setting, tap \"Skip\" (the app may not work as expected!)</string>
+    <string name="dialog_overlay_settings_title">Please allow the app to draw over other windows.\n\nThis option enables emergency unlocking the kiosk mode.\n\nTap \"Continue\" to open a settings sheet. Find the \"%s\" item, grant the permission, and tap \"Back\".</string>
+    <string name="dialog_history_settings_title">Please allow the app to access usage data.\n\nThis option enables control of apps and settings.\n\nThis option may cause faster battery drain. To save battery, skip this option (use accessibility services or kiosk mode instead).\n\nTap \"Continue\" to open a settings sheet. Find the \"%s\" item, grant the permission, and tap \"Back\".</string>
     <string name="dialog_history_settings_continue">Continue</string>
     <string name="dialog_history_settings_skip">Skip</string>
     <string name="dialog_unknown_sources_title">Please allow installation from unknown sources. A settings sheet will now open. Find \"Unknown sources\", allow the installation and click \"Back\".</string>

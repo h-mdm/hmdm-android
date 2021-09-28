@@ -612,7 +612,7 @@ public class MainActivity
 
     private void setDefaultLauncherEarly() {
         ServerConfig config = SettingsHelper.getInstance(this).getConfig();
-        if (config == null && Utils.isDeviceOwner(this)) {
+        if (BuildConfig.SET_DEFAULT_LAUNCHER_EARLY && config == null && Utils.isDeviceOwner(this)) {
             // At first start, temporarily set Headwind MDM as a default launcher
             // to prevent the user from clicking Home to stop running Headwind MDM
             String defaultLauncher = Utils.getDefaultLauncher(this);
@@ -709,7 +709,7 @@ public class MainActivity
         }
 
         int overlayMode = preferences.getInt( Const.PREFERENCES_OVERLAY, - 1 );
-        if ( overlayMode == -1 ) {
+        if (ProUtils.isPro() && overlayMode == -1) {
             if ( checkAlarmWindow() ) {
                 preferences.
                         edit().
@@ -721,7 +721,7 @@ public class MainActivity
         }
 
         int usageStatisticsMode = preferences.getInt( Const.PREFERENCES_USAGE_STATISTICS, - 1 );
-        if (!BuildConfig.FLAVOR.equals("opensource") && usageStatisticsMode == -1) {
+        if (ProUtils.isPro() && usageStatisticsMode == -1) {
             if ( checkUsageStatistics() ) {
                 preferences.
                         edit().
@@ -739,7 +739,7 @@ public class MainActivity
         }
 
         int accessibilityService = preferences.getInt( Const.PREFERENCES_ACCESSIBILITY_SERVICE, - 1 );
-        if (!BuildConfig.FLAVOR.equals("opensource") && accessibilityService == -1) {
+        if (ProUtils.isPro() && accessibilityService == -1) {
             if ( checkAccessibilityService() ) {
                 preferences.
                         edit().
@@ -925,7 +925,7 @@ public class MainActivity
     }
 
     private boolean checkAlarmWindow() {
-        if (!Utils.canDrawOverlays(this)) {
+        if (ProUtils.isPro() && !Utils.canDrawOverlays(this)) {
             createAndShowOverlaySettingsDialog();
             return false;
         } else {

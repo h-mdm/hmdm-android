@@ -672,6 +672,15 @@ public class Utils {
     }
 
     public static String getDefaultLauncher(Context context) {
+        ActivityInfo defaultLauncherInfo = getDefaultLauncherInfo(context);
+        if (defaultLauncherInfo != null) {
+            return defaultLauncherInfo.packageName;
+        } else {
+            return null;
+        }
+    }
+
+    public static ActivityInfo getDefaultLauncherInfo(Context context) {
         PackageManager localPackageManager = context.getPackageManager();
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_HOME);
@@ -680,7 +689,7 @@ public class Utils {
         if (info == null || info.activityInfo == null) {
             return null;
         }
-        return info.activityInfo.packageName;
+        return info.activityInfo;
     }
 
     public static boolean isServiceRunning(Context context, Class<?> serviceClass) {
@@ -720,7 +729,6 @@ public class Utils {
         filter.addCategory(Intent.CATEGORY_HOME);
         filter.addCategory(Intent.CATEGORY_DEFAULT);
 
-        ComponentName activity = new ComponentName(context, MainActivity.class);
         setPreferredActivity(context, filter, null, "Reset default launcher");
     }
 

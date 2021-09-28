@@ -36,8 +36,8 @@ android {
         applicationId "com.hmdm.launcher"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 207
-        versionName "4.07"
+        versionCode 208
+        versionName "4.08"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true
@@ -84,6 +84,9 @@ android {
         buildConfigField("Boolean", "ENABLE_KIOSK_WITHOUT_OVERLAYS", "false")
         // Foreground service for MQTT: prevents OS from killing MQTT service on weak devices
         buildConfigField("Boolean", "MQTT_SERVICE_FOREGROUND", "true")
+        // Set Headwind MDM to default launcher at early time of the first start
+        // to prevent the user from clicking Home and stop initializing Headwind MDM
+        buildConfigField("Boolean", "SET_DEFAULT_LAUNCHER_EARLY", "false")
     }
     buildTypes {
         release {

@@ -195,9 +195,9 @@ public class DeviceInfoProvider {
                 DeviceInfo.Location location = new DeviceInfo.Location();
 
                 Location lastLocation;
-                if (lastLocationGps == null) {
+                if (lastLocationGps == null || (lastLocationGps.getLatitude() == 0 && lastLocationGps.getLongitude() == 0)) {
                     lastLocation = lastLocationNetwork;
-                } else if (lastLocationNetwork == null) {
+                } else if (lastLocationNetwork == null || (lastLocationNetwork.getLatitude() == 0 && lastLocationNetwork.getLongitude() == 0)) {
                     lastLocation = lastLocationGps;
                 } else {
                     // Get the latest location as the best one
@@ -206,6 +206,10 @@ public class DeviceInfoProvider {
                     } else {
                         lastLocation = lastLocationNetwork;
                     }
+                }
+
+                if (lastLocation.getLatitude() == 0 && lastLocation.getLongitude() == 0) {
+                    return null;
                 }
 
                 location.setLat(lastLocation.getLatitude());

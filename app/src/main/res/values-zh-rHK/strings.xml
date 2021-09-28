@@ -47,8 +47,8 @@
 	<string name="dialog_network_error_title">連接到%s時出錯。請檢查互聯網連接，然後重試。</string>
 	<string name="main_activity_update_config">從服務器請求配置文件</string>
 	<string name="main_activity_applications_update">更新應用程序</string>
-	<string name="dialog_overlay_settings_title">請允許該應用在其他窗口上繪製。現在將打開一個設置表。找到\"%s\"項，允許在其他窗口上繪製，然後點擊\" Back \"。如果找不到設置，請點擊“跳過”（該應用程序可能無法正常運行！）</string>
-	<string name="dialog_history_settings_title">請允許該應用使用歷史記錄。現在將打開一個設置表。找到\"%s\"項，允許訪問應用程序歷史記錄，然後點擊\" Back \"。如果找不到設置，請點擊“跳過”（該應用程序可能無法正常運行！）</string>
+	<string name="dialog_overlay_settings_title">請允許應用程序在其他窗口上繪製。\n\n此選項可啟用自助服務終端模式的緊急出口。\n\n點按“繼續”以打開設置表。 找到\"%s\" 項，授予權限，然後點擊\"返回\"。</string>
+	<string name="dialog_history_settings_title">請允許該應用訪問使用數據。\n\n此選項啟用對應用程序和設置的控制。\n\n此選項可能會導致更快的電池消耗。 要節省電池電量，請跳過此選項（改用無障礙服務或信息亭模式）。\n\n點按“繼續”以打開設置表。 找到\"%s\" 項，授予權限，然後點擊\"返回\"。</string>
 	<string name="dialog_history_settings_continue">繼續</string>
 	<string name="dialog_history_settings_skip">跳下一步</string>
 	<string name="dialog_unknown_sources_title">請允許從未知來源進行安裝。現在將打開一個設置表。找到“未知來源”，允許安裝，然後單擊“上一步”。</string>

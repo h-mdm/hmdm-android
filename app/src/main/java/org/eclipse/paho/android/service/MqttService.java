@@ -36,7 +36,10 @@ import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.hmdm.launcher.BuildConfig;
+import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
+import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.util.PushNotificationMqttWrapper;
 
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -696,6 +699,22 @@ public class MqttService extends Service implements MqttTraceHandler {
         startAsForeground();
         started = true;
     }
+
+      SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
+      if (intent.getBooleanExtra(MqttAndroidClient.EXTRA_START_AT_BOOT, false)) {
+          try {
+              String domain = intent.getStringExtra(MqttAndroidClient.EXTRA_DOMAIN);
+              String pushType = intent.getStringExtra(MqttAndroidClient.EXTRA_PUSH_OPTIONS);
+              int keepaliveTime = intent.getIntExtra(MqttAndroidClient.EXTRA_KEEPALIVE_TIME, Const.DEFAULT_PUSH_ALARM_KEEPALIVE_TIME_SEC);
+              String deviceId = intent.getStringExtra(MqttAndroidClient.EXTRA_DEVICE_ID);
+
+              PushNotificationMqttWrapper.getInstance().connect(this,
+                      domain, BuildConfig.MQTT_PORT, pushType, keepaliveTime, deviceId,
+                      null,null);
+          } catch (Exception e) {
+              e.printStackTrace();
+          }
+      }
 
     return START_STICKY;
   }
