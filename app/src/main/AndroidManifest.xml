@@ -52,7 +52,7 @@
 
     <application
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="@string/white_app_name"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme"
@@ -84,7 +84,7 @@
 
         <receiver
             android:name="com.hmdm.launcher.AdminReceiver"
-            android:label="@string/app_name"
+            android:label="@string/white_app_name"
             android:permission="android.permission.BIND_DEVICE_ADMIN">
             <meta-data
                 android:name="android.app.device_admin"
@@ -143,7 +143,7 @@
 
         <service android:name=".pro.service.CheckForegroundAppAccessibilityService"
                  android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-                 android:label="@string/app_name">
+                 android:label="@string/white_app_name">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>

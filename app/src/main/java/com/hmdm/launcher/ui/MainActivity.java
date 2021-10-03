@@ -796,7 +796,7 @@ public class MainActivity
                 null,
                 false );
         dialogAccessibilityServiceBinding.hint.setText(
-                getString(R.string.dialog_accessibility_service_message, getString(R.string.app_name)));
+                getString(R.string.dialog_accessibility_service_message, getString(R.string.white_app_name)));
         accessibilityServiceDialog.setCancelable( false );
         accessibilityServiceDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
 
@@ -845,7 +845,7 @@ public class MainActivity
                     !BuildConfig.ENABLE_KIOSK_WITHOUT_OVERLAYS) {
                 RemoteLogger.log(this, Const.LOG_WARN, "Kiosk mode disabled: no permission to draw over other windows.");
                 Toast.makeText(this, getString(R.string.kiosk_mode_requires_overlays,
-                        getString(R.string.app_name)), Toast.LENGTH_LONG).show();
+                        getString(R.string.white_app_name)), Toast.LENGTH_LONG).show();
                 config.setKioskMode(false);
                 settingsHelper.updateConfig(config);
                 createLauncherButtons();
@@ -1839,7 +1839,7 @@ public class MainActivity
                 null,
                 false );
         dialogAdministratorModeBinding.hint.setText(
-                getString(R.string.dialog_administrator_mode_message, getString(R.string.app_name)));
+                getString(R.string.dialog_administrator_mode_message, getString(R.string.white_app_name)));
         administratorModeDialog.setCancelable( false );
         administratorModeDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
 
@@ -1916,7 +1916,7 @@ public class MainActivity
                 null,
                 false );
         dialogHistorySettingsBinding.hint.setText(
-                getString(R.string.dialog_history_settings_title, getString(R.string.app_name)));
+                getString(R.string.dialog_history_settings_title, getString(R.string.white_app_name)));
         historySettingsDialog.setCancelable( false );
         historySettingsDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
 
@@ -1949,7 +1949,7 @@ public class MainActivity
                 null,
                 false );
         dialogOverlaySettingsBinding.hint.setText(
-                getString(R.string.dialog_overlay_settings_title, getString(R.string.app_name)));
+                getString(R.string.dialog_overlay_settings_title, getString(R.string.white_app_name)));
         overlaySettingsDialog.setCancelable( false );
         overlaySettingsDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
 
@@ -2040,7 +2040,7 @@ public class MainActivity
         if (configFault) {
             Log.i(Const.LOG_TAG, "networkErrorCancelClicked(): no configuration available, quit");
             Toast.makeText(this, getString(R.string.critical_server_failure,
-                    getString(R.string.app_name)), Toast.LENGTH_LONG).show();
+                    getString(R.string.white_app_name)), Toast.LENGTH_LONG).show();
             finish();
             return;
         }

@@ -39,6 +39,7 @@ import androidx.core.app.NotificationCompat;
 
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
+import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.util.RemoteLogger;
 
 public class LocationService extends Service {
@@ -119,8 +120,8 @@ public class LocationService extends Service {
             builder = new NotificationCompat.Builder( this );
         }
         Notification notification = builder
-                .setContentTitle( getString( R.string.app_name ) )
-                .setTicker( getString( R.string.app_name ) )
+                .setContentTitle(ProUtils.getAppName(this))
+                .setTicker(ProUtils.getAppName(this))
                 .setContentText( getString( R.string.location_service_text ) )
                 .setSmallIcon( R.drawable.ic_location_service ).build();
 

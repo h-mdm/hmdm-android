@@ -18,9 +18,10 @@
   -->
 
 <resources>
+    <string name="white_app_name" translatable="false">MDM Agent</string>
     <string name="app_name" translatable="false">Headwind MDM</string>
     <string name="admin_title">Administrator</string>
-    <string name="vendor" translatable="false">(c) 2021 h-mdm.com</string>
+    <string name="vendor" translatable="false">h-mdm.com</string>
     <string name="install_error">Error installing </string>
     <string name="dialog_enter_device_id_error">This ID is not registered at %s. Get the ID from \"Devices\" tab of the control panel.</string>
     <string name="dialog_enter_device_id_qrcode">QR code</string>
@@ -49,7 +50,7 @@
     <string name="dialog_network_error_title">Error connecting to %s. Please check the Internet connection and try again.</string>
     <string name="main_activity_update_config">Requesting configuration file from server</string>
     <string name="main_activity_applications_update">Updating applications</string>
-    <string name="dialog_overlay_settings_title">Please allow the app to draw over other windows.\n\nThis option enables emergency unlocking the kiosk mode.\n\nTap \"Continue\" to open a settings sheet. Find the \"%s\" item, grant the permission, and tap \"Back\".</string>
+    <string name="dialog_overlay_settings_title">Please allow the app to draw over other windows.\n\nThis option helps better blocking unwanted apps, and enables emergency unlocking the kiosk mode.\n\nTap \"Continue\" to open a settings sheet. Find the \"%s\" item, grant the permission, and tap \"Back\".</string>
     <string name="dialog_history_settings_title">Please allow the app to access usage data.\n\nThis option enables control of apps and settings.\n\nThis option may cause faster battery drain. To save battery, skip this option (use accessibility services or kiosk mode instead).\n\nTap \"Continue\" to open a settings sheet. Find the \"%s\" item, grant the permission, and tap \"Back\".</string>
     <string name="dialog_history_settings_continue">Continue</string>
     <string name="dialog_history_settings_skip">Skip</string>

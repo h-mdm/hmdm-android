@@ -94,6 +94,9 @@ public class ServerConfig {
 
     private boolean showWifi;
 
+    private String appName;
+    private String vendor;
+
     private List<Application> applications = new LinkedList();
 
     private List<ApplicationSetting> applicationSettings = new LinkedList();
@@ -523,6 +526,22 @@ public class ServerConfig {
 
     public void setShowWifi(boolean showWifi) {
         this.showWifi = showWifi;
+    }
+
+    public String getAppName() {
+        return appName;
+    }
+
+    public void setAppName(String appName) {
+        this.appName = appName;
+    }
+
+    public String getVendor() {
+        return vendor;
+    }
+
+    public void setVendor(String vendor) {
+        this.vendor = vendor;
     }
 
     public String getRestrictions() {

@@ -230,7 +230,7 @@ public class BaseActivity extends AppCompatActivity {
             Log.w(Const.LOG_TAG, "Invalid QR code contents, got an exception!");
             e.printStackTrace();
             Toast.makeText(this, getString(R.string.qrcode_contents_error,
-                    getString(R.string.app_name)), Toast.LENGTH_LONG).show();
+                    getString(R.string.white_app_name)), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -416,7 +416,7 @@ public class BaseActivity extends AppCompatActivity {
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-        startActivity(Intent.createChooser(intent, getString(R.string.select_system_launcher, getString(R.string.app_name))));
+        startActivity(Intent.createChooser(intent, getString(R.string.select_system_launcher, getString(R.string.white_app_name))));
     }
 
 }

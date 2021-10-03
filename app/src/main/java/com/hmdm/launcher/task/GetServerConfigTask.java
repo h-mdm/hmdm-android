@@ -89,9 +89,12 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         try {
             ServerConfig serverConfig = null;
             if (createOptions == null) {
-                serverConfig = BuildConfig.CHECK_SIGNATURE ? getServerConfigSecure(deviceId, signature) : getServerConfigPlain(deviceId, signature);
+                serverConfig = BuildConfig.CHECK_SIGNATURE ?
+                        getServerConfigSecure(deviceId, signature) :
+                        getServerConfigPlain(deviceId, signature);
             } else {
-                serverConfig = BuildConfig.CHECK_SIGNATURE ? createAndGetServerConfigSecure(deviceId, createOptions, signature) :
+                serverConfig = BuildConfig.CHECK_SIGNATURE ?
+                        createAndGetServerConfigSecure(deviceId, createOptions, signature) :
                         createAndGetServerConfigPlain(deviceId, createOptions, signature);
             }
 
@@ -124,6 +127,8 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
                         settingsHelper.updateConfig(settingsHelper.getConfig());
                 }
 
+                ProUtils.processConfig(context, serverConfig);
+
                 return Const.TASK_SUCCESS;
             } else {
                 return Const.TASK_ERROR;
@@ -138,15 +143,15 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
     private ServerConfig getServerConfigPlain(String deviceId, String signature) throws Exception {
         Response<ServerConfigResponse> response = null;
         try {
-            response = serverService.
-                    getServerConfig(settingsHelper.getServerProject(), deviceId, signature, Build.CPU_ABI).execute();
+            response = serverService.getServerConfig(settingsHelper.getServerProject(),
+                    deviceId, signature, Build.CPU_ABI).execute();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         if (response == null) {
-            response = secondaryServerService.
-                    getServerConfig(settingsHelper.getServerProject(), deviceId, signature, Build.CPU_ABI).execute();
+            response = secondaryServerService.getServerConfig(settingsHelper.getServerProject(),
+                    deviceId, signature, Build.CPU_ABI).execute();
         }
 
         if (response.isSuccessful() && Const.STATUS_OK.equals(response.body().getStatus()) && response.body().getData() != null) {
@@ -162,15 +167,15 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         Response<ResponseBody> response = null;
 
         try {
-            response = serverService.
-                    getRawServerConfig(settingsHelper.getServerProject(), deviceId, signature, Build.CPU_ABI).execute();
+            response = serverService.getRawServerConfig(settingsHelper.getServerProject(),
+                    deviceId, signature, Build.CPU_ABI).execute();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         if (response == null) {
-            response = secondaryServerService.
-                    getRawServerConfig(settingsHelper.getServerProject(), deviceId, signature, Build.CPU_ABI).execute();
+            response = secondaryServerService.getRawServerConfig(settingsHelper.getServerProject(),
+                    deviceId, signature, Build.CPU_ABI).execute();
         }
 
         if (response.isSuccessful()) {
@@ -203,18 +208,19 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
     }
 
     // Apply extra device creation options (need to be used only at first start when config=null!)
-    private ServerConfig createAndGetServerConfigPlain(String deviceId, DeviceCreateOptions createOptions, String signature) throws Exception {
+    private ServerConfig createAndGetServerConfigPlain(String deviceId, DeviceCreateOptions createOptions,
+                                                       String signature) throws Exception {
         Response<ServerConfigResponse> response = null;
         try {
-            response = serverService.
-                    createAndGetServerConfig(settingsHelper.getServerProject(), deviceId, signature, Build.CPU_ABI, createOptions).execute();
+            response = serverService.createAndGetServerConfig(settingsHelper.getServerProject(),
+                    deviceId, signature, Build.CPU_ABI, createOptions).execute();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         if (response == null) {
-            response = secondaryServerService.
-                    createAndGetServerConfig(settingsHelper.getServerProject(), deviceId, signature, Build.CPU_ABI, createOptions).execute();
+            response = secondaryServerService.createAndGetServerConfig(settingsHelper.getServerProject(),
+                    deviceId, signature, Build.CPU_ABI, createOptions).execute();
         }
 
         if (response.isSuccessful() && Const.STATUS_OK.equals(response.body().getStatus()) && response.body().getData() != null) {
@@ -227,19 +233,23 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
     // Check server signature before accepting server response
     // This is an additional protection against Man-In-The-Middle attacks
     // Apply extra device creation options (need to be used only at first start when config=null!)
-    private ServerConfig createAndGetServerConfigSecure(String deviceId, DeviceCreateOptions createOptions, String signature) throws Exception {
+    private ServerConfig createAndGetServerConfigSecure(String deviceId,
+                                                        DeviceCreateOptions createOptions,
+                                                        String signature) throws Exception {
         Response<ResponseBody> response = null;
 
         try {
             response = serverService.
-                    createAndGetRawServerConfig(settingsHelper.getServerProject(), deviceId, signature, Build.CPU_ABI, createOptions).execute();
+                    createAndGetRawServerConfig(settingsHelper.getServerProject(),
+                            deviceId, signature, Build.CPU_ABI, createOptions).execute();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         if (response == null) {
             response = secondaryServerService.
-                    createAndGetRawServerConfig(settingsHelper.getServerProject(), deviceId, signature, Build.CPU_ABI, createOptions).execute();
+                    createAndGetRawServerConfig(settingsHelper.getServerProject(),
+                            deviceId, signature, Build.CPU_ABI, createOptions).execute();
         }
 
         if (response.isSuccessful()) {

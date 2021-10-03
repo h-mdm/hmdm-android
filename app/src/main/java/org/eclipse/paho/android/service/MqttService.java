@@ -39,6 +39,7 @@ import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.util.PushNotificationMqttWrapper;
 
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
@@ -731,10 +732,10 @@ public class MqttService extends Service implements MqttTraceHandler {
             builder = new NotificationCompat.Builder( this );
         }
         Notification notification = builder
-                .setContentTitle( getString( R.string.app_name ) )
-                .setTicker( getString( R.string.app_name ) )
-                .setContentText( getString( R.string.mqtt_service_text ) )
-                .setSmallIcon( R.drawable.ic_mqtt_service ).build();
+                .setContentTitle(ProUtils.getAppName(this))
+                .setTicker(ProUtils.getAppName(this))
+                .setContentText(getString(R.string.mqtt_service_text))
+                .setSmallIcon(R.drawable.ic_mqtt_service).build();
 
         startForeground(NOTIFICATION_ID, notification );
     }

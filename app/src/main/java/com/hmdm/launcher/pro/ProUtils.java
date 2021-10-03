@@ -23,6 +23,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 
+import com.hmdm.launcher.R;
+import com.hmdm.launcher.json.ServerConfig;
+
+import java.util.Calendar;
+
 /**
  * These functions are available in Pro-version only
  * In a free version, the class contains stubs
@@ -97,5 +102,17 @@ public class ProUtils {
 
     public static void unlockKiosk(Activity activity) {
         // Stub
+    }
+
+    public static void processConfig(Context context, ServerConfig config) {
+        // Stub
+    }
+
+    public static String getAppName(Context context) {
+        return context.getString(R.string.app_name);
+    }
+
+    public static String getCopyright(Context context) {
+        return "(c) " + Calendar.getInstance().get(Calendar.YEAR) + " " + context.getString(R.string.vendor);
     }
 }

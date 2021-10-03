@@ -40,6 +40,7 @@ import com.hmdm.launcher.R;
 import com.hmdm.launcher.databinding.ActivityAdminBinding;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.ServerConfig;
+import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.server.ServerServiceKeeper;
 import com.hmdm.launcher.util.AppInfo;
 import com.hmdm.launcher.util.LegacyUtils;
@@ -72,8 +73,8 @@ public class AdminActivity extends BaseActivity {
                 finish();
             }
         });
-        binding.toolbar.setTitle( R.string.app_name );
-        binding.toolbar.setSubtitle( R.string.vendor );
+        binding.toolbar.setTitle(ProUtils.getAppName(this));
+        binding.toolbar.setSubtitle(ProUtils.getCopyright(this));
 
         // If QR code doesn't contain "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED":true
         // the system launcher is turned off, so it's not possible to exit and we must hide the exit button

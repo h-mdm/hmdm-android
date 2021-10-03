@@ -47,7 +47,7 @@
     <string name="dialog_network_error_title">Erreur de connexion au serveur %s. Veuillez vérifier la connexion Internet et réessayer.</string>
     <string name="main_activity_update_config">Demander le fichier de configuration au serveur</string>
     <string name="main_activity_applications_update">Mise à jour des applications</string>
-    <string name="dialog_overlay_settings_title">Veuillez autoriser l\'app à dessiner sur d\'autres fenêtres.\n\nCette option active la sortie de secours du mode kiosque.\n\nAppuyez sur \"Continuer\" pour ouvrir une feuille de paramètres. Recherchez l\'élément \"%s\", accordez l\'autorisation et appuyez sur \"Retour\".</string>
+    <string name="dialog_overlay_settings_title">Veuillez autoriser l\'app à dessiner sur d\'autres fenêtres.\n\nCette option permet de mieux bloquer les applications indésirables et permet le déverrouillage d\'urgence du mode kiosque.\n\nAppuyez sur \"Continuer\" pour ouvrir une feuille de paramètres. Recherchez l\'élément \"%s\", accordez l\'autorisation et appuyez sur \"Retour\".</string>
     <string name="dialog_history_settings_title">Veuillez autoriser l\'app à accéder aux données d\'utilisation.\n\nCette option permet de contrôler les apps et les paramètres.\n\nCette option peut entraîner une décharge plus rapide de la batterie. Pour économiser la batterie, ignorez cette option (utilisez plutôt les services d\'accessibilité ou le mode kiosque).\n\nAppuyez sur \"Continuer\" pour ouvrir une feuille de paramètres. Recherchez l\'élément \"%s\", accordez l\'autorisation et appuyez sur \"Retour\".</string>
     <string name="dialog_history_settings_continue">Continuer</string>
     <string name="dialog_history_settings_skip">Passer</string>
