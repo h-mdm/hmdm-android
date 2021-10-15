@@ -3,6 +3,7 @@ package com.hmdm.launcher.receiver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Log;
 
@@ -10,12 +11,17 @@ import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.ServerConfig;
-import com.hmdm.launcher.ui.MainActivity;
+import com.hmdm.launcher.pro.service.CheckForegroundAppAccessibilityService;
+import com.hmdm.launcher.pro.service.CheckForegroundApplicationService;
+import com.hmdm.launcher.service.StatusControlService;
+import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.Utils;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 
 import java.net.URL;
+
+import static android.content.Context.MODE_PRIVATE;
 
 public class BootReceiver extends BroadcastReceiver {
     @Override
@@ -84,15 +90,18 @@ public class BootReceiver extends BroadcastReceiver {
             }
         }
 
-        Intent newIntent = new Intent(context, MainActivity.class);
-        newIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        try {
-            context.startActivity(newIntent);
-            Log.i(Const.LOG_TAG, "Starting main activity from BootReceiver");
-        } catch (Exception e) {
-            Log.e(Const.LOG_TAG, "Failed to start main activity!");
-            e.printStackTrace();
+        // Start required services here instead of MainActivity (because it's not running)
+        SharedPreferences preferences = context.getApplicationContext().getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE);
+        // Foreground apps checks are not available in a free version: services are the stubs
+        if (preferences.getInt(Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
+            context.startService(new Intent(context, CheckForegroundApplicationService.class));
         }
+        if (preferences.getInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
+            context.startService(new Intent(context, CheckForegroundAppAccessibilityService.class));
+        }
+        context.startService(new Intent(context, StatusControlService.class));
 
+        // Send pending logs to server
+        RemoteLogger.sendLogsToServer(context);
     }
 }

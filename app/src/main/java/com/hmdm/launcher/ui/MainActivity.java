@@ -1242,16 +1242,21 @@ public class MainActivity
         handler.post(new Runnable() {
             @Override
             public void run() {
-                new AlertDialog.Builder(MainActivity.this)
-                        .setMessage(getString(R.string.install_error) + " " + packageName)
-                        .setPositiveButton(R.string.dialog_administrator_mode_continue, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                configUpdater.repeatDownloadApps();
-                            }
-                        })
-                        .create()
-                        .show();
+                try {
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setMessage(getString(R.string.install_error) + " " + packageName)
+                            .setPositiveButton(R.string.dialog_administrator_mode_continue, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    configUpdater.repeatDownloadApps();
+                                }
+                            })
+                            .create()
+                            .show();
+                } catch (Exception e) {
+                    // Activity closed before showing a dialog, just ignore this exception
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -1496,7 +1501,7 @@ public class MainActivity
                     Log.e(Const.LOG_TAG, "Kiosk mode failed, proceed with the default flow");
                 }
             } else {
-                if (kioskApp.equals(getPackageName()) && ProUtils.isKioskModeRunning(this)) {
+                if (kioskApp != null && kioskApp.equals(getPackageName()) && ProUtils.isKioskModeRunning(this)) {
                     // Here we go if the configuration is changed when launcher is in the kiosk mode
                     ProUtils.updateKioskAllowedApps(kioskApp, this, false);
                 } else {

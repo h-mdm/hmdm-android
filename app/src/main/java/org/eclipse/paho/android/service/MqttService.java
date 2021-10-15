@@ -702,7 +702,7 @@ public class MqttService extends Service implements MqttTraceHandler {
     }
 
       SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
-      if (intent.getBooleanExtra(MqttAndroidClient.EXTRA_START_AT_BOOT, false)) {
+      if (intent != null && intent.getBooleanExtra(MqttAndroidClient.EXTRA_START_AT_BOOT, false)) {
           try {
               String domain = intent.getStringExtra(MqttAndroidClient.EXTRA_DOMAIN);
               String pushType = intent.getStringExtra(MqttAndroidClient.EXTRA_PUSH_OPTIONS);
