@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
+import com.hmdm.launcher.helper.ConfigUpdater;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.pro.service.CheckForegroundAppAccessibilityService;
@@ -103,5 +104,7 @@ public class BootReceiver extends BroadcastReceiver {
 
         // Send pending logs to server
         RemoteLogger.sendLogsToServer(context);
+
+        ConfigUpdater.forceConfigUpdate(context);
     }
 }
