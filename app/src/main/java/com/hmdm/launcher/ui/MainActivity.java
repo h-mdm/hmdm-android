@@ -304,9 +304,16 @@ public class MainActivity
     private View statusBarView;
     private View rightToolbarView;
 
+    private boolean firstStartAfterProvisioning = false;
+
     @Override
     protected void onCreate( Bundle savedInstanceState ) {
         super.onCreate( savedInstanceState );
+
+        Intent intent = getIntent();
+        if (intent != null && "android.app.action.PROVISIONING_SUCCESSFUL".equalsIgnoreCase(intent.getAction())) {
+            firstStartAfterProvisioning = true;
+        }
 
         if (CrashLoopProtection.isCrashLoopDetected(this)) {
             Toast.makeText(MainActivity.this, R.string.fault_loop_detected, Toast.LENGTH_LONG).show();
@@ -445,7 +452,12 @@ public class MainActivity
         }
 
         if (!BuildConfig.SYSTEM_PRIVILEGES) {
-            setDefaultLauncherEarly();
+            if (firstStartAfterProvisioning) {
+                firstStartAfterProvisioning = false;
+                waitForProvisioning(10);
+            } else {
+                setDefaultLauncherEarly();
+            }
         } else {
             setSelfAsDeviceOwner();
         }
@@ -607,6 +619,22 @@ public class MainActivity
                     }
                 }
             }
+        }
+    }
+
+    // AdminReceiver may be called later than onCreate() and onResume()
+    // so the launcher setup and other methods requiring device owner permissions may fail
+    // Here we wait up to 10 seconds until the app gets the device owner permissions
+    private void waitForProvisioning(int attempts) {
+        if (Utils.isDeviceOwner(this) || attempts <= 0) {
+            setDefaultLauncherEarly();
+        } else {
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    waitForProvisioning(attempts - 1);
+                }
+            }, 1000);
         }
     }
 
@@ -1159,7 +1187,7 @@ public class MainActivity
         // Only show the reset button on manual setup at first start (when config is not yet loaded)
         createAndShowNetworkErrorDialog(settingsHelper.getBaseUrl(), settingsHelper.getServerProject(),
                 settingsHelper.getConfig() == null && !settingsHelper.isQrProvisioning(),
-                settingsHelper.getConfig() != null && settingsHelper.getConfig().isShowWifi());
+                settingsHelper.getConfig() == null || (settingsHelper.getConfig() != null && settingsHelper.getConfig().isShowWifi()));
     }
 
     @Override
@@ -1275,6 +1303,13 @@ public class MainActivity
             PreferenceLogger.clearLogString(preferences);
         }
         Log.i(Const.LOG_TAG, "Showing content from setActions()");
+        settingsHelper.refreshConfig(this);         // Avoid NPE in showContent()
+        showContent(settingsHelper.getConfig());
+    }
+
+    @Override
+    public void onAllAppInstallComplete() {
+        Log.i(Const.LOG_TAG, "Refreshing content - new apps installed");
         settingsHelper.refreshConfig(this);         // Avoid NPE in showContent()
         showContent(settingsHelper.getConfig());
     }

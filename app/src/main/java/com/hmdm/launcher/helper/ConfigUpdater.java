@@ -65,6 +65,7 @@ public class ConfigUpdater {
         void onAppInstallError(final String packageName);
         void onAppInstallComplete(final String packageName);
         void onConfigUpdateComplete();
+        void onAllAppInstallComplete();
     };
 
     private boolean configInitializing;
@@ -539,7 +540,7 @@ public class ConfigUpdater {
         configInitializing = false;
 
         ServerConfig config = settingsHelper.getConfig();
-        InstallUtils.generateApplicationsForInstallList(context, config.getApplications(), applicationsForInstall);
+        InstallUtils.generateApplicationsForInstallList(context, config.getApplications(), applicationsForInstall, pendingInstallations);
 
         Log.i(Const.LOG_TAG, "checkAndUpdateApplications(): list size=" + applicationsForInstall.size());
 
@@ -735,11 +736,42 @@ public class ConfigUpdater {
                 if (uiNotifier != null) {
                     uiNotifier.onConfigUpdateComplete();
                 }
+
+                if (pendingInstallations.size() > 0) {
+                    // Some apps are still pending installation
+                    // Let's wait until they're all installed
+                    // Then notify UI about that so it could refresh the screen
+                    waitForInstallComplete();
+                }
+
                 // onConfigUpdateComplete() method contents
                 /*
                 Log.i(Const.LOG_TAG, "Showing content from setActions()");
                 showContent(settingsHelper.getConfig());
                  */
+            }
+        }.execute();
+    }
+
+    private void waitForInstallComplete() {
+        new AsyncTask<Void, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                for (int n = 0; n < 60; n++) {
+                    if (pendingInstallations.size() == 0) {
+                        break;
+                    }
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (uiNotifier != null) {
+                    uiNotifier.onAllAppInstallComplete();
+                }
+                return null;
             }
         }.execute();
     }

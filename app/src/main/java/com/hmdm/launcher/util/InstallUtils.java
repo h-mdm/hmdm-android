@@ -55,6 +55,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -66,19 +67,22 @@ import javax.net.ssl.X509TrustManager;
 public class InstallUtils {
 
     public static void generateApplicationsForInstallList(Context context, List<Application> applications,
-                                                          List<Application> applicationsForInstall) {
+                                                          List<Application> applicationsForInstall,
+                                                          Map<String, File> pendingInstallations) {
         PackageManager packageManager = context.getPackageManager();
 
         // First handle apps to be removed, then apps to be installed
         // We process only applications of type "app" (default) and skip web links and others
         for (Application a : applications) {
-            if ((a.getType() == null || a.getType().equals(Application.TYPE_APP)) && a.isRemove()) {
+            if ((a.getType() == null || a.getType().equals(Application.TYPE_APP)) && a.isRemove() &&
+                !isInList(applicationsForInstall, a)) {
                 Log.d(Const.LOG_TAG, "checkAndUpdateApplications(): marking app " + a.getPkg() + " to remove");
                 applicationsForInstall.add(a);
             }
         }
         for (Application a : applications) {
-            if ((a.getType() == null || a.getType().equals(Application.TYPE_APP)) && !a.isRemove()) {
+            if ((a.getType() == null || a.getType().equals(Application.TYPE_APP)) && !a.isRemove() &&
+                    !pendingInstallations.containsKey(a.getPkg()) && !isInList(applicationsForInstall, a)) {
                 Log.d(Const.LOG_TAG, "checkAndUpdateApplications(): marking app " + a.getPkg() + " to install");
                 applicationsForInstall.add(a);
             }
@@ -147,6 +151,17 @@ public class InstallUtils {
                 }
             }
         }
+    }
+
+    private static boolean isInList(List<Application> applicationsForInstall, Application a) {
+        for (Application b : applicationsForInstall) {
+            if (a.getPkg().equalsIgnoreCase(b.getPkg()) &&
+                    a.getVersion().equalsIgnoreCase(b.getVersion()) &&
+                    a.isRemove() == b.isRemove()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean areVersionsEqual(String v1, String v2) {
