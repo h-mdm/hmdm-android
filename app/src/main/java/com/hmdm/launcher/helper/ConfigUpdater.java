@@ -860,7 +860,14 @@ public class ConfigUpdater {
             };
         }
 
-        context.registerReceiver(appInstallReceiver, new IntentFilter(Const.ACTION_INSTALL_COMPLETE));
+        try {
+            context.registerReceiver(appInstallReceiver, new IntentFilter(Const.ACTION_INSTALL_COMPLETE));
+        } catch (Exception e) {
+            // On earlier Android versions (4, 5):
+            // Fatal Exception: android.content.ReceiverCallNotAllowedException
+            // BroadcastReceiver components are not allowed to register to receive intents
+            e.printStackTrace();
+        }
     }
 
     private void unregisterAppInstallReceiver() {

@@ -79,8 +79,10 @@ public class ServerConfig {
     private Boolean kioskNotifications;
     private Boolean kioskSystemInfo;
     private Boolean kioskKeyguard;
+    private Boolean kioskLockButtons;
     private String restrictions;
 
+    private String description;
     private String custom1;
     private String custom2;
     private String custom3;
@@ -107,6 +109,10 @@ public class ServerConfig {
 
     public static final String TITLE_NONE = "none";
     public static final String TITLE_DEVICE_ID = "deviceId";
+    public static final String TITLE_DESCRIPTION = "description";
+    public static final String TITLE_CUSTOM1 = "custom1";
+    public static final String TITLE_CUSTOM2 = "custom2";
+    public static final String TITLE_CUSTOM3 = "custom3";
     public static final int DEFAULT_ICON_SIZE = 100;
 
     public static final int SYSTEM_UPDATE_DEFAULT = 0;
@@ -488,6 +494,14 @@ public class ServerConfig {
         this.kioskKeyguard = kioskKeyguard;
     }
 
+    public Boolean getKioskLockButtons() {
+        return kioskLockButtons;
+    }
+
+    public void setKioskLockButtons(Boolean kioskLockButtons) {
+        this.kioskLockButtons = kioskLockButtons;
+    }
+
     public Boolean getRunDefaultLauncher() {
         return runDefaultLauncher;
     }
@@ -550,6 +564,14 @@ public class ServerConfig {
 
     public void setRestrictions(String restrictions) {
         this.restrictions = restrictions;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getCustom1() {

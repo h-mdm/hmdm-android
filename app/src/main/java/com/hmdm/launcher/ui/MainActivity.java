@@ -911,8 +911,8 @@ public class MainActivity
         } else if ( !checkPermissions(true)) {
             // Permissions are requested inside checkPermissions, so do nothing here
             Log.i(Const.LOG_TAG, "startLauncher: requesting permissions");
-        } else if (!Utils.isDeviceOwner(this) && !settingsHelper.isBaseUrlSet() && BuildConfig.REQUEST_SERVER_URL) {
-            // For common public version, here's an option to change the server in non-MDM mode
+        } else if (!settingsHelper.isBaseUrlSet() && BuildConfig.REQUEST_SERVER_URL) {
+            // For common public version, here's an option to change the server
             createAndShowServerDialog(false, settingsHelper.getBaseUrl(), settingsHelper.getServerProject());
         } else if ( settingsHelper.getDeviceId().length() == 0 ) {
             Log.d(Const.LOG_TAG, "Device ID is empty");
@@ -1222,15 +1222,15 @@ public class MainActivity
 
     @Override
     public void onFileDownloadError(RemoteFile remoteFile) {
-        if (!ProUtils.kioskModeRequired(this)) {
+        if (!ProUtils.kioskModeRequired(this) && !isContentShown()) {
             // Notify the error dialog that we're downloading a file, not an app
             downloadingFile = true;
             createAndShowFileNotDownloadedDialog(remoteFile.getUrl());
             binding.setDownloading( false );
         } else {
             // Avoid user interaction in kiosk mode, just ignore download error and keep the old version
-            // Note: view is not used in this method so just pass null there
-            confirmDownloadFailureClicked(null);
+            // Also, avoid unexpected messages when the user is seeing the desktop
+            configUpdater.skipDownloadFiles();
         }
     }
 
@@ -1253,15 +1253,15 @@ public class MainActivity
 
     @Override
     public void onAppDownloadError(Application application) {
-        if (!ProUtils.kioskModeRequired(MainActivity.this)) {
+        if (!ProUtils.kioskModeRequired(MainActivity.this) && !isContentShown()) {
             // Notify the error dialog that we're downloading an app
             downloadingFile = false;
             createAndShowFileNotDownloadedDialog(application.getName());
             binding.setDownloading( false );
         } else {
             // Avoid user interaction in kiosk mode, just ignore download error and keep the old version
-            // Note: view is not used in this method so just pass null there
-            confirmDownloadFailureClicked(null);
+            // Also, avoid unexpected messages when the user is seeing the desktop
+            configUpdater.skipDownloadApps();
         }
     }
 
@@ -1270,20 +1270,27 @@ public class MainActivity
         handler.post(new Runnable() {
             @Override
             public void run() {
-                try {
-                    new AlertDialog.Builder(MainActivity.this)
-                            .setMessage(getString(R.string.install_error) + " " + packageName)
-                            .setPositiveButton(R.string.dialog_administrator_mode_continue, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    configUpdater.repeatDownloadApps();
-                                }
-                            })
-                            .create()
-                            .show();
-                } catch (Exception e) {
-                    // Activity closed before showing a dialog, just ignore this exception
-                    e.printStackTrace();
+                if (!ProUtils.kioskModeRequired(MainActivity.this) && !isContentShown()) {
+
+                    try {
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setMessage(getString(R.string.install_error) + " " + packageName)
+                                .setPositiveButton(R.string.dialog_administrator_mode_continue, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        configUpdater.repeatDownloadApps();
+                                    }
+                                })
+                                .create()
+                                .show();
+                    } catch (Exception e) {
+                        // Activity closed before showing a dialog, just ignore this exception
+                        e.printStackTrace();
+                    }
+                } else {
+                    // Avoid unexpected messages when the config is updated "silently"
+                    // (in kiosk mode or when user is seeing the desktop
+                    configUpdater.repeatDownloadApps();
                 }
             }
         });
@@ -1494,6 +1501,13 @@ public class MainActivity
                 showContent(settingsHelper.getConfig());
             }
         }.execute();
+    }
+
+    private boolean isContentShown() {
+        if (binding != null) {
+            return binding.getShowContent() != null && binding.getShowContent();
+        }
+        return false;
     }
 
     private void showContent(ServerConfig config ) {
@@ -1790,7 +1804,11 @@ public class MainActivity
 
     private void updateTitle(ServerConfig config) {
         String titleType = config.getTitle();
-        if (titleType != null && titleType.equals(ServerConfig.TITLE_DEVICE_ID)) {
+        if (titleType != null) {
+            if (titleType.equals(ServerConfig.TITLE_NONE)) {
+                binding.activityMainTitle.setVisibility(View.GONE);
+                return;
+            }
             if (config.getTextColor() != null) {
                 try {
                     binding.activityMainTitle.setTextColor(Color.parseColor(settingsHelper.getConfig().getTextColor()));
@@ -1800,7 +1818,13 @@ public class MainActivity
                 }
             }
             binding.activityMainTitle.setVisibility(View.VISIBLE);
-            binding.activityMainTitle.setText(SettingsHelper.getInstance(this).getDeviceId());
+            String titleText = titleType
+                    .replace(ServerConfig.TITLE_DEVICE_ID, SettingsHelper.getInstance(this).getDeviceId())
+                    .replace(ServerConfig.TITLE_DESCRIPTION, config.getDescription() != null ? config.getDescription() : "")
+                    .replace(ServerConfig.TITLE_CUSTOM1, config.getCustom1() != null ? config.getCustom1() : "")
+                    .replace(ServerConfig.TITLE_CUSTOM2, config.getCustom2() != null ? config.getCustom2() : "")
+                    .replace(ServerConfig.TITLE_CUSTOM3, config.getCustom3() != null ? config.getCustom3() : "");
+            binding.activityMainTitle.setText(titleText);
         } else {
             binding.activityMainTitle.setVisibility(View.GONE);
         }
