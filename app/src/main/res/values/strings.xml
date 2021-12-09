@@ -113,4 +113,7 @@
     <string name="device_locked">This device has been locked by the administrator.</string>
     <string name="fault_loop_detected">Oops, the launcher got an unrecoverable fault! Please contact your system administrator.</string>
     <string name="mqtt_service_text">Push notifications are active</string>
+    <string name="background_location">%s requires the background location permission. Click \'Continue\' to open permissions, click \'Location\' and allow to determine location always.</string>
+    <string name="location_disable">Disable location</string>
+    <string name="background_location_continue">Continue</string>
 </resources>

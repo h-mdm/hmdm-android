@@ -110,4 +110,7 @@
     <string name="device_locked">Este dispositivo ha sido bloqueado por el administrador.</string>
     <string name="fault_loop_detected">Lo sentimos, la aplicacion encontro un error inrecuperable. Por favor, contacte con su administrador de sistemas.</string>
     <string name="mqtt_service_text">Las notificaciones push están activas</string>
+    <string name="background_location">%s requiere el permiso de ubicación en segundo plano. Haga clic en \'Continuar\' para abrir los permisos, haga clic en \'Ubicación\' y permita determinar la ubicación siempre.</string>
+    <string name="location_disable">Deshabilitar ubicación</string>
+    <string name="background_location_continue">Continuar</string>
 </resources>

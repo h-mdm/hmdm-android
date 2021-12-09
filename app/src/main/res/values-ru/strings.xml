@@ -109,4 +109,7 @@
     <string name="device_locked">Это устройство заблокировано администратором.</string>
     <string name="fault_loop_detected">Лаунчер сломался и его не восстановить! Пожалуйста, сообщите об этой проблеме администратору.</string>
     <string name="mqtt_service_text">Push-уведомления активны</string>
+    <string name="background_location">%s требует разрешения на определение местоположения в фоне. Нажмите \'Далее\', чтобы открыть разрешения. Выберите \'Местоположение\', и разрешите определение местоположения всегда.</string>
+    <string name="location_disable">Отключить местоположение</string>
+    <string name="background_location_continue">Далее</string>
 </resources>

@@ -110,4 +110,7 @@
     <string name="device_locked">Dieses Gerät wurde vom Administrator gesperrt.</string>
     <string name="fault_loop_detected">Hoppla, der Launcher hat einen nicht behebbaren Fehler! Bitte wenden Sie sich an Ihren Systemadministrator.</string>
     <string name="mqtt_service_text">Push-Benachrichtigungen sind aktiv</string>
+    <string name="background_location">%s erfordert die Berechtigung zum Standort im Hintergrund. Klicken Sie auf \'Weiter\', um die Berechtigungen zu öffnen, klicken Sie auf \'Standort\' und erlauben Sie, den Standort immer zu bestimmen.</string>
+    <string name="location_disable">Standort deaktivieren</string>
+    <string name="background_location_continue">Weiter</string>
 </resources>

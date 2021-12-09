@@ -24,4 +24,8 @@
     <color name="colorAccent">#87d3e1</color>
     <color name="white">#ffffff</color>
     <color name="defaultBackground">#303030</color>
+
+    <color name="wizardPrimaryDark">#ff254FAE</color>
+    <color name="wizardPrimary">#ff3367d6</color>
+    <color name="wizardAccent">#ff3367d6</color>
 </resources>

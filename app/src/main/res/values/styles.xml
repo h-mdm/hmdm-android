@@ -27,4 +27,12 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="SetupWizardTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="colorPrimary">@color/wizardPrimary</item>
+        <item name="colorPrimaryDark">@color/wizardPrimaryDark</item>
+        <item name="colorAccent">@color/wizardAccent</item>
+    </style>
+
 </resources>

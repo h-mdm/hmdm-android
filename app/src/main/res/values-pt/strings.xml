@@ -110,4 +110,7 @@
     <string name="device_locked">Este dispositivo está bloqueado pelo administrador.</string>
     <string name="fault_loop_detected">Oops, ocorreu uma falha no launcher do seu dispositivo! Por favor contate o administrador do sistema.</string>
     <string name="mqtt_service_text">As notificações push estão ativas</string>
+    <string name="background_location">%s requer permissão de localização em segundo plano. Clique em \'Continuar\' para abrir as permissões, clique em \'Local\' e permita determinar o local sempre.</string>
+    <string name="location_disable">Desativar localização</string>
+    <string name="background_location_continue">Continuar</string>
 </resources>

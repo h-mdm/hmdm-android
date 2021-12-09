@@ -109,4 +109,7 @@
     <string name="device_locked">Cet appareil a été verrouillé par l\'administrateur.</string>
     <string name="fault_loop_detected">Oups, le lanceur a eu une faute irrémédiable! Veuillez contacter votre administrateur système.</string>
     <string name="mqtt_service_text">Les notifications push sont actives</string>
+    <string name="background_location">%s requiert l\'autorisation d\'emplacement en arrière-plan. Cliquez sur \'Continuer\' pour ouvrir les autorisations, cliquez sur \'Emplacement\' et autorisez toujours à déterminer l\'emplacement.</string>
+    <string name="location_disable">Désactiver l\'emplacement</string>
+    <string name="background_location_continue">Continuer</string>
 </resources>

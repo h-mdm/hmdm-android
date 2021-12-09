@@ -19,6 +19,9 @@
 
 package com.hmdm.launcher;
 
+import static android.app.admin.DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE;
+import static android.content.Context.MODE_PRIVATE;
+
 import android.app.admin.DeviceAdminReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -26,12 +29,11 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.PersistableBundle;
 
+import androidx.annotation.RequiresApi;
+
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.DeviceCreateOptions;
 import com.hmdm.launcher.util.PreferenceLogger;
-
-import static android.app.admin.DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE;
-import static android.content.Context.MODE_PRIVATE;
 
 /**
  * Created by Ivan Lozenko on 21.02.2017.
@@ -56,9 +58,16 @@ public class AdminReceiver extends DeviceAdminReceiver {
             // This function is never called on Android versions less than 5 (in fact, less than 7)
             return;
         }
+
+        PersistableBundle bundle = intent.getParcelableExtra(EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
+        updateSettings(context, bundle);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public static void updateSettings(Context context, PersistableBundle bundle) {
+        SharedPreferences preferences = context.getApplicationContext().getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
         try {
             SettingsHelper settingsHelper = SettingsHelper.getInstance(context.getApplicationContext());
-            PersistableBundle bundle = intent.getParcelableExtra(EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
             String deviceId = null;
             PreferenceLogger.log(preferences, "Bundle != null: " + (bundle != null));
             if (bundle != null) {

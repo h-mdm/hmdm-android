@@ -42,6 +42,9 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -555,7 +558,11 @@ public class ConfigUpdater {
 
     // Here we avoid ConcurrentModificationException by executing all operations with applicationForInstall list in a main thread
     private void loadAndInstallApplications() {
-        if ( applicationsForInstall.size() > 0 ) {
+        boolean isGoodTimeForAppUpdate = checkAppUpdateTimeRestriction(settingsHelper.getConfig());
+        if (applicationsForInstall.size() > 0 && !isGoodTimeForAppUpdate) {
+            RemoteLogger.log(context, Const.LOG_DEBUG, "Application update not enabled. Scheduled time: " + settingsHelper.getConfig().getAppUpdateFrom());
+        }
+        if (applicationsForInstall.size() > 0 && isGoodTimeForAppUpdate) {
             Application application = applicationsForInstall.remove(0);
 
             new AsyncTask<Application, Void, ApplicationStatus>() {
@@ -1023,5 +1030,60 @@ public class ConfigUpdater {
             settingsHelper.removeApplicationUrl(application);
         }
         loadAndInstallApplications();
+    }
+
+    public static boolean checkAppUpdateTimeRestriction(ServerConfig config) {
+        if (config.getAppUpdateFrom() == null || config.getAppUpdateTo() == null) {
+            return true;
+        }
+
+        Date date = new Date();
+        Calendar calendar = GregorianCalendar.getInstance();
+        calendar.setTime(date);
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+
+        int appUpdateFromHour = 0;
+        try {
+            appUpdateFromHour = Integer.parseInt(config.getAppUpdateFrom().substring(0, 2));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        int appUpdateFromMinute = 0;
+        try {
+            appUpdateFromMinute = Integer.parseInt(config.getAppUpdateFrom().substring(3));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        int appUpdateToHour = 0;
+        try {
+            appUpdateToHour = Integer.parseInt(config.getAppUpdateTo().substring(0, 2));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        int appUpdateToMinute = 0;
+        try {
+            appUpdateToMinute = Integer.parseInt(config.getAppUpdateTo().substring(3));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        minute += 60 * hour;
+        appUpdateFromMinute += 60 * appUpdateFromHour;
+        appUpdateToMinute += 60 * appUpdateToHour;
+
+        if (appUpdateFromMinute == appUpdateToMinute) {
+            // This is incorrect. Perhaps the admin meant "24 hours" so return true
+            return true;
+        }
+
+        if (appUpdateFromMinute < appUpdateToMinute) {
+            // Midnight not included
+            return appUpdateFromMinute <= minute && minute <= appUpdateToMinute;
+        }
+
+        // Midnight included
+        return minute >= appUpdateFromMinute || minute <= appUpdateToMinute;
     }
 }

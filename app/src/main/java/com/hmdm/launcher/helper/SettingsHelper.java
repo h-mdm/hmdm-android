@@ -53,6 +53,7 @@ public class SettingsHelper {
     private static final String PREF_CFG_UPDATE_TIMESTAMP = ".helpers.CFG_UPDATE_TIMESTAMP";
     private static final String PREF_KEY_ACTIVITY_RUNNING = ".helpers.ACTIVITY_RUNNING";
     private static final String PREF_KEY_RESTORE_LAUNCHER = ".helpers.NEED_LAUNCHER_RESET";
+    private static final String PREF_KEY_LAST_APP_UPDATE_STATE = ".helpers.LAST_APP_UPDATE_STATE";
     // This prefix is for the compatibility with a legacy package name
     private static String PACKAGE_NAME;
 
@@ -202,6 +203,14 @@ public class SettingsHelper {
 
     public String getDeviceIdUse() {
         return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_DEVICE_ID_USE, null);
+    }
+
+    public boolean setLastAppUpdateState(boolean lastAppUpdateState) {
+        return sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_KEY_LAST_APP_UPDATE_STATE, lastAppUpdateState).commit();
+    }
+
+    public boolean getLastAppUpdateState() {
+        return sharedPreferences.getBoolean(PACKAGE_NAME + PREF_KEY_LAST_APP_UPDATE_STATE, false);
     }
 
     public boolean setCreateOptionConfigName(String configName) {

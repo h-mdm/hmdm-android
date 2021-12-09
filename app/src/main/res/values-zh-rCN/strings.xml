@@ -110,4 +110,7 @@
 	<string name="device_locked">该设备已被管理员锁定。</string>
 	<string name="fault_loop_detected">启动器发生了无法恢复的故障！请与系统管理员联繫。</string>
 	<string name="mqtt_service_text">推送通知处于活动状态</string>
+	<string name="background_location">%s 需要后台位置权限。 单击\'继续\' 打开权限，单击\'位置\' 并允许始终确定位置。</string>
+	<string name="location_disable">禁用位置</string>
+	<string name="background_location_continue">继续</string>
 </resources>

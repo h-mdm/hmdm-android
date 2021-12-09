@@ -61,7 +61,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -115,6 +117,7 @@ import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.SystemUtils;
 import com.hmdm.launcher.util.Utils;
 import com.hmdm.launcher.worker.PushNotificationWorker;
+import com.hmdm.launcher.worker.ScheduledAppUpdateWorker;
 import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
@@ -367,6 +370,7 @@ public class MainActivity
         if (BuildConfig.ENABLE_PUSH) {
             PushNotificationWorker.schedule(MainActivity.this);
         }
+        ScheduledAppUpdateWorker.schedule(MainActivity.this);
 
         // Prevent showing the lock screen during the app download/installation
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -2154,24 +2158,64 @@ public class MainActivity
                 return true;
             }
         } else {
-            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                    checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                    checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                    checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            return checkLocationPermissions(startSettings);
+        }
+    }
 
-                if (startSettings) {
+    // Location permissions request on Android 10 and above is rather tricky (shame on Google for their stupid logic!!!)
+    // So it's implemented in a separate method
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private boolean checkLocationPermissions(boolean startSettings) {
+        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+
+            if (startSettings) {
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                        checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                        !ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+                    // The following flow happened
+                    // The user has enabled locations, but when the app prompted for the background location,
+                    // the user clicked "Locations only in active mode".
+                    // In this case, requestPermissions won't show dialog any more!
+                    // So we need to open the general permissions dialog
+                    // Let's confirm with the user once again, then display the settings sheet
+                    try {
+                        LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_ENABLE_SETTINGS));
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setMessage(getString(R.string.background_location, getString(R.string.white_app_name)))
+                                .setPositiveButton(R.string.background_location_continue, (dialog, which) -> {
+                                    startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                            Uri.fromParts("package", getPackageName(), null)));
+                                })
+                                .setNegativeButton(R.string.location_disable, (dialog, which) -> {
+                                    preferences.edit().putInt(Const.PREFERENCES_DISABLE_LOCATION, Const.PREFERENCES_ON).commit();
+                                    // Continue the main flow!
+                                    startLauncher();
+                                })
+                                .create()
+                                .show();
+                    } catch (Exception e) {
+                        // Activity closed before showing a dialog, just ignore this exception
+                        e.printStackTrace();
+                    }
+                } else {
                     requestPermissions(new String[]{
                             Manifest.permission.READ_EXTERNAL_STORAGE,
                             Manifest.permission.WRITE_EXTERNAL_STORAGE,
                             Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION,
                             Manifest.permission.READ_PHONE_STATE
                     }, PERMISSIONS_REQUEST);
                 }
-                return false;
-            } else {
-                return true;
             }
+            return false;
+        } else {
+            return true;
         }
+
     }
 
     private void createAndShowEnterPasswordDialog() {
