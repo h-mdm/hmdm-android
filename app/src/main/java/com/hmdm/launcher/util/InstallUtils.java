@@ -423,6 +423,10 @@ public class InstallUtils {
                     context.getApplicationContext().getPackageName() + ".provider",
                     file );
             intent.setDataAndType( uri, "application/vnd.android.package-archive" );
+            // Shouldn't we set Intent.FLAG_ACTIVITY_NEW_TASK here?
+            // Some devices report:
+            // android.util.AndroidRuntimeException
+            // Calling startActivity() from outside of an Activity context requires the FLAG_ACTIVITY_NEW_TASK flag. Is this really what you want?
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             context.startActivity(intent);
         } else {

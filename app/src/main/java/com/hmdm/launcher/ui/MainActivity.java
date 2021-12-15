@@ -382,6 +382,8 @@ public class MainActivity
         settingsHelper = SettingsHelper.getInstance( this );
         preferences = getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
 
+        settingsHelper.setAppStartTime(System.currentTimeMillis());
+
         // Try to start services in onCreate(), this may fail, we will try again on each onResume.
         startServicesWithRetry();
 
@@ -871,7 +873,7 @@ public class MainActivity
 
     private void createButtons() {
         ServerConfig config = settingsHelper.getConfig();
-        if (ProUtils.kioskModeRequired(this) && !settingsHelper.getConfig().getMainApp().equals(getPackageName())) {
+        if (ProUtils.kioskModeRequired(this) && !getPackageName().equals(settingsHelper.getConfig().getMainApp())) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                     !Settings.canDrawOverlays( this ) &&
                     !BuildConfig.ENABLE_KIOSK_WITHOUT_OVERLAYS) {
@@ -1322,7 +1324,12 @@ public class MainActivity
     public void onAllAppInstallComplete() {
         Log.i(Const.LOG_TAG, "Refreshing content - new apps installed");
         settingsHelper.refreshConfig(this);         // Avoid NPE in showContent()
-        showContent(settingsHelper.getConfig());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                showContent(settingsHelper.getConfig());
+            }
+        });
     }
 
     @Override
@@ -1872,8 +1879,12 @@ public class MainActivity
             catch ( Exception e ) { e.printStackTrace(); }
         }
 
-        LocalBroadcastManager.getInstance( this ).unregisterReceiver( receiver );
-        unregisterReceiver(stateChangeReceiver);
+        try {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+            unregisterReceiver(stateChangeReceiver);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
