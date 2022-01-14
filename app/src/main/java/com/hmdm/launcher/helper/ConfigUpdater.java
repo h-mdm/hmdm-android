@@ -82,6 +82,7 @@ public class ConfigUpdater {
     private Map<String, File> pendingInstallations = new HashMap<String,File>();
     private BroadcastReceiver appInstallReceiver;
     private boolean retry = true;
+    private boolean userInteraction;
 
     public List<Application> getApplicationsForRun() {
         return applicationsForRun;
@@ -100,7 +101,7 @@ public class ConfigUpdater {
         new ConfigUpdater().updateConfig(context, null, false);
     }
 
-    public void updateConfig(final Context context, final UINotifier uiNotifier, final boolean abortOnError) {
+    public void updateConfig(final Context context, final UINotifier uiNotifier, final boolean userInteraction) {
         if ( configInitializing ) {
             Log.i(Const.LOG_TAG, "updateConfig(): configInitializing=true, exiting");
             return;
@@ -111,6 +112,7 @@ public class ConfigUpdater {
         DetailedInfoWorker.requestConfigUpdate(context);
         this.context = context;
         this.uiNotifier = uiNotifier;
+        this.userInteraction = userInteraction;
 
         // Work around a strange bug with stale SettingsHelper instance: re-read its value
         settingsHelper = SettingsHelper.getInstance(context.getApplicationContext());
@@ -150,11 +152,11 @@ public class ConfigUpdater {
                             handler.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    updateConfig(context, uiNotifier, abortOnError);
+                                    updateConfig(context, uiNotifier, userInteraction);
                                 }
                             }, 15000);
                         } else {
-                            if (settingsHelper.getConfig() != null && !abortOnError) {
+                            if (settingsHelper.getConfig() != null && !userInteraction) {
                                 if (uiNotifier != null && settingsHelper.getConfig().isShowWifi()) {
                                     // Show network error dialog with Wi-Fi settings
                                     // if it is required by the web panel
@@ -558,7 +560,7 @@ public class ConfigUpdater {
 
     // Here we avoid ConcurrentModificationException by executing all operations with applicationForInstall list in a main thread
     private void loadAndInstallApplications() {
-        boolean isGoodTimeForAppUpdate = checkAppUpdateTimeRestriction(settingsHelper.getConfig());
+        boolean isGoodTimeForAppUpdate = userInteraction || checkAppUpdateTimeRestriction(settingsHelper.getConfig());
         if (applicationsForInstall.size() > 0 && !isGoodTimeForAppUpdate) {
             RemoteLogger.log(context, Const.LOG_DEBUG, "Application update not enabled. Scheduled time: " + settingsHelper.getConfig().getAppUpdateFrom());
         }

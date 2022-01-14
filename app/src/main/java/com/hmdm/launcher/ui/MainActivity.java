@@ -931,11 +931,13 @@ public class MainActivity
             }
         } else if ( ! configInitialized ) {
             Log.i(Const.LOG_TAG, "Updating configuration in startLauncher()");
+            boolean userInteraction = true;
             if (settingsHelper.getConfig() != null) {
                 // If it's not the first start, let's update in the background, show the content first!
                 showContent(settingsHelper.getConfig());
+                userInteraction = false;
             }
-            updateConfig( false );
+            updateConfig(userInteraction);
         } else {
             showContent(settingsHelper.getConfig());
         }
@@ -1129,10 +1131,12 @@ public class MainActivity
         updateView.setOnClickListener(this);
     }
 
-    private void updateConfig( final boolean forceShowErrorDialog ) {
+    // The userInteraction flag denotes whether the config has been updated from the UI or in the background
+    // If this flag is set to true, network error dialog is displayed, and app update schedule is ignored
+    private void updateConfig( final boolean userInteraction ) {
         needSendDeviceInfoAfterReconfigure = true;
         needRedrawContentAfterReconfigure = true;
-        configUpdater.updateConfig(this, this, forceShowErrorDialog);
+        configUpdater.updateConfig(this, this, userInteraction);
     }
 
     // Workaround against crash "App is in background" on Android 9: this is an Android OS bug
@@ -2067,7 +2071,7 @@ public class MainActivity
 
             if ( checkPermissions( true ) ) {
                 Log.i(Const.LOG_TAG, "saveDeviceId(): calling updateConfig()");
-                updateConfig( false );
+                updateConfig( true );
             }
         }
     }
