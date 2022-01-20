@@ -91,7 +91,6 @@ import com.hmdm.launcher.databinding.DialogUnknownSourcesBinding;
 import com.hmdm.launcher.helper.ConfigUpdater;
 import com.hmdm.launcher.helper.CryptoHelper;
 import com.hmdm.launcher.helper.SettingsHelper;
-import com.hmdm.launcher.json.Action;
 import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.DeviceInfo;
 import com.hmdm.launcher.json.RemoteFile;
@@ -294,7 +293,7 @@ public class MainActivity
             }
 
             try {
-                checkSystemSettings(settingsHelper.getConfig());
+                applyEarlyPolicies(settingsHelper.getConfig());
             } catch (Exception e) {
             }
         }
@@ -314,6 +313,8 @@ public class MainActivity
         super.onCreate( savedInstanceState );
 
         Intent intent = getIntent();
+        Log.d(Const.LOG_TAG, "MainActivity started" + (intent != null && intent.getAction() != null ?
+                ", action: " + intent.getAction() : ""));
         if (intent != null && "android.app.action.PROVISIONING_SUCCESSFUL".equalsIgnoreCase(intent.getAction())) {
             firstStartAfterProvisioning = true;
         }
@@ -932,7 +933,14 @@ public class MainActivity
         } else if ( ! configInitialized ) {
             Log.i(Const.LOG_TAG, "Updating configuration in startLauncher()");
             boolean userInteraction = true;
-            if (settingsHelper.getConfig() != null) {
+            boolean integratedProvisioningFlow = settingsHelper.isIntegratedProvisioningFlow();
+            if (integratedProvisioningFlow) {
+                // InitialSetupActivity just started and this is the first start after
+                // the admin integrated provisioning flow, we need to show the process of loading apps
+                // Notice the config is not null because it's preloaded in InitialSetupActivity
+                settingsHelper.setIntegratedProvisioningFlow(false);
+            }
+            if (settingsHelper.getConfig() != null && !integratedProvisioningFlow) {
                 // If it's not the first start, let's update in the background, show the content first!
                 showContent(settingsHelper.getConfig());
                 userInteraction = false;
@@ -1201,6 +1209,11 @@ public class MainActivity
     }
 
     @Override
+    public void onConfigLoaded() {
+        applyEarlyPolicies(settingsHelper.getConfig());
+    }
+
+    @Override
     public void onPoliciesUpdated() {
         startLocationServiceWithRetry();
     }
@@ -1358,49 +1371,13 @@ public class MainActivity
         } );
     }
 
-    private boolean checkSystemSettings(ServerConfig config) {
-        if (config.getSystemUpdateType() != null &&
-                config.getSystemUpdateType() != ServerConfig.SYSTEM_UPDATE_DEFAULT &&
-                Utils.isDeviceOwner(this)) {
-            Utils.setSystemUpdatePolicy(this, config.getSystemUpdateType(), config.getSystemUpdateFrom(), config.getSystemUpdateTo());
-        }
+    private boolean applyEarlyPolicies(ServerConfig config) {
+        Utils.applyEarlyNonInteractivePolicies(this, config);
+        return true;
+    }
 
-        if (config.getBluetooth() != null) {
-            try {
-                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                if (bluetoothAdapter != null) {
-                    boolean enabled = bluetoothAdapter.isEnabled();
-                    if (config.getBluetooth() && !enabled) {
-                        bluetoothAdapter.enable();
-                    } else if (!config.getBluetooth() && enabled) {
-                        bluetoothAdapter.disable();
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        // Note: SecurityException here on Mediatek
-        // Looks like com.mediatek.permission.CTA_ENABLE_WIFI needs to be explicitly granted
-        // or even available to system apps only
-        // By now, let's just ignore this issue
-        if (config.getWifi() != null) {
-            try {
-                WifiManager wifiManager = (WifiManager) this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-                if (wifiManager != null) {
-                    boolean enabled = wifiManager.isWifiEnabled();
-                    if (config.getWifi() && !enabled) {
-                        wifiManager.setWifiEnabled(true);
-                    } else if (!config.getWifi() && enabled) {
-                        wifiManager.setWifiEnabled(false);
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
+    // Network policies are applied after getting all applications
+    private boolean applyLatePolicies(ServerConfig config) {
         // To delay opening the settings activity
         boolean dialogWillShow = false;
 
@@ -1453,69 +1430,7 @@ public class MainActivity
             // So we have to enable temporary access to settings here (and only here!)
             postDelayedSystemSettingDialog(getString(R.string.message_set_password), updatePasswordIntent, null, true);
         }
-
-        if (config.getTimeZone() != null) {
-            Utils.setTimeZone(config.getTimeZone(), this);
-        }
-
-        if (config.getUsbStorage() != null) {
-            Utils.lockUsbStorage(config.getUsbStorage(), this);
-        }
-
-        // Null value is processed here, it means unlock brightness
-        Utils.setBrightnessPolicy(config.getAutoBrightness(), config.getBrightness(), this);
-
-        if (config.getManageTimeout() != null) {
-            Utils.setScreenTimeoutPolicy(config.getManageTimeout(), config.getTimeout(), this);
-        }
-
-        if (config.getManageVolume() != null && config.getManageVolume() && config.getVolume() != null) {
-            Utils.lockVolume(false, this);
-            if (!Utils.setVolume(config.getVolume(), this)) {
-                RemoteLogger.log(this, Const.LOG_WARN, "Failed to set the device volume");
-            }
-        }
-
-        if (config.getLockVolume() != null) {
-            Utils.lockVolume(config.getLockVolume(), this);
-        }
-
-        Utils.disableScreenshots(config.isDisableScreenshots(), this);
-
         return true;
-    }
-
-    private void lockRestrictions() {
-        if (settingsHelper.getConfig() != null && settingsHelper.getConfig().getRestrictions() != null) {
-            Utils.lockUserRestrictions(MainActivity.this, settingsHelper.getConfig().getRestrictions());
-        }
-        setActions();
-    }
-
-    private void setActions() {
-        final ServerConfig config = settingsHelper.getConfig();
-        // As per the documentation, setting the default preferred activity should not be done on the main thread
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                // If kiosk browser is installed, make it a default browser
-                // This is a temporary solution! Perhaps user wants only to open specific hosts / schemes
-                if (Utils.isDeviceOwner(MainActivity.this)) {
-                    if (config.getActions() != null && config.getActions().size() > 0) {
-                        for (Action action : config.getActions()) {
-                            Utils.setAction(MainActivity.this, action);
-                        }
-                    }
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void v) {
-                Log.i(Const.LOG_TAG, "Showing content from setActions()");
-                showContent(settingsHelper.getConfig());
-            }
-        }.execute();
     }
 
     private boolean isContentShown() {
@@ -1526,11 +1441,13 @@ public class MainActivity
     }
 
     private void showContent(ServerConfig config ) {
-        if (!checkSystemSettings(config)) {
+        if (!applyEarlyPolicies(config)) {
             // Here we go when the settings window is opened;
             // Next time we're here after we returned from the Android settings through onResume()
             return;
         }
+
+        applyLatePolicies(config);
 
         sendDeviceInfoAfterReconfigure();
         scheduleDeviceInfoSending();
@@ -1944,10 +1861,8 @@ public class MainActivity
 
     public void setAdminMode( View view ) {
         dismissDialog(administratorModeDialog);
-
-        Intent intent = new Intent( android.provider.Settings.ACTION_SECURITY_SETTINGS);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+        // Use a proxy activity because of an Android bug (see comment to AdminModeRequestActivity!)
+        startActivity( new Intent( MainActivity.this, AdminModeRequestActivity.class ) );
     }
 
     private void createAndShowFileNotDownloadedDialog(String fileName) {

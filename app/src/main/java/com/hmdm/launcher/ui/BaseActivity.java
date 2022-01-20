@@ -241,6 +241,15 @@ public class BaseActivity extends AppCompatActivity {
         System.exit(0);
     }
 
+    protected String concatenateServerUrl(String serverName, String serverPath) {
+        String serverUrl = serverName;
+        if (serverPath != null && serverPath.length() > 0) {
+            serverUrl += "/";
+            serverUrl += serverPath;
+        }
+        return serverUrl;
+    }
+
     protected void createAndShowNetworkErrorDialog(String serverName,
                                                    String serverPath,
                                                    boolean showResetButton,

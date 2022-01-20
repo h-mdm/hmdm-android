@@ -80,11 +80,36 @@
             android:name=".ui.AdminActivity"
             android:excludeFromRecents="true" 
         />
+        <activity
+            android:name=".ui.AdminModeRequestActivity"
+            android:excludeFromRecents="true"
+            />
 
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
             android:screenOrientation="fullSensor"
             tools:replace="screenOrientation" />
+
+        <activity
+            android:name=".ui.InitialSetupActivity"
+            android:theme="@style/SetupWizardTheme"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <intent-filter>
+                <action android:name="android.app.action.ADMIN_POLICY_COMPLIANCE" />
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.MdmChoiceSetupActivity"
+            android:exported="true"
+            android:theme="@style/SetupWizardTheme"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <intent-filter>
+                <action android:name="android.app.action.GET_PROVISIONING_MODE" />
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
 
         <receiver
             android:name="com.hmdm.launcher.AdminReceiver"

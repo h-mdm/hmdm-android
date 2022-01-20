@@ -113,4 +113,7 @@
 	<string name="background_location">%s 需要後台位置權限。 單擊\'繼續\' 打開權限，單擊\'位置\' 並允許始終確定位置。</string>
 	<string name="location_disable">禁用位置</string>
 	<string name="background_location_continue">繼續</string>
+	<string name="initializing_mdm">正在初始化移動設備管理應用程序...</string>
+	<string name="dialog_server_error_title">MDM 服務器 %s 返回無效響應。 請聯繫您的管理員。</string>
+	<string name="mdm_choice_message">此設備將由您的組織完全管理。 您的數據不會是私密的，您的 IT 管理員可以隨時刪除或查看您的數據。</string>
 </resources>

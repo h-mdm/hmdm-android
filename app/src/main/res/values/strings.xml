@@ -116,4 +116,8 @@
     <string name="background_location">%s requires the background location permission. Click \'Continue\' to open permissions, click \'Location\' and allow to determine location always.</string>
     <string name="location_disable">Disable location</string>
     <string name="background_location_continue">Continue</string>
+    <string name="initializing_mdm">Initializing the mobile device management application...</string>
+    <string name="dialog_server_error_title">MDM server %s returned an invalid response. Please contact your administrator.</string>
+    <string name="mdm_choice_message">This device will be fully managed by your organization. Your data won\'t be private and can be erased or reviewed by your IT admin at any time.</string>
+
 </resources>

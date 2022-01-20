@@ -56,6 +56,7 @@ public class ConfigUpdater {
         void onConfigUpdateStart();
         void onConfigUpdateServerError();
         void onConfigUpdateNetworkError();
+        void onConfigLoaded();
         void onPoliciesUpdated();
         void onFileDownloading(final RemoteFile remoteFile);
         void onDownloadProgress(final int progress, final long total, final long current);
@@ -82,6 +83,7 @@ public class ConfigUpdater {
     private Map<String, File> pendingInstallations = new HashMap<String,File>();
     private BroadcastReceiver appInstallReceiver;
     private boolean retry = true;
+    private boolean loadOnly = false;
     private boolean userInteraction;
 
     public List<Application> getApplicationsForRun() {
@@ -99,6 +101,10 @@ public class ConfigUpdater {
 
     public static void forceConfigUpdate(final Context context) {
         new ConfigUpdater().updateConfig(context, null, false);
+    }
+
+    public void setLoadOnly(boolean loadOnly) {
+        this.loadOnly = loadOnly;
     }
 
     public void updateConfig(final Context context, final UINotifier uiNotifier, final boolean userInteraction) {
@@ -190,7 +196,17 @@ public class ConfigUpdater {
                 super.onPostExecute( result );
                 Log.i(Const.LOG_TAG, "updateRemoteLogConfig(): result=" + result);
                 RemoteLogger.log(context, Const.LOG_INFO, "Device owner: " + Utils.isDeviceOwner(context));
-                checkServerMigration();
+                try {
+                    if (settingsHelper.getConfig() != null && uiNotifier != null) {
+                        uiNotifier.onConfigLoaded();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (!loadOnly) {
+                    checkServerMigration();
+                }
+                // If loadOnly flag is set, we finish the flow here
             }
         };
         task.execute();

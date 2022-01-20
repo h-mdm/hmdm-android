@@ -112,4 +112,7 @@
     <string name="background_location">%s requiert l\'autorisation d\'emplacement en arrière-plan. Cliquez sur \'Continuer\' pour ouvrir les autorisations, cliquez sur \'Emplacement\' et autorisez toujours à déterminer l\'emplacement.</string>
     <string name="location_disable">Désactiver l\'emplacement</string>
     <string name="background_location_continue">Continuer</string>
+    <string name="initializing_mdm">Initialisation de l\'application de gestion des appareils mobiles...</string>
+    <string name="dialog_server_error_title">Le serveur MDM %s a renvoyé une réponse non valide. Veuillez contacter votre administrateur.</string>
+    <string name="mdm_choice_message">Cet appareil sera entièrement géré par votre organisation. Vos données ne seront pas privées et pourront être effacées ou révisées par votre administrateur informatique à tout moment.</string>
 </resources>

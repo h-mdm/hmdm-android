@@ -113,4 +113,7 @@
 	<string name="background_location">%s 需要后台位置权限。 单击\'继续\' 打开权限，单击\'位置\' 并允许始终确定位置。</string>
 	<string name="location_disable">禁用位置</string>
 	<string name="background_location_continue">继续</string>
+	<string name="initializing_mdm">正在初始化移动设备管理应用程序...</string>
+	<string name="dialog_server_error_title">MDM 服务器 %s 返回无效响应。 请联系您的管理员。</string>
+	<string name="mdm_choice_message">此设备将由您的组织完全管理。 您的数据不会是私密的，您的 IT 管理员可以随时删除或查看您的数据。</string>
 </resources>

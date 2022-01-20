@@ -113,4 +113,7 @@
     <string name="background_location">%s requiere el permiso de ubicación en segundo plano. Haga clic en \'Continuar\' para abrir los permisos, haga clic en \'Ubicación\' y permita determinar la ubicación siempre.</string>
     <string name="location_disable">Deshabilitar ubicación</string>
     <string name="background_location_continue">Continuar</string>
+    <string name="initializing_mdm">Inicialización de la aplicación de gestión de dispositivos móviles ...</string>
+    <string name="dialog_server_error_title">El servidor MDM %s devolvió una respuesta no válida. Comuníquese con su administrador.</string>
+    <string name="mdm_choice_message">Este dispositivo será completamente administrado por su organización. Sus datos no serán privados y su administrador de TI puede borrarlos o revisarlos en cualquier momento.</string>
 </resources>
