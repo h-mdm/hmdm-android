@@ -16,6 +16,7 @@ import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.RemoteFile;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.service.ServiceHelper;
+import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.Utils;
 
 public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.UINotifier {
@@ -117,6 +118,10 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
     }
 
     private void abort() {
+        // Factory reset!!!
+        if (!Utils.factoryReset(this)) {
+            RemoteLogger.log(this, Const.LOG_WARN, "Device reset failed");
+        }
         setResult(RESULT_CANCELED);
         finish();
     }

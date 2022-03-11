@@ -2103,9 +2103,18 @@ public class MainActivity
                 checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
 
             if (startSettings) {
-                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                        checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                        !ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+                boolean activeModeLocation = false;
+                try {
+                    activeModeLocation = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                            checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                            !ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION);
+                } catch (Exception e) {
+                    // On some older models:
+                    // java.lang.IllegalArgumentException
+                    // Unknown permission: android.permission.ACCESS_BACKGROUND_LOCATION
+                }
+
+                if (activeModeLocation) {
                     // The following flow happened
                     // The user has enabled locations, but when the app prompted for the background location,
                     // the user clicked "Locations only in active mode".

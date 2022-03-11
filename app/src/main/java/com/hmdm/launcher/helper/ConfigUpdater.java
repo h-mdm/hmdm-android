@@ -925,9 +925,9 @@ public class ConfigUpdater {
             // Restart self in EMUI: there's no auto restart after update in EMUI, we must use a helper app
             startLauncherRestarter();
         }
-        pendingInstallations.put(packageName, file);
         String versionData = version == null || version.equals("0") ? "" : " " + version;
         if (Utils.isDeviceOwner(context) || BuildConfig.SYSTEM_PRIVILEGES) {
+            pendingInstallations.put(packageName, file);
             RemoteLogger.log(context, Const.LOG_INFO, "Silently installing app " + packageName + versionData);
             InstallUtils.silentInstallApplication(context, file, packageName, new InstallUtils.InstallErrorHandler() {
                 @Override
