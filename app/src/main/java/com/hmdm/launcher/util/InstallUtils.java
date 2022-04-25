@@ -165,6 +165,11 @@ public class InstallUtils {
     }
 
     private static boolean areVersionsEqual(String v1, String v2) {
+        if (v1 == null || v2 == null) {
+            // Exceptional case, we should never be here but this shouldn't crash the app with NPE
+            return v1 == v2;
+        }
+
         // Compare only digits (in Android 9 EMUI on Huawei Honor 8A, getPackageInfo doesn't get letters!)
         String v1d = v1.replaceAll("[^\\d.]", "");
         String v2d = v2.replaceAll("[^\\d.]", "");
@@ -444,7 +449,17 @@ public class InstallUtils {
 
     public static void requestUninstallApplication(Context context, String packageName) {
         Uri packageUri = Uri.parse("package:" + packageName);
-        context.startActivity(new Intent(Intent.ACTION_UNINSTALL_PACKAGE, packageUri));
+        Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, packageUri);
+        // Let's set Intent.FLAG_ACTIVITY_NEW_TASK here
+        // Some devices report:
+        // android.util.AndroidRuntimeException
+        // Calling startActivity() from outside of an Activity context requires the FLAG_ACTIVITY_NEW_TASK flag. Is this really what you want?
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            context.startActivity(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static String getPackageInstallerStatusMessage(int status) {

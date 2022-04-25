@@ -28,6 +28,7 @@ public class PushMessage {
     private String messageType;
     private String payload;
 
+    public static final String TYPE_CONFIG_UPDATING = "configUpdating";
     public static final String TYPE_CONFIG_UPDATED = "configUpdated";
     public static final String TYPE_RUN_APP = "runApp";
 

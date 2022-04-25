@@ -612,19 +612,41 @@ public class MainActivity
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);
                 return;
             }
-            boolean noPermissions = false;
+
+            boolean locationDisabled = false;
             for (int n = 0; n < permissions.length; n++) {
                 if (permissions[n].equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
                     if (grantResults[n] != PackageManager.PERMISSION_GRANTED) {
                         // The user didn't allow to determine location, this is not critical, just ignore it
                         preferences.edit().putInt(Const.PREFERENCES_DISABLE_LOCATION, Const.PREFERENCES_ON).commit();
-                    }
-                } else {
-                    if (grantResults[n] != PackageManager.PERMISSION_GRANTED) {
-                        // This is critical, let's user know
-                        createAndShowPermissionsDialog();
+                        locationDisabled = true;
                     }
                 }
+            }
+
+            boolean requestPermissions = false;
+            for (int n = 0; n < permissions.length; n++) {
+                if (grantResults[n] != PackageManager.PERMISSION_GRANTED) {
+                    if (permissions[n].equals(Manifest.permission.ACCESS_BACKGROUND_LOCATION) &&
+                            (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || locationDisabled)) {
+                        // Background location is not available on Android 9 and below
+                        // Also we don't need to grant background location permission if we don't grant location at all
+                        continue;
+                    }
+
+                    if (permissions[n].equals(Manifest.permission.ACCESS_FINE_LOCATION) &&
+                            locationDisabled) {
+                        // Skip fine location permission if user intentionally disabled it
+                        continue;
+                    }
+
+                    // Let user know that he need to grant permissions
+                     requestPermissions = true;
+                }
+            }
+
+            if (requestPermissions) {
+                createAndShowPermissionsDialog();
             }
         }
     }
@@ -1544,11 +1566,16 @@ public class MainActivity
                         Picasso.with(MainActivity.this)
                             .load(config.getBackgroundImageUrl())
                             .networkPolicy(NetworkPolicy.OFFLINE)
+                            .fit()
+                            .centerCrop()
                             .into(binding.activityMainBackground);
                     }
                 });
                 builder.build()
                     .load(config.getBackgroundImageUrl())
+                    // fit and centerCrop is a workaround against a crash on too large images on some devices
+                    .fit()
+                    .centerCrop()
                     .into(binding.activityMainBackground);
 
             } else {
@@ -1970,7 +1997,12 @@ public class MainActivity
 
         Intent intent = new Intent( Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse( "package:" + getPackageName() ) );
-        startActivityForResult( intent, 1001 );
+        try {
+            startActivityForResult(intent, 1001);
+        } catch (/* ActivityNotFound*/Exception e) {
+            Toast.makeText(this, R.string.overlays_not_supported, Toast.LENGTH_LONG).show();
+            overlayWithoutPermission(view);
+        }
     }
 
 
@@ -2099,19 +2131,23 @@ public class MainActivity
         if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
                 checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
                 checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) ||
                 checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
 
             if (startSettings) {
                 boolean activeModeLocation = false;
-                try {
-                    activeModeLocation = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                            checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                            !ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION);
-                } catch (Exception e) {
-                    // On some older models:
-                    // java.lang.IllegalArgumentException
-                    // Unknown permission: android.permission.ACCESS_BACKGROUND_LOCATION
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    try {
+                        activeModeLocation = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                                checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                                !ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION);
+                    } catch (Exception e) {
+                        // On some older models:
+                        // java.lang.IllegalArgumentException
+                        // Unknown permission: android.permission.ACCESS_BACKGROUND_LOCATION
+                        // Update: since there's the Android version check, we should never be here!
+                        e.printStackTrace();
+                    }
                 }
 
                 if (activeModeLocation) {

@@ -21,6 +21,7 @@ import com.hmdm.launcher.db.RemoteFileTable;
 import com.hmdm.launcher.json.Action;
 import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.DeviceInfo;
+import com.hmdm.launcher.json.PushMessage;
 import com.hmdm.launcher.json.RemoteFile;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.pro.worker.DetailedInfoWorker;
@@ -495,7 +496,11 @@ public class ConfigUpdater {
                                 if (!remoteFile.isVarContent()) {
                                     FileUtils.moveFile(file, finalFile);
                                 } else {
-                                    createFileFromTemplate(file, finalFile, settingsHelper.getDeviceId(), settingsHelper.getConfig());
+                                    String imei = DeviceInfoProvider.getImei(context, 0);
+                                    if (imei == null || imei.equals("")) {
+                                        imei = settingsHelper.getConfig().getImei();
+                                    }
+                                    createFileFromTemplate(file, finalFile, settingsHelper.getDeviceId(), imei, settingsHelper.getConfig());
                                 }
                                 RemoteFileTable.insert(DatabaseHelper.instance(context).getWritableDatabase(), remoteFile);
                                 remoteFileStatus.installed = true;
@@ -762,6 +767,10 @@ public class ConfigUpdater {
                     uiNotifier.onConfigUpdateComplete();
                 }
 
+                // Send notification about the configuration update to all plugins
+                Intent intent = new Intent(Const.INTENT_PUSH_NOTIFICATION_PREFIX + PushMessage.TYPE_CONFIG_UPDATED);
+                context.sendBroadcast(intent);
+
                 if (pendingInstallations.size() > 0) {
                     // Some apps are still pending installation
                     // Let's wait until they're all installed
@@ -1007,12 +1016,13 @@ public class ConfigUpdater {
 
     // Create a new file from the template file
     // (replace DEVICE_NUMBER, IMEI, CUSTOM* by their values)
-    private void createFileFromTemplate(File srcFile, File dstFile, String deviceId, ServerConfig config) throws IOException {
+    private void createFileFromTemplate(File srcFile, File dstFile, String deviceId, String imei, ServerConfig config) throws IOException {
         // We are supposed to process only small text files
         // So here we are reading the whole file, replacing variables, and save the content
         // It is not optimal for large files - it would be better to replace in a stream (how?)
         String content = FileUtils.readFileToString(srcFile);
         content = content.replace("DEVICE_NUMBER", deviceId)
+                .replace("IMEI", imei != null ? imei : "")
                 .replace("CUSTOM1", config.getCustom1() != null ? config.getCustom1() : "")
                 .replace("CUSTOM2", config.getCustom2() != null ? config.getCustom2() : "")
                 .replace("CUSTOM3", config.getCustom3() != null ? config.getCustom3() : "");

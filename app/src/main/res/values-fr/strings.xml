@@ -115,4 +115,5 @@
     <string name="initializing_mdm">Initialisation de l\'application de gestion des appareils mobiles...</string>
     <string name="dialog_server_error_title">Le serveur MDM %s a renvoyé une réponse non valide. Veuillez contacter votre administrateur.</string>
     <string name="mdm_choice_message">Cet appareil sera entièrement géré par votre organisation. Vos données ne seront pas privées et pourront être effacées ou révisées par votre administrateur informatique à tout moment.</string>
+    <string name="overlays_not_supported">Malheureusement, les superpositions ne sont pas prises en charge par votre appareil.</string>
 </resources>

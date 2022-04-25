@@ -37,6 +37,8 @@ public class PushNotificationProcessor {
         if (message.getMessageType().equals(PushMessage.TYPE_CONFIG_UPDATED)) {
             // Update local configuration
             ConfigUpdater.notifyConfigUpdate(context);
+            // The configUpdated should be broadcasted after the configuration update is completed
+            return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_RUN_APP)) {
             // Run application
             runApplication(context, message.getPayloadJSON());
