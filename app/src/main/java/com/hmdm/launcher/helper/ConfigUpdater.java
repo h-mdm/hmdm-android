@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageInstaller;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
@@ -387,20 +388,35 @@ public class ConfigUpdater {
 
                 @Override
                 protected void onPostExecute(Void v) {
-                    updateLocationService();
+                    updatePolicies();
                 }
             }.execute();
             return;
         }
-        updateLocationService();
+        updatePolicies();
     }
 
-    private void updateLocationService() {
+    private void updatePolicies() {
+        // Update miscellaneous device policies here
+
+        // Set up a proxy server
+        SettingsHelper settingsHelper = SettingsHelper.getInstance(context);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && Utils.isDeviceOwner(context)) {
+            String proxyUrl = settingsHelper.getAppPreference(context.getPackageName(), "proxy");
+            if (proxyUrl != null) {
+                proxyUrl = proxyUrl.trim();
+                if (proxyUrl.equals("0")) {
+                    // null stays for "no changes" (most users won't even know about an option to set up a proxy)
+                    // "0" stays for "clear the proxy previously set up"
+                    proxyUrl = null;
+                }
+                Utils.setProxy(context, proxyUrl);
+            }
+        }
+
         if (uiNotifier != null) {
             uiNotifier.onPoliciesUpdated();
         }
-        // onPoliciesUpdated() method contents
-        // startLocationServiceWithRetry();
         checkAndUpdateFiles();
     }
 

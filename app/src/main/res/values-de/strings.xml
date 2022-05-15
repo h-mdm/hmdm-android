@@ -76,6 +76,8 @@
     <string name="admin_change_server_url">Server-URL ändern</string>
     <string name="admin_allow_settings">Öffnen Sie die Einstellungen</string>
     <string name="settings_allowed">Sie können die Einstellungen innerhalb von 3 Minuten ändern.</string>
+    <string name="admin_clear_restrictions">Einschränkungen entfernen</string>
+    <string name="permissive_mode_enabled">Sie dürfen alle Apps innerhalb von 3 Minuten ausführen.</string>
     <string name="admin_refresh">Konfiguration aktualisieren</string>
     <string name="admin_exit">Beenden Sie den Systemstarter</string>
     <string name="admin_reset_permissions">Berechtigungen prüfen</string>

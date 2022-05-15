@@ -79,6 +79,8 @@
     <string name="admin_change_server_url">Change server URL</string>
     <string name="admin_allow_settings">Open settings</string>
     <string name="settings_allowed">You are allowed to change settings within 3 minutes.</string>
+    <string name="admin_clear_restrictions">Clear restrictions</string>
+    <string name="permissive_mode_enabled">You are allowed to run all apps within 3 minutes.</string>
     <string name="admin_refresh">Update configuration</string>
     <string name="admin_exit">Exit to system launcher</string>
     <string name="admin_reset_permissions">Check permissions</string>

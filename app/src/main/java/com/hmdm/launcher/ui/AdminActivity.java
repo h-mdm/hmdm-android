@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.UserManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -46,6 +47,7 @@ import com.hmdm.launcher.util.AppInfo;
 import com.hmdm.launcher.util.LegacyUtils;
 import com.hmdm.launcher.util.PushNotificationMqttWrapper;
 import com.hmdm.launcher.util.RemoteLogger;
+import com.hmdm.launcher.util.Utils;
 
 public class AdminActivity extends BaseActivity {
 
@@ -132,6 +134,23 @@ public class AdminActivity extends BaseActivity {
         //finish();
     }
 
+    public void clearRestrictions(View view) {
+        String restrictions =
+                UserManager.DISALLOW_SAFE_BOOT + "," +
+                UserManager.DISALLOW_USB_FILE_TRANSFER + "," +
+                UserManager.DISALLOW_MOUNT_PHYSICAL_MEDIA + "," +
+                UserManager.DISALLOW_CONFIG_BRIGHTNESS + "," +
+                UserManager.DISALLOW_CONFIG_SCREEN_TIMEOUT + "," +
+                UserManager.DISALLOW_ADJUST_VOLUME;
+        if (settingsHelper.getConfig() != null && settingsHelper.getConfig().getRestrictions() != null) {
+            restrictions = "," + settingsHelper.getConfig().getRestrictions();
+        }
+        Utils.unlockUserRestrictions(this, restrictions);
+        LocalBroadcastManager.getInstance( this ).sendBroadcast( new Intent( Const.ACTION_PERMISSIVE_MODE ) );
+        LocalBroadcastManager.getInstance( this ).sendBroadcast( new Intent( Const.ACTION_STOP_CONTROL ) );
+        Toast.makeText(this, R.string.permissive_mode_enabled, Toast.LENGTH_LONG).show();
+        //finish();
+    }
     @Override
     protected void updateSettingsFromQr(String qrcode) {
         super.updateSettingsFromQr(qrcode);

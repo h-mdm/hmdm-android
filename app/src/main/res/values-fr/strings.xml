@@ -76,6 +76,8 @@
     <string name="admin_change_server_url">Changer URL du serveur</string>
     <string name="admin_allow_settings">Ouvrir les paramètres</string>
     <string name="settings_allowed">Vous avez 3 minutes pour modifier les paramètres.</string>
+    <string name="admin_clear_restrictions">Supprimer les restrictions</string>
+    <string name="permissive_mode_enabled">Vous êtes autorisé à exécuter toutes les applications dans les 3 minutes.</string>
     <string name="admin_refresh">Actualiser la configuration</string>
     <string name="admin_exit">Quitter vers le lanceur de système</string>
     <string name="admin_reset_permissions">Vérifier les autorisations</string>

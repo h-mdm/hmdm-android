@@ -76,6 +76,8 @@
     <string name="admin_change_server_url">Alterar URL do Servidor</string>
     <string name="admin_allow_settings">Abrir configurações</string>
     <string name="settings_allowed">Você pode alterar as permissões durante 3 minutos.</string>
+    <string name="admin_clear_restrictions">Remover restrições</string>
+    <string name="permissive_mode_enabled">Você tem permissão para executar todos os aplicativos em 3 minutos.</string>
     <string name="admin_refresh">Atualizar Configuração</string>
     <string name="admin_exit">Sair do Launcher do sistema</string>
     <string name="admin_reset_permissions">Resetar Permissões</string>

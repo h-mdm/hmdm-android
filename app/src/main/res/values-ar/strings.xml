@@ -72,6 +72,8 @@
     <string name="admin_change_server_url">تغيير عنوان URL للخادم</string>
     <string name="admin_allow_settings">أفتح الإعدادات</string>
     <string name="settings_allowed">يُسمح لك بتغيير الإعدادات في غضون 3 دقائق.</string>
+    <string name="admin_clear_restrictions">قيود واضحة</string>
+    <string name="permissive_mode_enabled">يُسمح لك بتشغيل جميع التطبيقات في غضون 3 دقائق.</string>
     <string name="admin_refresh">تحديث التكوين</string>
     <string name="admin_exit">الخروج إلى مشغل النظام</string>
     <string name="admin_reset_permissions">تحقق من الأذونات</string>

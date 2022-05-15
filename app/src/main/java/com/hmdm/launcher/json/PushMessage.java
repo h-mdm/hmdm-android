@@ -31,6 +31,11 @@ public class PushMessage {
     public static final String TYPE_CONFIG_UPDATING = "configUpdating";
     public static final String TYPE_CONFIG_UPDATED = "configUpdated";
     public static final String TYPE_RUN_APP = "runApp";
+    public static final String TYPE_UNINSTALL_APP = "uninstallApp";
+    public static final String TYPE_DELETE_FILE = "deleteFile";
+    public static final String TYPE_PURGE_DIR = "purgeDir";
+    public static final String TYPE_DELETE_DIR = "deleteDir";
+    public static final String TYPE_PERMISSIVE_MODE = "permissiveMode";
 
     public String getMessageType() {
         return messageType;

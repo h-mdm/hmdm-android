@@ -76,6 +76,8 @@
     <string name="admin_change_server_url">Изменить URL сервера</string>
     <string name="admin_allow_settings">Открыть настройки</string>
     <string name="settings_allowed">Изменение настроек разрешено в течение 3 минут</string>
+    <string name="admin_clear_restrictions">Снять ограничения</string>
+    <string name="permissive_mode_enabled">Вам разрешено запускать все приложения в течение 3 минут.</string>
     <string name="admin_refresh">Обновить конфигурацию</string>
     <string name="admin_reset_permissions">Проверить разрешения</string>
     <string name="admin_reset_network">Сброс политик сети</string>

@@ -16,6 +16,11 @@ public class BootReceiver extends BroadcastReceiver {
         Log.i(Const.LOG_TAG, "Got the BOOT_RECEIVER broadcast");
 
         SettingsHelper settingsHelper = SettingsHelper.getInstance(context.getApplicationContext());
+        if (!settingsHelper.isBaseUrlSet()) {
+            // We're here before initializing after the factory reset! Let's ignore this call
+            return;
+        }
+
         long lastAppStartTime = settingsHelper.getAppStartTime();
         long bootTime = System.currentTimeMillis() - android.os.SystemClock.elapsedRealtime();
         Log.d(Const.LOG_TAG, "appStartTime=" + lastAppStartTime + ", bootTime=" + bootTime);

@@ -28,6 +28,7 @@ public class Const {
     public static final String ACTION_SERVICE_STOP = "SERVICE_STOP";
     public static final String ACTION_SHOW_LAUNCHER = "SHOW_LAUNCHER";
     public static final String ACTION_ENABLE_SETTINGS = "ENABLE_SETTINGS";
+    public static final String ACTION_PERMISSIVE_MODE = "PERMISSIVE_MODE";
     public static final String ACTION_STOP_CONTROL = "STOP_CONTROL";
     public static final String ACTION_EXIT = "EXIT";
     public static final String ACTION_HIDE_SCREEN = "HIDE_SCREEN";
@@ -74,6 +75,7 @@ public class Const {
     public static final String LOG_TAG = "HeadwindMDM";
 
     public static final int SETTINGS_UNBLOCK_TIME = 180000;
+    public static final int PERMISSIVE_MODE_TIME = 180000;
 
     public static final String LAUNCHER_RESTARTER_PACKAGE_ID = "com.hmdm.emuilauncherrestarter";
     public static final String LAUNCHER_RESTARTER_OLD_VERSION = "oldVersion";

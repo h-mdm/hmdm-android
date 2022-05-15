@@ -39,11 +39,14 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
+import android.net.ProxyInfo;
 import android.os.Build;
 import android.os.UserManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.WindowManager;
+
+import androidx.annotation.RequiresApi;
 
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
@@ -135,11 +138,23 @@ public class Utils {
             return permissions;
         }
 
+        boolean manageStorage = false;
         if (packageInfo != null && packageInfo.requestedPermissions != null) {
             for (String requestedPerm : packageInfo.requestedPermissions) {
+                if (requestedPerm.equals(Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
+                    manageStorage = true;
+                }
                 if (isRuntimePermission(packageManager, requestedPerm)) {
                     permissions.add(requestedPerm);
                 }
+            }
+            // There's a bug in Android 11+: MANAGE_EXTERNAL_STORAGE can't be automatically granted
+            // but if Headwind MDM is granting WRITE_EXTERNAL_STORAGE, then the app can't request
+            // MANAGE_EXTERNAL_STORAGE, it's locked!
+            // So the workaround is do not request WRITE_EXTERNAL_STORAGE in this case
+            if (manageStorage && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                permissions.removeIf(s -> (s.equals(Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
+                        s.equals(Manifest.permission.READ_EXTERNAL_STORAGE)));
             }
         }
         return permissions;
@@ -853,6 +868,51 @@ public class Utils {
                 dpm.addUserRestriction(adminComponentName, r.trim());
             } catch (Exception e) {
             }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static void unlockUserRestrictions(Context context, String restrictions) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return;
+        }
+
+        ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+        DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        if (dpm == null || !dpm.isDeviceOwnerApp(context.getPackageName())) {
+            return;
+        }
+
+        String[] restrictionList = restrictions.split(",");
+        for (String r : restrictionList) {
+            try {
+                dpm.clearUserRestriction(adminComponentName, r.trim());
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    // Setting proxyUrl=null clears the proxy previously set up
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public static boolean setProxy(Context context, String proxyUrl) {
+        ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+        DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        try {
+            ProxyInfo proxyInfo = null;
+            if (proxyUrl != null) {
+                String[] parts = proxyUrl.split(":");
+                if (parts.length != 2) {
+                    Log.d(Const.LOG_TAG, "Invalid proxy URL: " + proxyUrl);
+                    return false;
+                }
+                int port = Integer.parseInt(parts[1]);
+                proxyInfo = ProxyInfo.buildDirectProxy(parts[0], port);
+            }
+            dpm.setRecommendedGlobalProxy(adminComponentName, proxyInfo);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 

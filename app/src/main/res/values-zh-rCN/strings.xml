@@ -76,6 +76,8 @@
 	<string name="admin_change_server_url">更改服务器URL</string>
 	<string name="admin_allow_settings">打开设置</string>
 	<string name="settings_allowed">您可以在3分钟内更改设置。</string>
+	<string name="admin_clear_restrictions">移除限制</string>
+	<string name="permissive_mode_enabled">您可以在 3 分钟内运行所有应用程序。</string>
 	<string name="admin_refresh">更新配置</string>
 	<string name="admin_exit">退出系统启动器</string>
 	<string name="admin_reset_permissions">检查权限</string>
