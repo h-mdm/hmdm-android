@@ -119,4 +119,5 @@
     <string name="dialog_server_error_title">O servidor MDM %s retornou uma resposta inválida. Entre em contato com o seu administrador.</string>
     <string name="mdm_choice_message">Este dispositivo será totalmente gerenciado por sua organização. Seus dados não serão privados e podem ser apagados ou revisados por seu administrador de TI a qualquer momento.</string>
     <string name="overlays_not_supported">Infelizmente, as sobreposições não são suportadas pelo seu dispositivo.</string>
+    <string name="admin_not_supported">Seu dispositivo não tem opção de administrador do dispositivo. Clique em Pular para continuar.</string>
 </resources>

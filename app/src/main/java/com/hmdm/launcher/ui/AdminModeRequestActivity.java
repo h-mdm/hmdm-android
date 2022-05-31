@@ -4,9 +4,11 @@ import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.hmdm.launcher.R;
 import com.hmdm.launcher.util.LegacyUtils;
 
 /**
@@ -22,7 +24,12 @@ public class AdminModeRequestActivity extends AppCompatActivity {
         ComponentName adminComponentName = LegacyUtils.getAdminComponentName(this);
         Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
         intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponentName);
-        startActivityForResult(intent, 1);
+        try {
+            startActivityForResult(intent, 1);
+        } catch (/*ActivityNotFound*/Exception e) {
+            Toast.makeText(this, getString(R.string.admin_not_supported), Toast.LENGTH_LONG).show();
+            finish();
+        }
     }
 
     @Override

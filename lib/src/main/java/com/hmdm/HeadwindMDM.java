@@ -166,6 +166,8 @@ public class HeadwindMDM {
             Bundle data = null;
             try {
                 data = mdmService.queryConfig();
+                // NPE can be here! queryConfig() may return null if Headwind MDM
+                // is not configured. Not sure how to handle this, though
                 serverHost = data.getString(MDMService.KEY_SERVER_HOST);
                 secondaryServerHost = data.getString(MDMService.KEY_SECONDARY_SERVER_HOST);
                 serverPath = data.getString(MDMService.KEY_SERVER_PATH);

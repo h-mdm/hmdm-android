@@ -36,7 +36,9 @@ import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
+import com.hmdm.launcher.helper.CryptoHelper;
 import com.hmdm.launcher.json.PushMessageJson;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.worker.PushNotificationProcessor;
@@ -106,6 +108,8 @@ public class PushNotificationMqttWrapper {
             connectOptions.setPingType(MqttAndroidConnectOptions.PING_ALARM);
             connectOptions.setKeepAliveInterval(keepaliveTime);
         }
+        connectOptions.setUserName("hmdm");
+        connectOptions.setPassword(CryptoHelper.getSHA1String("hmdm" + BuildConfig.REQUEST_SIGNATURE).toCharArray());
         String serverUri = "tcp://" + host + ":" + port;
 
         if (client != null) {
