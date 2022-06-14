@@ -32,3 +32,17 @@ Build the APK after you successfully build the app.
 2. Select Build - Make Module 'lib'
 3. Find the library in the 'lib/build/outputs/aar' directory
 
+## Building the project in the command line
+
+1. Install the Gradle plugin v5.1.1 (Linux only)
+2. Install Android Studio or download the standalone Android SDK
+3. Create the file local.properties and store the SDK location in this file:
+
+sdk.dir=/path/to/sdk
+
+4. Run the command
+
+gradlew build
+
+5. Find the resulting APK in the app/build/outputs/apk/release/ directory.
+
