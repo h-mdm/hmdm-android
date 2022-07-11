@@ -1,9 +1,12 @@
 package com.hmdm.launcher.ui;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.databinding.DataBindingUtil;
 
@@ -23,6 +26,7 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
     private ActivityInitialSetupBinding binding;
     private ConfigUpdater configUpdater;
     private SettingsHelper settingsHelper;
+    private boolean configuring = false;
 
     @Override
     protected void onCreate( Bundle savedInstanceState ) {
@@ -33,12 +37,20 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
         binding = DataBindingUtil.setContentView(this, R.layout.activity_initial_setup);
         binding.setMessage(getString(R.string.initializing_mdm));
         binding.setLoading(true);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
 
         settingsHelper = SettingsHelper.getInstance(this);
 
-        configUpdater = new ConfigUpdater();
-        configUpdater.setLoadOnly(true);
-        updateConfig();
+        if (!configuring) {
+            configuring = true;
+            configUpdater = new ConfigUpdater();
+            configUpdater.setLoadOnly(true);
+            updateConfig();
+        }
     }
 
     private void updateConfig() {
@@ -93,6 +105,7 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
     }
 
     private void completeConfig(final SettingsHelper settingsHelper) {
+        configuring = false;
         if (settingsHelper.getConfig() != null) {
             try {
                 Utils.applyEarlyNonInteractivePolicies(this, settingsHelper.getConfig());
@@ -111,10 +124,21 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
     private void displayError(String message) {
         new AlertDialog.Builder(this)
                 .setMessage(message)
-                .setNegativeButton(R.string.main_activity_reset, (dialogInterface, i) -> abort())
+                .setNeutralButton(R.string.main_activity_reset, (dialogInterface, i) -> abort())
+                .setNegativeButton(R.string.main_activity_wifi, (dialogInterface, i) -> openWiFiSettings())
                 .setPositiveButton(R.string.main_activity_repeat, (dialogInterface, i) -> updateConfig())
                 .create()
                 .show();
+    }
+
+    private void openWiFiSettings() {
+        configuring = false;
+        try {
+            startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void abort() {

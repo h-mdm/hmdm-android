@@ -38,8 +38,8 @@ android {
         // To change to 30, file access should be updated: https://developer.android.com/training/data-storage/manage-all-files
         // To avoid extra step during initial setup, let's keep the target SDK version as 29 as long as possible
         targetSdkVersion 29
-        versionCode 505
-        versionName "5.05"
+        versionCode 506
+        versionName "5.06"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true

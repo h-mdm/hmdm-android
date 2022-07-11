@@ -51,6 +51,7 @@ import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -202,6 +203,7 @@ public class MainActivity
 
     private boolean needSendDeviceInfoAfterReconfigure = false;
     private boolean needRedrawContentAfterReconfigure = false;
+    private boolean orientationLocked = false;
 
     private int REQUEST_CODE_GPS_STATE_CHANGE = 1;
 
@@ -447,10 +449,6 @@ public class MainActivity
         // Here we initialize all required fields to avoid crash at startup
         reinitApp();
 
-        // Lock orientation of progress activity to avoid hangups on rotation while initial configuration
-        setRequestedOrientation(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ?
-                ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-
         startServicesWithRetry();
 
         if (interruptResumeFlow) {
@@ -467,6 +465,17 @@ public class MainActivity
             }
         } else {
             setSelfAsDeviceOwner();
+        }
+    }
+
+    private void lockOrientation() {
+        int orientation = getResources().getConfiguration().orientation;
+        int rotation = getWindowManager().getDefaultDisplay().getRotation();
+        Log.d(Const.LOG_TAG, "Lock orientation: orientation=" + orientation + ", rotation=" + rotation);
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            setRequestedOrientation(rotation < Surface.ROTATION_180 ? ActivityInfo.SCREEN_ORIENTATION_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
+        } else {
+            setRequestedOrientation(rotation < Surface.ROTATION_180 ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
         }
     }
 
@@ -1166,6 +1175,9 @@ public class MainActivity
     private void updateConfig( final boolean userInteraction ) {
         needSendDeviceInfoAfterReconfigure = true;
         needRedrawContentAfterReconfigure = true;
+        if (!orientationLocked) {
+            lockOrientation();
+        }
         configUpdater.updateConfig(this, this, userInteraction);
     }
 
@@ -1489,7 +1501,10 @@ public class MainActivity
             return;
         }
 
-        Utils.setOrientation(this, config);
+        if (orientationLocked) {
+            Utils.setOrientation(this, config);
+            orientationLocked = false;
+        }
 
         if (ProUtils.kioskModeRequired(this)) {
             String kioskApp = settingsHelper.getConfig().getMainApp();

@@ -165,6 +165,7 @@ public class DeviceInfoProvider {
         deviceInfo.setAndroidVersion(Build.VERSION.RELEASE);
         deviceInfo.setLocation(getLocation(context));
         deviceInfo.setMdmMode(Utils.isDeviceOwner(context));
+        deviceInfo.setKioskMode(ProUtils.isKioskModeRunning(context));
         deviceInfo.setLauncherType(BuildConfig.FLAVOR);
         deviceInfo.setCpu(Build.CPU_ABI);
         deviceInfo.setSerial(getSerialNumber());

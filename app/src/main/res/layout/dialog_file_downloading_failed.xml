@@ -36,6 +36,7 @@
         <TextView
             android:layout_width="@dimen/dialog_enter_device_id_width"
             android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
             android:id="@+id/title"
             android:layout_marginBottom="@dimen/activity_horizontal_margin"/>
 

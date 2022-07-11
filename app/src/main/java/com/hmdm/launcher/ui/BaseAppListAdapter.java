@@ -16,18 +16,25 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.databinding.ItemAppBinding;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.ServerConfig;
+import com.hmdm.launcher.server.UnsafeOkHttpClient;
 import com.hmdm.launcher.util.AppInfo;
+import com.hmdm.launcher.util.InstallUtils;
 import com.hmdm.launcher.util.Utils;
+import com.jakewharton.picasso.OkHttp3Downloader;
+import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import okhttp3.OkHttpClient;
 
 public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.ViewHolder> {
     protected LayoutInflater layoutInflater;
@@ -105,8 +112,41 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
             holder.binding.imageView.getLayoutParams().height = iconSize;
             if (appInfo.iconUrl != null) {
                 // Load the icon
-                // TODO: for BuildConfig.TRUST_ANY_CERTIFICATE, use custom Picasso builder as in MainActivity.java
-                Picasso.with(context).load(appInfo.iconUrl).into(holder.binding.imageView);
+                Picasso.Builder builder = new Picasso.Builder(context);
+                if (BuildConfig.TRUST_ANY_CERTIFICATE) {
+                    builder.downloader(new OkHttp3Downloader(UnsafeOkHttpClient.getUnsafeOkHttpClient()));
+                } else if (BuildConfig.CHECK_SIGNATURE) {
+                    // Here we assume TRUST_ANY_CERTIFICATE and CHECK_SIGNATURE are not turned on together!
+                    // That makes no sense: TRUST_ANY_CERTIFICATE is unsafe, but CHECK_SIGNATURE is for safe setup
+                    OkHttpClient clientWithSignature = new OkHttpClient.Builder()
+                            .addInterceptor(chain -> {
+                                okhttp3.Request.Builder requestBuilder = chain.request().newBuilder();
+                                String signature = InstallUtils.getRequestSignature(chain.request().url().toString());
+                                if (signature != null) {
+                                    requestBuilder.addHeader("X-Request-Signature", signature);
+                                }
+                                return chain.proceed(requestBuilder.build());
+
+                            })
+                            .build();
+                    builder.downloader(new OkHttp3Downloader(clientWithSignature));
+                }
+                builder.listener(new Picasso.Listener()
+                {
+                    @Override
+                    public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception)
+                    {
+                        // On fault, get the image from the cache
+                        // This is a workaround against a bug in Picasso: it doesn't display cached images by default!
+                        Picasso.with(context)
+                                .load(appInfo.iconUrl)
+                                .networkPolicy(NetworkPolicy.OFFLINE)
+                                .into(holder.binding.imageView);
+                    }
+                });
+                builder.build()
+                        .load(appInfo.iconUrl)
+                        .into(holder.binding.imageView);
             } else {
                 switch (appInfo.type) {
                     case AppInfo.TYPE_APP:

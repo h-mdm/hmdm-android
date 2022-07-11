@@ -37,6 +37,7 @@ public class DeviceInfo {
     private String phone;
     private String imei;
     private boolean mdmMode;
+    private boolean kioskMode;
     private int batteryLevel;
     private String batteryCharging;
     private String androidVersion;
@@ -153,6 +154,14 @@ public class DeviceInfo {
 
     public void setMdmMode(boolean mdmMode) {
         this.mdmMode = mdmMode;
+    }
+
+    public boolean isKioskMode() {
+        return kioskMode;
+    }
+
+    public void setKioskMode(boolean kioskMode) {
+        this.kioskMode = kioskMode;
     }
 
     public int getBatteryLevel() {

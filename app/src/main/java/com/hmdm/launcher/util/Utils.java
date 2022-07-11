@@ -654,13 +654,16 @@ public class Utils {
 
     @SuppressLint("SourceLockedOrientationActivity")
     public static void setOrientation(Activity activity, ServerConfig config) {
+        String loggedOrientation = "unspecified";
         if (config.getOrientation() != null && config.getOrientation() != 0) {
             switch (config.getOrientation()) {
                 case Const.SCREEN_ORIENTATION_PORTRAIT:
                     activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                    loggedOrientation = "portrait";
                     break;
                 case Const.SCREEN_ORIENTATION_LANDSCAPE:
                     activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                    loggedOrientation = "landscape";
                     break;
                 default:
                     activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
@@ -669,6 +672,7 @@ public class Utils {
         } else {
             activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         }
+        Log.i(Const.LOG_TAG, "Set orientation: " + loggedOrientation);
     }
 
     public static boolean isLauncherIntent(Intent intent) {
