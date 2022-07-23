@@ -221,7 +221,7 @@ public class MainActivity
         public void onReceive( Context context, Intent intent ) {
             switch ( intent.getAction() ) {
                 case Const.ACTION_UPDATE_CONFIGURATION:
-                    RemoteLogger.log(context, Const.LOG_DEBUG, "Update configuration");
+                    RemoteLogger.log(context, Const.LOG_DEBUG, "Update configuration by MainActivity");
                     updateConfig(false);
                     break;
                 case Const.ACTION_HIDE_SCREEN:

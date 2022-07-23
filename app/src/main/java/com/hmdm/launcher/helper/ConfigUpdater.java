@@ -94,9 +94,11 @@ public class ConfigUpdater {
 
     public static void notifyConfigUpdate(final Context context) {
         if (SettingsHelper.getInstance(context).isMainActivityRunning()) {
+            Log.d(Const.LOG_TAG, "Main activity is running, using activity updater");
             LocalBroadcastManager.getInstance(context).
                     sendBroadcast(new Intent(Const.ACTION_UPDATE_CONFIGURATION));
         } else {
+            Log.d(Const.LOG_TAG, "Main activity is not running, creating a new ConfigUpdater");
             new ConfigUpdater().updateConfig(context, null, false);
         }
     }
@@ -207,6 +209,8 @@ public class ConfigUpdater {
                 }
                 if (!loadOnly) {
                     checkServerMigration();
+                } else {
+                    Log.d(Const.LOG_TAG, "LoadOnly flag set, finishing the update flow");
                 }
                 // If loadOnly flag is set, we finish the flow here
             }
@@ -251,6 +255,7 @@ public class ConfigUpdater {
     }
 
     private void setupPushService() {
+        Log.d(Const.LOG_TAG, "setupPushService() called");
         String pushOptions = null;
         int keepaliveTime = Const.DEFAULT_PUSH_ALARM_KEEPALIVE_TIME_SEC;
         if (settingsHelper != null && settingsHelper.getConfig() != null) {
@@ -279,6 +284,7 @@ public class ConfigUpdater {
     }
 
     private void checkFactoryReset() {
+        Log.d(Const.LOG_TAG, "checkFactoryReset() called");
         ServerConfig config = settingsHelper != null ? settingsHelper.getConfig() : null;
         if (config != null && config.getFactoryReset() != null && config.getFactoryReset()) {
             // We got a factory reset request, let's confirm and erase everything!
@@ -417,6 +423,7 @@ public class ConfigUpdater {
         if (uiNotifier != null) {
             uiNotifier.onPoliciesUpdated();
         }
+        Log.d(Const.LOG_TAG, "updatePolicies(): proceed to updating files");
         checkAndUpdateFiles();
     }
 
@@ -564,7 +571,7 @@ public class ConfigUpdater {
 
             }.execute(remoteFile);
         } else {
-            Log.i(Const.LOG_TAG, "Proceed to application update");
+            Log.i(Const.LOG_TAG, "loadAndInstallFiles(): Proceed to application update");
             checkAndUpdateApplications();
         }
     }
@@ -1058,6 +1065,7 @@ public class ConfigUpdater {
     }
 
     public void skipDownloadFiles() {
+        Log.d(Const.LOG_TAG, "File download skipped, continue updating files");
         if (filesForInstall.size() > 0) {
             RemoteFile remoteFile = filesForInstall.remove(0);
             settingsHelper.removeRemoteFile(remoteFile);
@@ -1066,6 +1074,7 @@ public class ConfigUpdater {
     }
 
     public void skipDownloadApps() {
+        Log.d(Const.LOG_TAG, "App download skipped, continue updating applications");
         if (applicationsForInstall.size() > 0) {
             Application application = applicationsForInstall.remove(0);
             // Mark this app not to download any more until the config is refreshed

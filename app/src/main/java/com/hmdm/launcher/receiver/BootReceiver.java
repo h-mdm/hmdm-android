@@ -31,6 +31,7 @@ public class BootReceiver extends BroadcastReceiver {
             return;
         }
 
+        SettingsHelper.getInstance(context).setMainActivityRunning(false);
         if (ProUtils.kioskModeRequired(context)) {
             Log.i(Const.LOG_TAG, "Kiosk mode required, forcing Headwind MDM to run in the foreground");
             // If kiosk mode is required, then we just simulate clicking Home and starting MainActivity
