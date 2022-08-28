@@ -615,11 +615,16 @@ public class MainActivity
                                            String[] permissions, int[] grantResults) {
         if (requestCode == PERMISSIONS_REQUEST) {
             if (Utils.isDeviceOwner(this)) {
-                // This may be called on Android 10, not sure why; just continue the flow
-                Log.i(Const.LOG_TAG, "Called onRequestPermissionsResult: permissions=" + Arrays.toString(permissions) +
-                        ", grantResults=" + Arrays.toString(grantResults));
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-                return;
+                // Even in device owner mode, if "Ask for location" is requested by the admin,
+                // let's ask permissions (so do nothing here, fall through)
+                if (settingsHelper.getConfig() == null || !ServerConfig.APP_PERMISSIONS_ASK_ALL.equals(settingsHelper.getConfig().getAppPermissions()) &&
+                        !ServerConfig.APP_PERMISSIONS_ASK_LOCATION.equals(settingsHelper.getConfig().getAppPermissions())) {
+                    // This may be called on Android 10, not sure why; just continue the flow
+                    Log.i(Const.LOG_TAG, "Called onRequestPermissionsResult: permissions=" + Arrays.toString(permissions) +
+                            ", grantResults=" + Arrays.toString(grantResults));
+                    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                    return;
+                }
             }
 
             boolean locationDisabled = false;
@@ -708,9 +713,6 @@ public class MainActivity
         boolean deviceOwner = Utils.isDeviceOwner(this);
         preferences.edit().putInt(Const.PREFERENCES_DEVICE_OWNER, deviceOwner ?
             Const.PREFERENCES_ON : Const.PREFERENCES_OFF).commit();
-        if (deviceOwner) {
-            Utils.autoGrantRequestedPermissions(this, getPackageName(), true);
-        }
 
         int miuiPermissionMode = preferences.getInt(Const.PREFERENCES_MIUI_PERMISSIONS, -1);
         if (miuiPermissionMode == -1) {
@@ -1175,8 +1177,9 @@ public class MainActivity
     private void updateConfig( final boolean userInteraction ) {
         needSendDeviceInfoAfterReconfigure = true;
         needRedrawContentAfterReconfigure = true;
-        if (!orientationLocked) {
+        if (!orientationLocked && !BuildConfig.DISABLE_ORIENTATION_LOCK) {
             lockOrientation();
+            orientationLocked = true;
         }
         configUpdater.updateConfig(this, this, userInteraction);
     }
@@ -1501,7 +1504,7 @@ public class MainActivity
             return;
         }
 
-        if (orientationLocked) {
+        if (orientationLocked && !BuildConfig.DISABLE_ORIENTATION_LOCK) {
             Utils.setOrientation(this, config);
             orientationLocked = false;
         }
@@ -2113,9 +2116,15 @@ public class MainActivity
         }
 
         if (Utils.isDeviceOwner(this)) {
-            // Do not request permissions if we're the device owner
-            // They are added automatically
-            return true;
+            if (settingsHelper.getConfig() != null && ServerConfig.APP_PERMISSIONS_ASK_ALL.equals(settingsHelper.getConfig().getAppPermissions()) ||
+                    ServerConfig.APP_PERMISSIONS_ASK_LOCATION.equals(settingsHelper.getConfig().getAppPermissions())) {
+                // Even in device owner mode, if "Ask for location" is requested by the admin,
+                // let's ask permissions (so do nothing here, fall through)
+            } else {
+                // Do not request permissions if we're the device owner
+                // They are added automatically
+                return true;
+            }
         }
 
         if (preferences.getInt(Const.PREFERENCES_DISABLE_LOCATION, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {

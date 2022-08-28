@@ -38,8 +38,8 @@ android {
         // To change to 30, file access should be updated: https://developer.android.com/training/data-storage/manage-all-files
         // To avoid extra step during initial setup, let's keep the target SDK version as 29 as long as possible
         targetSdkVersion 29
-        versionCode 507
-        versionName "5.07"
+        versionCode 509
+        versionName "5.09"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true
@@ -89,6 +89,10 @@ android {
         // Set Headwind MDM to default launcher at early time of the first start
         // to prevent the user from clicking Home and stop initializing Headwind MDM
         buildConfigField("Boolean", "SET_DEFAULT_LAUNCHER_EARLY", "false")
+        // Adjust application selection on TV boxes
+        buildConfigField("Boolean", "SELECTED_ITEM_BY_CLICK", "false")
+        // Adjust application selection on TV boxes
+        buildConfigField("Boolean", "DISABLE_ORIENTATION_LOCK", "false")
     }
     buildTypes {
         release {

@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.hmdm.launcher.BuildConfig;
@@ -30,6 +31,7 @@ import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -211,7 +213,15 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
         boolean switchAppListAdapter(BaseAppListAdapter adapter, int direction);
     }
 
-    protected View.OnClickListener onClickListener = v -> chooseApp((AppInfo)v.getTag());
+    protected View.OnClickListener onClickListener = v -> {
+        if (BuildConfig.SELECTED_ITEM_BY_CLICK && selectedItem >= 0) {
+            // Some TV boxes mistakenly generate onClick() for the first item
+            // when the OK button is clicked. Here's the workaround
+            chooseSelectedItem();
+        } else {
+            chooseApp((AppInfo) v.getTag());
+        }
+    };
 
     protected void chooseApp(AppInfo appInfo) {
         switch (appInfo.type) {
@@ -229,7 +239,18 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
             case AppInfo.TYPE_WEB:
                 if (appInfo.url != null) {
                     Intent i = new Intent(Intent.ACTION_VIEW);
-                    i.setData(Uri.parse(appInfo.url));
+
+                    Uri uri = Uri.parse(appInfo.url);
+
+                    if (uri.getScheme().equals("file")) {
+                        // Avoid FileUriExposedException
+                        String path = uri.getPath();
+                        File file = new File(path);
+                        uri = FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", file);
+                        i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    }
+
+                    i.setData(uri);
 
                     if (appInfo.useKiosk != 0) {
                         i.setComponent(new ComponentName(Const.KIOSK_BROWSER_PACKAGE_NAME, Const.KIOSK_BROWSER_PACKAGE_NAME + ".MainActivity"));

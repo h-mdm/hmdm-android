@@ -66,6 +66,7 @@ public class LocationService extends Service {
             //Toast.makeText(LocationService.this, "Location updated from GPS", Toast.LENGTH_SHORT).show();
             RemoteLogger.log(LocationService.this, Const.LOG_VERBOSE, "GPS location update: lat="
                     + location.getLatitude() + ", lon=" + location.getLongitude());
+            ProUtils.processLocation(LocationService.this, location, LocationManager.GPS_PROVIDER);
         }
 
         @Override
@@ -87,6 +88,7 @@ public class LocationService extends Service {
             //Toast.makeText(LocationService.this, "Location updated from Network", Toast.LENGTH_SHORT).show();
             RemoteLogger.log(LocationService.this, Const.LOG_VERBOSE, "Network location update: lat="
                     + location.getLatitude() + ", lon=" + location.getLongitude());
+            ProUtils.processLocation(LocationService.this, location, LocationManager.NETWORK_PROVIDER);
         }
 
         @Override

@@ -46,6 +46,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.WindowManager;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.hmdm.launcher.BuildConfig;
@@ -64,8 +65,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static android.app.admin.DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED;
-
 public class Utils {
     public static boolean isDeviceOwner(Context context) {
         DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
@@ -73,8 +72,26 @@ public class Utils {
     }
 
     // Automatically get dangerous permissions
+    // Notice: default (null) app permission strategy is "Grant all"
     @TargetApi(Build.VERSION_CODES.M)
-    public static boolean autoGrantRequestedPermissions(Context context, String packageName, boolean forceSdCardPermissions) {
+    public static boolean autoGrantRequestedPermissions(Context context, String packageName,
+                                                        @Nullable String appPermissionStrategy,
+                                                        boolean forceSdCardPermissions) {
+        int locationPermissionState = DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED;
+        int otherPermissionsState = DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED;
+
+        // Determine the app permission strategy
+        if (ServerConfig.APP_PERMISSIONS_ASK_LOCATION.equals(appPermissionStrategy)) {
+            locationPermissionState = DevicePolicyManager.PERMISSION_GRANT_STATE_DEFAULT;
+        } else if (ServerConfig.APP_PERMISSIONS_DENY_LOCATION.equals(appPermissionStrategy)) {
+            locationPermissionState = DevicePolicyManager.PERMISSION_GRANT_STATE_DENIED;
+        } else if (ServerConfig.APP_PERMISSIONS_ASK_ALL.equals(appPermissionStrategy)) {
+            locationPermissionState = DevicePolicyManager.PERMISSION_GRANT_STATE_DEFAULT;
+            if (!packageName.equals(context.getPackageName())) {
+                otherPermissionsState = DevicePolicyManager.PERMISSION_GRANT_STATE_DEFAULT;
+            }
+        }
+
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(
                 Context.DEVICE_POLICY_SERVICE);
         ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
@@ -106,10 +123,11 @@ public class Utils {
             }
 
             for (String permission : permissions) {
+                int permissionState = isLocationPermission(permission) ? locationPermissionState : otherPermissionsState;
                 if (devicePolicyManager.getPermissionGrantState(adminComponentName,
-                        packageName, permission) != PERMISSION_GRANT_STATE_GRANTED) {
+                        packageName, permission) != permissionState) {
                     boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
-                            packageName, permission, PERMISSION_GRANT_STATE_GRANTED);
+                            packageName, permission, permissionState);
                     if (!success) {
                         return false;
                     }
@@ -126,6 +144,12 @@ public class Utils {
         }
         Log.i(Const.LOG_TAG, "Permissions automatically granted");
         return true;
+    }
+
+    public static boolean isLocationPermission(String permission) {
+        return Manifest.permission.ACCESS_COARSE_LOCATION.equals(permission) ||
+               Manifest.permission.ACCESS_FINE_LOCATION.equals(permission) ||
+               Manifest.permission.ACCESS_BACKGROUND_LOCATION.equals(permission);
     }
 
     private static List<String> getRuntimePermissions(PackageManager packageManager, String packageName) {

@@ -34,15 +34,6 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
 
         Log.d(Const.LOG_TAG, "Launching the initial setup activity");
 
-        // Device owner should be already granted, so we grant requested permissions early
-        boolean deviceOwner = Utils.isDeviceOwner(this);
-        Log.d(Const.LOG_TAG, "Device Owner: " + deviceOwner);
-        getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE ).edit().putInt(Const.PREFERENCES_DEVICE_OWNER, deviceOwner ?
-                Const.PREFERENCES_ON : Const.PREFERENCES_OFF).commit();
-        if (deviceOwner) {
-            Utils.autoGrantRequestedPermissions(this, getPackageName(), true);
-        }
-
         binding = DataBindingUtil.setContentView(this, R.layout.activity_initial_setup);
         binding.setMessage(getString(R.string.initializing_mdm));
         binding.setLoading(true);
@@ -89,6 +80,15 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
         // Set Headwind MDM as the default launcher if required
         final ServerConfig config = settingsHelper.getConfig();
         if (config != null) {
+            // Device owner should be already granted, so we grant requested permissions early
+            boolean deviceOwner = Utils.isDeviceOwner(this);
+            Log.d(Const.LOG_TAG, "Device Owner: " + deviceOwner);
+            getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE ).edit().putInt(Const.PREFERENCES_DEVICE_OWNER, deviceOwner ?
+                    Const.PREFERENCES_ON : Const.PREFERENCES_OFF).commit();
+            if (deviceOwner) {
+                Utils.autoGrantRequestedPermissions(this, getPackageName(), config.getAppPermissions(), true);
+            }
+
             if (Utils.isDeviceOwner(this) &&
                     (config.getRunDefaultLauncher() == null || !config.getRunDefaultLauncher())) {
                 // As per the documentation, setting the default preferred activity should not be done on the main thread

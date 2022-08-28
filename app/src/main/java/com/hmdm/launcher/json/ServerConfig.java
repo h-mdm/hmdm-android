@@ -62,6 +62,8 @@ public class ServerConfig {
     private String pushOptions;
     private Integer keepaliveTime;
     private String requestUpdates;
+    private Boolean disableLocation;
+    private String appPermissions;
 
     private Boolean usbStorage;
     private Boolean autoBrightness;
@@ -125,6 +127,10 @@ public class ServerConfig {
     public static final String PUSH_OPTIONS_MQTT_WORKER = "mqttWorker";
     public static final String PUSH_OPTIONS_MQTT_ALARM = "mqttAlarm";
     public static final String PUSH_OPTIONS_POLLING = "polling";
+
+    public static final String APP_PERMISSIONS_ASK_LOCATION = "asklocation";
+    public static final String APP_PERMISSIONS_DENY_LOCATION = "denylocation";
+    public static final String APP_PERMISSIONS_ASK_ALL = "askall";
 
     public ServerConfig() {}
 
@@ -374,6 +380,22 @@ public class ServerConfig {
 
     public void setRequestUpdates(String requestUpdates) {
         this.requestUpdates = requestUpdates;
+    }
+
+    public Boolean getDisableLocation() {
+        return disableLocation;
+    }
+
+    public void setDisableLocation(Boolean disableLocation) {
+        this.disableLocation = disableLocation;
+    }
+
+    public String getAppPermissions() {
+        return appPermissions;
+    }
+
+    public void setAppPermissions(String appPermissions) {
+        this.appPermissions = appPermissions;
     }
 
     public Boolean getUsbStorage() {

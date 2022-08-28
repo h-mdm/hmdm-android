@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -78,7 +79,7 @@ public class ConfigUpdater {
     private Context context;
     private UINotifier uiNotifier;
     private SettingsHelper settingsHelper;
-    private Handler handler = new Handler();
+    private Handler handler = new Handler(Looper.getMainLooper());
     private List<RemoteFile> filesForInstall = new LinkedList();
     private List< Application > applicationsForInstall = new LinkedList();
     private List< Application > applicationsForRun = new LinkedList();
@@ -199,7 +200,11 @@ public class ConfigUpdater {
             protected void onPostExecute( Integer result ) {
                 super.onPostExecute( result );
                 Log.i(Const.LOG_TAG, "updateRemoteLogConfig(): result=" + result);
-                RemoteLogger.log(context, Const.LOG_INFO, "Device owner: " + Utils.isDeviceOwner(context));
+                boolean deviceOwner = Utils.isDeviceOwner(context);
+                RemoteLogger.log(context, Const.LOG_INFO, "Device owner: " + deviceOwner);
+                if (deviceOwner) {
+                    setSelfPermissions(settingsHelper.getConfig() != null ? settingsHelper.getConfig().getAppPermissions() : null);
+                }
                 try {
                     if (settingsHelper.getConfig() != null && uiNotifier != null) {
                         uiNotifier.onConfigLoaded();
@@ -216,6 +221,11 @@ public class ConfigUpdater {
             }
         };
         task.execute();
+    }
+
+    private void setSelfPermissions(String appPermissionStrategy) {
+        Utils.autoGrantRequestedPermissions(context, context.getPackageName(),
+                appPermissionStrategy, true);
     }
 
     private void checkServerMigration() {
@@ -593,7 +603,7 @@ public class ConfigUpdater {
 
         Log.i(Const.LOG_TAG, "checkAndUpdateApplications(): list size=" + applicationsForInstall.size());
 
-        registerAppInstallReceiver();
+        registerAppInstallReceiver(config != null ? config.getAppPermissions() : null);
         loadAndInstallApplications();
     }
 
@@ -834,7 +844,7 @@ public class ConfigUpdater {
     }
 
 
-    private void registerAppInstallReceiver() {
+    private void registerAppInstallReceiver(final String appPermissionStrategy) {
         // Here we handle the completion of the silent app installation in the device owner mode
         // These intents are not delivered to LocalBroadcastManager
         if (appInstallReceiver == null) {
@@ -877,7 +887,8 @@ public class ConfigUpdater {
                                     if (Utils.isDeviceOwner(context)) {
                                         // Always grant all dangerous rights to the app
                                         // TODO: in the future, the rights must be configurable on the server
-                                        Utils.autoGrantRequestedPermissions(context, packageName, false);
+                                        Utils.autoGrantRequestedPermissions(context, packageName,
+                                                appPermissionStrategy, false);
                                     }
                                     if (BuildConfig.SYSTEM_PRIVILEGES && packageName.equals(Const.APUPPET_PACKAGE_NAME)) {
                                         // Automatically grant required permissions to aPuppet if we can
