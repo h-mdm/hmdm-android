@@ -109,6 +109,7 @@ public class WorkerPingSender implements MqttPingSender {
         @Override
         public Result doWork() {
             RemoteLogger.log(context, Const.LOG_DEBUG, "Sending MQTT Ping at:" + System.currentTimeMillis());
+            PingDeathDetector.getInstance().registerPing();
             WorkerPingSender.instance.comms.checkForActivity(null);
             return null;
         }

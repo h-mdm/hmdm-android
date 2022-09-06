@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -250,9 +251,12 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
                         i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     }
 
+                    Log.d(Const.LOG_TAG, "BaseAppListAdapter: opening web app: " + uri.toString());
                     i.setData(uri);
+                    i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
                     if (appInfo.useKiosk != 0) {
+                        Log.d(Const.LOG_TAG, "Component: " + Const.KIOSK_BROWSER_PACKAGE_NAME + ".MainActivity");
                         i.setComponent(new ComponentName(Const.KIOSK_BROWSER_PACKAGE_NAME, Const.KIOSK_BROWSER_PACKAGE_NAME + ".MainActivity"));
                     }
 

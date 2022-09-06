@@ -152,6 +152,7 @@ class AlarmPingSender implements MqttPingSender {
 			wakelock.acquire();
 
 			RemoteLogger.log(context, Const.LOG_VERBOSE, "Sending MQTT Ping at:" + System.currentTimeMillis());
+			PingDeathDetector.getInstance().registerPing();
 
 			// Assign new callback to token to execute code after PingResq
 			// arrives. Get another wakelock even receiver already has one,

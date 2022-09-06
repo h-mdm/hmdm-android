@@ -45,6 +45,7 @@ import com.hmdm.launcher.worker.PushNotificationProcessor;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.android.service.MqttAndroidConnectOptions;
+import org.eclipse.paho.android.service.PingDeathDetector;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
@@ -310,5 +311,9 @@ public class PushNotificationMqttWrapper {
         }
     }
 
+    public boolean checkPingDeath() {
+        // If not connected, ping is not working so we return false
+        return client != null && client.isConnected() && PingDeathDetector.getInstance().detectPingDeath();
+    }
 
 }

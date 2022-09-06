@@ -2116,8 +2116,8 @@ public class MainActivity
         }
 
         if (Utils.isDeviceOwner(this)) {
-            if (settingsHelper.getConfig() != null && ServerConfig.APP_PERMISSIONS_ASK_ALL.equals(settingsHelper.getConfig().getAppPermissions()) ||
-                    ServerConfig.APP_PERMISSIONS_ASK_LOCATION.equals(settingsHelper.getConfig().getAppPermissions())) {
+            if (settingsHelper.getConfig() != null && (ServerConfig.APP_PERMISSIONS_ASK_ALL.equals(settingsHelper.getConfig().getAppPermissions()) ||
+                    ServerConfig.APP_PERMISSIONS_ASK_LOCATION.equals(settingsHelper.getConfig().getAppPermissions()))) {
                 // Even in device owner mode, if "Ask for location" is requested by the admin,
                 // let's ask permissions (so do nothing here, fall through)
             } else {
