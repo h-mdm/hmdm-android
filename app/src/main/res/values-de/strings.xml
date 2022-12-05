@@ -106,10 +106,11 @@
     <string name="critical_server_failure">Beenden wegen Serverfehler! Bitte beheben Sie das Problem und starten Sie %s neu oder entfernen Sie es vollständig und installieren Sie es neu.</string>
     <string name="dialog_permission_title">Für die Ausführung der App sind die Berechtigungen erforderlich. Bitte erteilen Sie die angeforderten Berechtigungen.</string>
     <string name="main_activity_exit">Beenden Sie</string>
-    <string name="browser_not_found">​​Die Webseite kann nicht geöffnet werden, da der Browser nicht gefunden wird. Bitte fügen Sie der Gerätekonfiguration eine Browser-App hinzu.</string>
+    <string name="browser_not_found">Die Webseite kann nicht geöffnet werden, da der Browser nicht gefunden wird. Bitte fügen Sie der Gerätekonfiguration eine Browser-App hinzu.</string>
+    <string name="invalid_web_link">Der Weblink kann nicht geöffnet werden, da er nicht wohlgeformt ist. Wenden Sie sich für Einzelheiten bitte an Ihren Administrator.</string>
     <string name="location_service_text">Der Gerätestandort wird überwacht</string>
     <string name="qrcode_contents_error">Ungültiger Inhalt des QR-Codes. Bitte generieren Sie den Bereitstellungs-QR-Code im Webpanel von %s.</string>
-    <string name="device_locked">Dieses Gerät wurde vom Administrator gesperrt.</string>
+    <string name="device_locked">Dieses Gerät (%s) wurde vom Administrator gesperrt.</string>
     <string name="fault_loop_detected">Hoppla, der Launcher hat einen nicht behebbaren Fehler! Bitte wenden Sie sich an Ihren Systemadministrator.</string>
     <string name="mqtt_service_text">Push-Benachrichtigungen sind aktiv</string>
     <string name="background_location">%s erfordert die Berechtigung zum Standort im Hintergrund. Klicken Sie auf \'Weiter\', um die Berechtigungen zu öffnen, klicken Sie auf \'Standort\' und erlauben Sie, den Standort immer zu bestimmen.</string>

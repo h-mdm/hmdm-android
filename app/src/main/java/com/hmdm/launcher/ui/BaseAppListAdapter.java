@@ -247,7 +247,12 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
                         // Avoid FileUriExposedException
                         String path = uri.getPath();
                         File file = new File(path);
-                        uri = FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", file);
+                        try {
+                            uri = FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", file);
+                        } catch (/*IllegalArgument*/Exception e) {
+                            Toast.makeText(context, R.string.invalid_web_link, Toast.LENGTH_LONG).show();
+                            break;
+                        }
                         i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     }
 
@@ -264,6 +269,8 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
                         context.startActivity(i);
                     } catch (ActivityNotFoundException e) {
                         Toast.makeText(context, R.string.browser_not_found, Toast.LENGTH_LONG).show();
+                    } catch (Exception e) {
+                        Toast.makeText(context, R.string.invalid_web_link, Toast.LENGTH_LONG).show();
                     }
                 }
                 break;

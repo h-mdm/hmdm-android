@@ -107,9 +107,10 @@
     <string name="dialog_permission_title">O Aplicativo requer permissões para iniciar. Por favor garanta as permissões necessárias.</string>
     <string name="main_activity_exit">Sair</string>
     <string name="browser_not_found">A página web não pode ser aberta porque um navegador não foi encontrado. Por favor adicione o navegador nas configurações do dispositivo.</string>
+    <string name="invalid_web_link">Não é possível abrir o link da web porque não está bem formado. Entre em contato com seu administrador para obter detalhes.</string>
     <string name="location_service_text">Localização do dispositivo está ativa</string>
     <string name="qrcode_contents_error">QR code com conteúdo inválido. Por favor gere o QR Code de provisionamento no painel administrativo %s.</string>
-    <string name="device_locked">Este dispositivo está bloqueado pelo administrador.</string>
+    <string name="device_locked">Este dispositivo (%s) está bloqueado pelo administrador.</string>
     <string name="fault_loop_detected">Oops, ocorreu uma falha no launcher do seu dispositivo! Por favor contate o administrador do sistema.</string>
     <string name="mqtt_service_text">As notificações push estão ativas</string>
     <string name="background_location">%s requer permissão de localização em segundo plano. Clique em \'Continuar\' para abrir as permissões, clique em \'Local\' e permita determinar o local sempre.</string>

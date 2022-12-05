@@ -24,6 +24,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
+    // Next version should be 10 and versions must be increased by 10
+    // to enable custom database changes
     private static final int DATABASE_VERSION = 5;
     private static final String DATABASE_NAME = "hmdm.launcher.sqlite";
 

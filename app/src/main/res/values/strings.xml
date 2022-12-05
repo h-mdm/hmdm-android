@@ -110,9 +110,10 @@
     <string name="dialog_permission_title">The app requires the permissions to run. Please grant the requested permissions.</string>
     <string name="main_activity_exit">Exit</string>
     <string name="browser_not_found">Cannot open the webpage because the browser is not found. Please add a browser app to the device configuration.</string>
+    <string name="invalid_web_link">Cannot open the web link because it is not well-formed. Please contact your administrator for details.</string>
     <string name="location_service_text">Device location is monitored</string>
     <string name="qrcode_contents_error">Invalid QR code contents. Please generate the provisioning QR code in the %s web panel.</string>
-    <string name="device_locked">This device has been locked by the administrator.</string>
+    <string name="device_locked">This device (%s) has been locked by the administrator.</string>
     <string name="fault_loop_detected">Oops, the launcher got an unrecoverable fault! Please contact your system administrator.</string>
     <string name="mqtt_service_text">Push notifications are active</string>
     <string name="background_location">%s requires the background location permission. Click \'Continue\' to open permissions, click \'Location\' and allow to determine location always.</string>
@@ -123,4 +124,12 @@
     <string name="mdm_choice_message">This device will be fully managed by your organization. Your data won\'t be private and can be erased or reviewed by your IT admin at any time.</string>
     <string name="overlays_not_supported">Unfortunately overlays are not supported by your device.</string>
     <string name="admin_not_supported">Your device has no device administrator option. Click Skip to continue.</string>
+
+    <string-array name="certificates" translatable="false">
+        <!-- If you want to install custom SSL certificates, place them in assets folder
+             in the PEM format and list the file names here in the <item> tag. -->
+        <!--
+        <item>custom_ca.cer</item>
+        -->
+    </string-array>
 </resources>

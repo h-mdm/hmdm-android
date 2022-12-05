@@ -101,12 +101,13 @@
     <string name="dialog_permission_title">يتطلب التطبيق أذونات للتشغيل. يرجى منح الأذونات المطلوبة.</string>
     <string name="main_activity_exit">خروج</string>
     <string name="browser_not_found">لا يمكن فتح صفحة الويب لأن المستعرض غير موجود. الرجاء إضافة تطبيق متصفح إلى اعدادات الجهاز.</string>
+    <string name="invalid_web_link">لا يمكن فتح رابط الويب لأنه غير منسق بشكل جيد. يرجى الاتصال بالمسؤول للحصول على التفاصيل.</string>
     <string name="location_service_text">يتم مراقبة موقع الجهاز</string>
     <string name="qrcode_contents_error">محتويات رمز QR غير صالحة. يرجى إنشاء رمز الاستجابة السريعة التوفير في لوحة الويب %s.</string>
     <string name="main_file_downloading">تحميل الملف</string>
     <string name="main_file_downloading_error">فشل تحميل الملف</string>
     <string name="message_set_password">جودة كلمة المرور الخاصة بك غير كافية. ستفتح شاشة الإعدادات الآن. يرجى تغيير كلمة المرور الخاصة بك والنقر فوق \"رجوع\".</string>
-    <string name="device_locked">تم قفل هذا الجهاز من قبل المسؤول.</string>
+    <string name="device_locked">تم قفل هذا الجهاز (%s) من قبل المسؤول.</string>
     <string name="fault_loop_detected">المشغل معطل ولا يمكن استعادته! الرجاء الإبلاغ عن هذه المشكلة إلى المسؤول.</string>
     <string name="dialog_miui_optimization_title">يتطلب MIUI التكوين اليدوي. سيتم الآن فتح شاشة إعدادات المطور. قم بالتمرير لأسفل الشاشة وإيقاف تشغيل علامة \"MIUI التحسين\".</string>
     <string name="dialog_miui_developer_title">يتطلب MIUI الاعدادات اليدوي. ستفتح الشاشة الآن ، اضغط على 7 مرات على \"رقم التجميع\". سيؤدي هذا إلى فتح إعدادات المطور.</string>

@@ -13,6 +13,7 @@ import androidx.databinding.DataBindingUtil;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.databinding.ActivityInitialSetupBinding;
+import com.hmdm.launcher.helper.CertInstaller;
 import com.hmdm.launcher.helper.ConfigUpdater;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.Application;
@@ -33,6 +34,10 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
         super.onCreate(savedInstanceState);
 
         Log.d(Const.LOG_TAG, "Launching the initial setup activity");
+
+        // Here we must already get the Device Owner permissions
+        // So install the required certificates
+        CertInstaller.installCertificatesFromAssets(this);
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_initial_setup);
         binding.setMessage(getString(R.string.initializing_mdm));

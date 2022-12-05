@@ -89,6 +89,7 @@ import com.hmdm.launcher.databinding.DialogOverlaySettingsBinding;
 import com.hmdm.launcher.databinding.DialogPermissionsBinding;
 import com.hmdm.launcher.databinding.DialogSystemSettingsBinding;
 import com.hmdm.launcher.databinding.DialogUnknownSourcesBinding;
+import com.hmdm.launcher.helper.CertInstaller;
 import com.hmdm.launcher.helper.ConfigUpdater;
 import com.hmdm.launcher.helper.CryptoHelper;
 import com.hmdm.launcher.helper.SettingsHelper;
@@ -368,6 +369,10 @@ public class MainActivity
         RemoteLogger.log(this, Const.LOG_INFO, "MDM Launcher " + BuildConfig.VERSION_NAME + "-" + BuildConfig.FLAVOR + " started");
 
         InstallUtils.clearTempFiles(this);
+
+        // Install the certificates (repeat the action from InitialSetupActivity because
+        // the customer may wish to install new certificates without re-enrolling the device
+        CertInstaller.installCertificatesFromAssets(this);
 
         DetailedInfoWorker.schedule(MainActivity.this);
         if (BuildConfig.ENABLE_PUSH) {
@@ -1092,7 +1097,7 @@ public class MainActivity
         lockScreen.findViewById( R.id.layout_application_not_allowed_continue ).setVisibility(View.GONE);
         lockScreen.findViewById( R.id.layout_application_not_allowed_admin ).setVisibility(View.GONE);
         TextView textView = lockScreen.findViewById( R.id.message );
-        textView.setText(getString(R.string.device_locked));
+        textView.setText(getString(R.string.device_locked, SettingsHelper.getInstance(this).getDeviceId()));
 
         lockScreen.setVisibility( View.GONE );
 
@@ -1644,7 +1649,7 @@ public class MainActivity
             }
         }
         String lockAdminMessage = settingsHelper.getConfig().getLockMessage();
-        String lockMessage = getString(R.string.device_locked);
+        String lockMessage = getString(R.string.device_locked, SettingsHelper.getInstance(this).getDeviceId());
         if (lockAdminMessage != null) {
             lockMessage += " " + lockAdminMessage;
         }

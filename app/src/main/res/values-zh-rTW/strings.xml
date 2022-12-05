@@ -107,9 +107,10 @@
 	<string name="dialog_permission_title">該應用需要權限才能運行。請授予請求的權限。</string>
 	<string name="main_activity_exit">退出</string>
 	<string name="browser_not_found">由於找不到瀏覽器，因此無法打開網頁。請在設備配置中添加瀏覽器應用。</string>
+	<string name="invalid_web_link">無法打開 Web 鏈接，因為它的格式不正確。 有關詳細信息，請聯繫您的管理員。</string>
 	<string name="location_service_text">設備位置受到監控</string>
 	<string name="qrcode_contents_error">無效的QR碼內容。請在%s Web面板中生成預配置QR碼。</string>
-	<string name="device_locked">該設備已被管理員鎖定。</string>
+	<string name="device_locked">此設備 (%s) 已被管理員鎖定。</string>
 	<string name="fault_loop_detected">糟糕，啟動器發生了無法恢復的故障！請與系統管理員聯繫。</string>
 	<string name="mqtt_service_text">推送通知處於活動狀態</string>
 	<string name="background_location">%s 需要後台位置權限。 單擊\'繼續\' 打開權限，單擊\'位置\' 並允許始終確定位置。</string>

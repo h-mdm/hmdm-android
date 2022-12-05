@@ -106,9 +106,10 @@
     <string name="dialog_permission_title">L\'app nécessite les autorisations pour s\'exécuter. Veuillez accorder les autorisations demandées.</string>
     <string name="main_activity_exit">Sortie</string>
     <string name="browser_not_found">Impossible d\'ouvrir la page Web car le navigateur est introuvable. Veuillez ajouter une app de navigateur à la configuration de l\'appareil.</string>
+    <string name="invalid_web_link">Impossible d\'ouvrir le lien Web car il n\'est pas bien formé. Veuillez contacter votre administrateur pour plus de détails.</string>
     <string name="location_service_text">La localisation de l\'appareil est surveillée</string>
     <string name="qrcode_contents_error">Contenu du code QR non valide. Veuillez générer le code QR de provisionnement dans le panneau Web %s.</string>
-    <string name="device_locked">Cet appareil a été verrouillé par l\'administrateur.</string>
+    <string name="device_locked">Cet appareil (%s) a été verrouillé par l\'administrateur.</string>
     <string name="fault_loop_detected">Oups, le lanceur a eu une faute irrémédiable! Veuillez contacter votre administrateur système.</string>
     <string name="mqtt_service_text">Les notifications push sont actives</string>
     <string name="background_location">%s requiert l\'autorisation d\'emplacement en arrière-plan. Cliquez sur \'Continuer\' pour ouvrir les autorisations, cliquez sur \'Emplacement\' et autorisez toujours à déterminer l\'emplacement.</string>

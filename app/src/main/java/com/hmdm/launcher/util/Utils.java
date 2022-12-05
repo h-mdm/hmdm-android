@@ -59,6 +59,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -958,6 +960,35 @@ public class Utils {
         }
         reader.close();
         return fileData.toString();
+    }
+
+
+    /**
+     * Load input stream as String
+     */
+    public static String loadStreamAsString(InputStreamReader inputStreamReader) {
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(inputStreamReader);
+            StringBuilder sb = new StringBuilder();
+            String s;
+            while ((s = reader.readLine()) != null) {
+                sb.append(s + "\n");
+            }
+            return sb.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
     }
 
     /**

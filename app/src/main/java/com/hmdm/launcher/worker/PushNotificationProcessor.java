@@ -21,7 +21,9 @@ package com.hmdm.launcher.worker;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Environment;
+import android.util.Log;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -30,6 +32,7 @@ import com.hmdm.launcher.helper.ConfigUpdater;
 import com.hmdm.launcher.json.PushMessage;
 import com.hmdm.launcher.util.InstallUtils;
 import com.hmdm.launcher.util.RemoteLogger;
+import com.hmdm.launcher.util.SystemUtils;
 import com.hmdm.launcher.util.Utils;
 
 import org.json.JSONObject;
@@ -52,24 +55,28 @@ public class PushNotificationProcessor {
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_UNINSTALL_APP)) {
             // Uninstall application
-            uninstallApplication(context, message.getPayloadJSON());
+            AsyncTask.execute(() -> uninstallApplication(context, message.getPayloadJSON()));
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_DELETE_FILE)) {
             // Delete file
-            deleteFile(context, message.getPayloadJSON());
+            AsyncTask.execute(() -> deleteFile(context, message.getPayloadJSON()));
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_DELETE_DIR)) {
             // Delete directory recursively
-            deleteDir(context, message.getPayloadJSON());
+            AsyncTask.execute(() -> deleteDir(context, message.getPayloadJSON()));
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_PURGE_DIR)) {
             // Purge directory (delete all files recursively)
-            purgeDir(context, message.getPayloadJSON());
+            AsyncTask.execute(() -> purgeDir(context, message.getPayloadJSON()));
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_PERMISSIVE_MODE)) {
             // Turn on permissive mode
             LocalBroadcastManager.getInstance(context).
                     sendBroadcast(new Intent(Const.ACTION_PERMISSIVE_MODE));
+            return;
+        } else if (message.getMessageType().equals(PushMessage.TYPE_RUN_COMMAND)) {
+            // Run a command-line script
+            AsyncTask.execute(() -> runCommand(context, message.getPayloadJSON()));
             return;
         }
 
@@ -98,16 +105,17 @@ public class PushNotificationProcessor {
                 if (extras != null) {
                     Iterator<String> keys = extras.keys();
                     String key;
-                    while ((key = keys.next()) != null) {
+                    while (keys.hasNext()) {
+                        key = keys.next();
                         Object value = extras.get(key);
                         if (value instanceof String) {
-                            launchIntent.putExtra(key, (String)value);
+                            launchIntent.putExtra(key, (String) value);
                         } else if (value instanceof Integer) {
-                            launchIntent.putExtra(key, ((Integer)value).intValue());
+                            launchIntent.putExtra(key, ((Integer) value).intValue());
                         } else if (value instanceof Float) {
-                            launchIntent.putExtra(key, ((Float)value).floatValue());
+                            launchIntent.putExtra(key, ((Float) value).floatValue());
                         } else if (value instanceof Boolean) {
-                            launchIntent.putExtra(key, ((Boolean)value).booleanValue());
+                            launchIntent.putExtra(key, ((Boolean) value).booleanValue());
                         }
                     }
                 }
@@ -215,6 +223,31 @@ public class PushNotificationProcessor {
             RemoteLogger.log(context, Const.LOG_INFO, "Purged directory: " + path);
         } catch (Exception e) {
             RemoteLogger.log(context, Const.LOG_WARN, "Directory purge failed: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static void runCommand(Context context, JSONObject payload) {
+        if (payload == null) {
+            RemoteLogger.log(context, Const.LOG_WARN, "Command failed: no command specified");
+            return;
+        }
+
+        try {
+            String command = payload.getString("command");
+            Log.d(Const.LOG_TAG, "Executing a command: " + command);
+            String result = SystemUtils.executeShellCommand(command, true);
+            String msg = "Executed a command: " + command;
+            if (!result.equals("")) {
+                if (result.length() > 200) {
+                    result = result.substring(0, 200) + "...";
+                }
+                msg += " Result: " + result;
+            }
+            RemoteLogger.log(context, Const.LOG_DEBUG, msg);
+
+        } catch (Exception e) {
+            RemoteLogger.log(context, Const.LOG_WARN, "Command failed: " + e.getMessage());
             e.printStackTrace();
         }
     }

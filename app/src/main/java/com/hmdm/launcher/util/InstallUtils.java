@@ -229,7 +229,7 @@ public class InstallUtils {
                     RemoteFile remoteFileDb = RemoteFileTable.selectByPath(DatabaseHelper.instance(context).getReadableDatabase(),
                             remoteFile.getPath());
                     if (remoteFileDb != null) {
-                        if (!remoteFileDb.getChecksum().equalsIgnoreCase(remoteFile.getChecksum())) {
+                        if (remoteFileDb.getChecksum() == null || !remoteFileDb.getChecksum().equalsIgnoreCase(remoteFile.getChecksum())) {
                             filesForInstall.add(remoteFile);
                         }
                     } else {

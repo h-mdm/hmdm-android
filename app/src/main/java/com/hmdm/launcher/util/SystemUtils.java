@@ -43,17 +43,22 @@ public class SystemUtils {
      */
     public static boolean becomeDeviceOwnerByCommand(Context context) {
         String command = "dpm set-device-owner " + context.getPackageName() + "/.AdminReceiver";
-        String result = executeShellCommand(command);
+        String result = executeShellCommand(command, false);
         RemoteLogger.log(context, Const.LOG_INFO, "DPM command output: " + result);
         return result.startsWith("Active admin component set");
     }
 
-    public static String executeShellCommand(String command) {
+    public static String executeShellCommand(String command, boolean useShell) {
         StringBuffer output = new StringBuffer();
 
         Process p;
         try {
-            p = Runtime.getRuntime().exec(command);
+            if (useShell) {
+                String[] cmdArray = {"sh", "-c", command};
+                p = Runtime.getRuntime().exec(cmdArray);
+            } else {
+                p = Runtime.getRuntime().exec(command);
+            }
             p.waitFor();
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
