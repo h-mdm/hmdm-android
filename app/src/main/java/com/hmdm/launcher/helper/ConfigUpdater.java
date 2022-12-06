@@ -764,7 +764,8 @@ public class ConfigUpdater {
 
             }.execute(application);
         } else {
-            unregisterAppInstallReceiver();
+            // App install receiver is unregistered after all apps are installed or a timeout happens
+            //unregisterAppInstallReceiver();
             lockRestrictions();
         }
     }
@@ -804,11 +805,14 @@ public class ConfigUpdater {
                 Intent intent = new Intent(Const.INTENT_PUSH_NOTIFICATION_PREFIX + PushMessage.TYPE_CONFIG_UPDATED);
                 context.sendBroadcast(intent);
 
+                RemoteLogger.log(context, Const.LOG_VERBOSE, "Update flow completed");
                 if (pendingInstallations.size() > 0) {
                     // Some apps are still pending installation
                     // Let's wait until they're all installed
                     // Then notify UI about that so it could refresh the screen
                     waitForInstallComplete();
+                } else {
+                    unregisterAppInstallReceiver();
                 }
 
                 // onConfigUpdateComplete() method contents
@@ -835,6 +839,7 @@ public class ConfigUpdater {
                         e.printStackTrace();
                     }
                 }
+                unregisterAppInstallReceiver();
                 if (uiNotifier != null) {
                     uiNotifier.onAllAppInstallComplete();
                 }
@@ -848,6 +853,7 @@ public class ConfigUpdater {
         // Here we handle the completion of the silent app installation in the device owner mode
         // These intents are not delivered to LocalBroadcastManager
         if (appInstallReceiver == null) {
+            Log.d(Const.LOG_TAG, "Install completion receiver prepared");
             appInstallReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
@@ -926,9 +932,13 @@ public class ConfigUpdater {
                     }
                 }
             };
+        } else {
+            // Renewed the configuration multiple times?
+            unregisterAppInstallReceiver();
         }
 
         try {
+            Log.d(Const.LOG_TAG, "Install completion receiver registered");
             context.registerReceiver(appInstallReceiver, new IntentFilter(Const.ACTION_INSTALL_COMPLETE));
         } catch (Exception e) {
             // On earlier Android versions (4, 5):
@@ -941,6 +951,7 @@ public class ConfigUpdater {
     private void unregisterAppInstallReceiver() {
         if (appInstallReceiver != null) {
             try {
+                Log.d(Const.LOG_TAG, "Install completion receiver unregistered");
                 context.unregisterReceiver(appInstallReceiver);
             } catch (Exception e) {
                 // Receiver not registered
