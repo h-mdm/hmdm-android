@@ -6,11 +6,13 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
@@ -47,6 +49,14 @@ public class MdmChoiceSetupActivity extends AppCompatActivity {
         Intent intent = getIntent();
         PersistableBundle bundle = intent.getParcelableExtra(DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (bundle != null && bundle.getString(Const.QR_OPEN_WIFI_ATTR) != null) {
+                try {
+                    startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            }
             AdminReceiver.updateSettings(this, bundle);
         }
 
@@ -57,6 +67,7 @@ public class MdmChoiceSetupActivity extends AppCompatActivity {
             String deviceId;
             Log.d(Const.LOG_TAG, "Device ID choice: " + deviceIdUse);
             if (BuildConfig.DEVICE_ID_CHOICE.equals("imei") || "imei".equals(deviceIdUse)) {
+                // These extras could not be set so we should retry setting these values in InitialSetupActivity!
                 deviceId = intent.getStringExtra(DevicePolicyManager.EXTRA_PROVISIONING_IMEI);
             } else if (BuildConfig.DEVICE_ID_CHOICE.equals("serial") || "serial".equals(deviceIdUse)) {
                 deviceId = intent.getStringExtra(DevicePolicyManager.EXTRA_PROVISIONING_SERIAL_NUMBER);

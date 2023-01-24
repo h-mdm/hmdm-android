@@ -96,6 +96,8 @@ public class ServerConfig {
     private String newServerUrl;
 
     private boolean lockSafeSettings;
+    private boolean permissive;
+    private boolean kioskExit;
     private boolean disableScreenshots;
 
     private boolean showWifi;
@@ -256,6 +258,10 @@ public class ServerConfig {
 
     public Boolean getKioskMode() {
         return kioskMode;
+    }
+
+    public boolean isKioskMode() {
+        return kioskMode != null && kioskMode;
     }
 
     public void setKioskMode(Boolean kioskMode) {
@@ -564,6 +570,22 @@ public class ServerConfig {
 
     public void setLockSafeSettings(boolean lockSafeSettings) {
         this.lockSafeSettings = lockSafeSettings;
+    }
+
+    public boolean isPermissive() {
+        return permissive;
+    }
+
+    public void setPermissive(boolean permissive) {
+        this.permissive = permissive;
+    }
+
+    public boolean isKioskExit() {
+        return kioskExit;
+    }
+
+    public void setKioskExit(boolean kioskExit) {
+        this.kioskExit = kioskExit;
     }
 
     public boolean isDisableScreenshots() {

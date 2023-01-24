@@ -782,7 +782,7 @@ public class MainActivity
         }
 
         int overlayMode = preferences.getInt( Const.PREFERENCES_OVERLAY, - 1 );
-        if (ProUtils.isPro() && overlayMode == -1) {
+        if (ProUtils.isPro() && overlayMode == -1 && needRequestOverlay()) {
             if ( checkAlarmWindow() ) {
                 preferences.
                         edit().
@@ -794,7 +794,7 @@ public class MainActivity
         }
 
         int usageStatisticsMode = preferences.getInt( Const.PREFERENCES_USAGE_STATISTICS, - 1 );
-        if (ProUtils.isPro() && usageStatisticsMode == -1) {
+        if (ProUtils.isPro() && usageStatisticsMode == -1 && needRequestUsageStats()) {
             if ( checkUsageStatistics() ) {
                 preferences.
                         edit().
@@ -812,7 +812,9 @@ public class MainActivity
         }
 
         int accessibilityService = preferences.getInt( Const.PREFERENCES_ACCESSIBILITY_SERVICE, - 1 );
-        if (ProUtils.isPro() && accessibilityService == -1) {
+        // Check the same condition as for usage stats here
+        // because accessibility is used as a secondary condition when usage stats is not available
+        if (ProUtils.isPro() && accessibilityService == -1 && needRequestUsageStats()) {
             if ( checkAccessibilityService() ) {
                 preferences.
                         edit().
@@ -924,7 +926,10 @@ public class MainActivity
                 createLauncherButtons();
                 return;
             }
-            View kioskUnlockButton = ProUtils.createKioskUnlockButton(this);
+            View kioskUnlockButton = null;
+            if (config.isKioskExit()) {     // Should be true by default, but false on older web panel versions
+                kioskUnlockButton = ProUtils.createKioskUnlockButton(this);
+            }
             if (kioskUnlockButton != null) {
                 kioskUnlockButton.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -997,6 +1002,19 @@ public class MainActivity
         return true;
     }
 
+    private boolean needRequestUsageStats() {
+        ServerConfig config = SettingsHelper.getInstance(this).getConfig();
+        if (config == null) {
+            // The app hasn't been properly provisioned because
+            // config should be initialized in a setup activity.
+            // So we request permissions anyway.
+            return true;
+        }
+        // Usage stats is only required to detect unwanted apps
+        // when permissive mode is off and kiosk mode is also off
+        return !config.isPermissive() && !config.isKioskMode();
+    }
+
     // Access to usage statistics is required in the Pro-version only
     private boolean checkUsageStatistics() {
         if (!ProUtils.checkUsageStatistics(this)) {
@@ -1004,6 +1022,25 @@ public class MainActivity
             return false;
         }
         return true;
+    }
+
+    private boolean needRequestOverlay() {
+        ServerConfig config = SettingsHelper.getInstance(this).getConfig();
+        if (config == null) {
+            // The app hasn't been properly provisioned because
+            // config should be initialized in a setup activity.
+            // So we request permissions anyway.
+            return true;
+        }
+        if (config.isKioskMode() && config.isKioskExit()) {
+            // We need to draw the kiosk exit button
+            return true;
+        }
+        if (!config.isKioskMode() && !config.isPermissive()) {
+            // Overlay window is required to block unwanted apps
+            return true;
+        }
+        return false;
     }
 
     private boolean checkAlarmWindow() {

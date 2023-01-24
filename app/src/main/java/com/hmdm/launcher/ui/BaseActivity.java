@@ -377,7 +377,11 @@ public class BaseActivity extends AppCompatActivity {
         dialogDeviceInfoBinding.setVersion( BuildConfig.FLAVOR.length() > 0 ?
                 BuildConfig.VERSION_NAME + "-" + BuildConfig.FLAVOR : BuildConfig.VERSION_NAME );
 
-        dialogDeviceInfoBinding.setServerUrl(SettingsHelper.getInstance(this).getBaseUrl() + SettingsHelper.getInstance(this).getServerProject());
+        String serverPath = SettingsHelper.getInstance(this).getServerProject();
+        if (serverPath.length() > 0) {
+            serverPath = "/" + serverPath;
+        }
+        dialogDeviceInfoBinding.setServerUrl(SettingsHelper.getInstance(this).getBaseUrl() + serverPath);
 
         deviceInfoDialog.show();
     }

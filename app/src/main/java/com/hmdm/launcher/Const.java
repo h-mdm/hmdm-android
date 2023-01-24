@@ -28,7 +28,8 @@ public class Const {
     public static final String ACTION_SERVICE_STOP = "SERVICE_STOP";
     public static final String ACTION_SHOW_LAUNCHER = "SHOW_LAUNCHER";
     public static final String ACTION_ENABLE_SETTINGS = "ENABLE_SETTINGS";
-    public static final String ACTION_PERMISSIVE_MODE = "PERMISSIVE_MODE";
+    public static final String ACTION_PERMISSIVE_MODE = "PERMISSIVE_MODE";          // Temporary action
+    public static final String ACTION_TOGGLE_PERMISSIVE = "TOGGLE_PERMISSIVE";      // Permanent action
     public static final String ACTION_STOP_CONTROL = "STOP_CONTROL";
     public static final String ACTION_EXIT = "EXIT";
     public static final String ACTION_HIDE_SCREEN = "HIDE_SCREEN";
@@ -37,6 +38,8 @@ public class Const {
     public static final String ACTION_ADMIN = "ADMIN";
     public static final String ACTION_INSTALL_COMPLETE = "INSTALL_COMPLETE";
     public static final String ACTION_DISABLE_BLOCK_WINDOW = "DISABLE_BLOCK_WINDOW";
+
+    public static final String EXTRA_ENABLED = "ENABLED";
 
     public static long CONNECTION_TIMEOUT = 10000;
     public static final String STATUS_OK = "OK";
@@ -97,6 +100,7 @@ public class Const {
     public static final String QR_CUSTOMER_ATTR = "com.hmdm.CUSTOMER";
     public static final String QR_CONFIG_ATTR = "com.hmdm.CONFIG";
     public static final String QR_GROUP_ATTR = "com.hmdm.GROUP";
+    public static final String QR_OPEN_WIFI_ATTR = "com.hmdm.OPEN_WIFI";
 
     public static final int KIOSK_UNLOCK_CLICK_COUNT = 4;
 

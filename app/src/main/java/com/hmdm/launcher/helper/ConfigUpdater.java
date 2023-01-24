@@ -774,6 +774,16 @@ public class ConfigUpdater {
         if (settingsHelper.getConfig() != null && settingsHelper.getConfig().getRestrictions() != null) {
             Utils.lockUserRestrictions(context, settingsHelper.getConfig().getRestrictions());
         }
+        notifyThreads();
+    }
+
+    private void notifyThreads() {
+        ServerConfig config = settingsHelper.getConfig();
+        if (config != null) {
+            Intent intent = new Intent(Const.ACTION_TOGGLE_PERMISSIVE);
+            intent.putExtra(Const.EXTRA_ENABLED, config.isPermissive() || config.isKioskMode());
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        }
         setActions();
     }
 

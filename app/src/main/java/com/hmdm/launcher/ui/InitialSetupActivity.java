@@ -113,6 +113,9 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
             } else {
                 // Headwind MDM works with default system launcher
                 // Run services here
+                // TODO: permissions required for watchdog services are not yet granted
+                // so watchdog services are not being started at this point.
+                // Perhaps we need to request these permissions at this step?
                 Log.d(Const.LOG_TAG, "Working in background, starting services and installing apps");
                 ServiceHelper.startServices(InitialSetupActivity.this);
             }
@@ -138,13 +141,20 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
     }
 
     private void displayError(String message) {
-        new AlertDialog.Builder(this)
-                .setMessage(message)
-                .setNeutralButton(R.string.main_activity_reset, (dialogInterface, i) -> abort())
-                .setNegativeButton(R.string.main_activity_wifi, (dialogInterface, i) -> openWiFiSettings())
-                .setPositiveButton(R.string.main_activity_repeat, (dialogInterface, i) -> updateConfig())
-                .create()
-                .show();
+        try {
+            new AlertDialog.Builder(this)
+                    .setMessage(message)
+                    .setNeutralButton(R.string.main_activity_reset, (dialogInterface, i) -> abort())
+                    .setNegativeButton(R.string.main_activity_wifi, (dialogInterface, i) -> openWiFiSettings())
+                    .setPositiveButton(R.string.main_activity_repeat, (dialogInterface, i) -> updateConfig())
+                    .create()
+                    .show();
+        } catch (/*BadToken*/Exception e) {
+            // Fatal Exception: android.view.WindowManager$BadTokenException
+            // Unable to add window -- token android.os.BinderProxy@4a95f1c is not valid; is your activity running?
+            // Shouldn't we reset the device here to avoid hanging up?
+            e.printStackTrace();
+        }
     }
 
     private void openWiFiSettings() {
