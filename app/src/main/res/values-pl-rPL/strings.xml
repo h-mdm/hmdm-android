@@ -18,7 +18,6 @@
   -->
 
 <resources>
-    <string name="app_name" translatable="false">H</string>
     <string name="admin_title">Administrator</string>
     <string name="install_error">Błąd instalacji</string>
     <string name="dialog_enter_device_id_error">Wprowadzony ID nie został zarejestrowany na %s. Wprowadź poprawny ID widoczny w zakładce \"Devices\".</string>
@@ -44,12 +43,12 @@
     <string name="main_activity_wifi">WiFi</string>
     <string name="main_activity_cancel">Anuluj</string>
     <string name="main_activity_details">Szczegóły</string>
-    <string name="select_system_launcher">Wybierz %s jako domyślny launcher i zaznacz \'Zawsze\':</string>
+    <string name="select_system_launcher">Wybierz %s jako domyślny launcher i zaznacz \"Zawsze\":</string>
     <string name="dialog_network_error_title">Błąd połączenia z serwerem %s. Sprawdź połączenie sieciowe i spróbuj ponownie.</string>
     <string name="main_activity_update_config">Żądanie pliku konfiguracyjnego z serwera</string>
     <string name="main_activity_applications_update">Aktualizowanie aplikacji</string>
     <string name="dialog_overlay_settings_title">Zezwól tej aplikacji na wyświetlanie nad innymi aplikacjami.\n\nTo ustawienie pomaga lepiej blokować niechciane aplikacje i włącza awaryjną deaktywację trybu kiosk.\n\nNaciśnij \"Kontynuuj\", aby otworzyć ekran ustawień. Znajdź element \"%s\", udziel uprawnień i naciśnij przycisk \"Wstecz\".</string>
-    <string name="dialog_history_settings_title">Zezwol tej aplikacji na dostęp do danych o zużyciu.\n\nTo ustawienie włącza kontrolę aplikacji i ustawień.\n\nMoże powodować zwiększone zużycie baterii. Aby ją oszczędzać, pomiń to ustawienie i użyj ułatwień dostępu lub trybu kiosk.\n\nNaciśnij \'Kontynuuj\', aby otworzyć ekran ustawień. Znajdź element \"%s\", udziel uprawnień i naciśnij przycisk \"Wstecz\".</string>
+    <string name="dialog_history_settings_title">Zezwol tej aplikacji na dostęp do danych o zużyciu.\n\nTo ustawienie włącza kontrolę aplikacji i ustawień.\n\nMoże powodować zwiększone zużycie baterii. Aby ją oszczędzać, pomiń to ustawienie i użyj ułatwień dostępu lub trybu kiosk.\n\nNaciśnij \"Kontynuuj\", aby otworzyć ekran ustawień. Znajdź element \"%s\", udziel uprawnień i naciśnij przycisk \"Wstecz\".</string>
     <string name="dialog_history_settings_continue">Kontynuuj</string>
     <string name="dialog_history_settings_skip">Pomiń</string>
     <string name="dialog_unknown_sources_title">Zezwól na instalację aplikacji z nieznanych źródeł. Otworzy się ekran ustawień. Znajdź \"Nieznane źródła\", udziel uprawnień i naciśnij przycisk \"Wstecz\".</string>
@@ -118,14 +117,6 @@
     <string name="mdm_choice_message">To urządzenie będzie w pełni zarządzane przez Twoją organizację. Twoje dane nie będą prywatne i w każdej chwili mogą zostać usunięte lub przejrzane przez administratora IT.</string>
     <string name="overlays_not_supported">Niestety twoje urządzenie nie obsługuje nakładek.</string>
     <string name="admin_not_supported">Twoje urządzenie nie wspiera administracji urządzeniem. Kliknij \"Pomiń\", aby kontynuować.</string>
-
-    <string-array name="certificates" translatable="false">
-        <!-- If you want to install custom SSL certificates, place them in assets folder
-             in the PEM format and list the file names here in the <item> tag. -->
-        <!--
-        <item>custom_ca.cer</item>
-        -->
-    </string-array>
     <string name="admin_clear_restrictions">Wyłącz ograniczenia</string>
     <string name="reboot_failed">Niewystarczające uprawnienia do ponownego uruchomienia urządzenia.</string>
     <string name="empty_configuration">Konfiguracja nie jest ustawiona, ponawianie próby pobrania jej z serwera!</string>
