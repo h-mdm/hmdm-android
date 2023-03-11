@@ -78,6 +78,10 @@ public class PushNotificationProcessor {
             // Run a command-line script
             AsyncTask.execute(() -> runCommand(context, message.getPayloadJSON()));
             return;
+        } else if (message.getMessageType().equals(PushMessage.TYPE_REBOOT)) {
+            // Reboot a device
+            AsyncTask.execute(() -> reboot(context));
+            return;
         }
 
         // Send broadcast to all plugins
@@ -249,6 +253,17 @@ public class PushNotificationProcessor {
         } catch (Exception e) {
             RemoteLogger.log(context, Const.LOG_WARN, "Command failed: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private static void reboot(Context context) {
+        RemoteLogger.log(context, Const.LOG_WARN, "Rebooting by a Push message");
+        if (Utils.checkAdminMode(context)) {
+            if (!Utils.reboot(context)) {
+                RemoteLogger.log(context, Const.LOG_WARN, "Reboot failed");
+            }
+        } else {
+            RemoteLogger.log(context, Const.LOG_WARN, "Reboot failed: no permissions");
         }
     }
 }

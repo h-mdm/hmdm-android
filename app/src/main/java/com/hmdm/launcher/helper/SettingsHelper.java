@@ -326,6 +326,9 @@ public class SettingsHelper {
             return;
         }
         String[] allowedClassesList = config.getAllowedClasses().split(",");
+        for (int n = 0; n < allowedClassesList.length; n++) {
+            allowedClassesList[n] = allowedClassesList[n].trim();
+        }
         // Is it thread-safe? Hopefully yes
         allowedClasses = new HashSet<>(Arrays.asList(allowedClassesList));
     }

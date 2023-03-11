@@ -37,6 +37,7 @@ public class PushMessage {
     public static final String TYPE_DELETE_DIR = "deleteDir";
     public static final String TYPE_PERMISSIVE_MODE = "permissiveMode";
     public static final String TYPE_RUN_COMMAND = "runCommand";
+    public static final String TYPE_REBOOT = "reboot";
 
     public String getMessageType() {
         return messageType;

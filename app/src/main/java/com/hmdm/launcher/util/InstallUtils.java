@@ -110,7 +110,7 @@ public class InstallUtils {
                     continue;
                 }
 
-                if (!application.isRemove() &&
+                if (!application.isRemove() && !upgradingHmdmFreeToFull(context, application, packageInfo) &&
                         (application.isSkipVersion() || application.getVersion().equals("0") || areVersionsEqual(packageInfo.versionName, application.getVersion()))) {
                     // If installation is required, but the app of the same version already installed, do not install
                     Log.d(Const.LOG_TAG, "checkAndUpdateApplications(): app " + application.getPkg() + " versions match: "
@@ -164,6 +164,16 @@ public class InstallUtils {
         return false;
     }
 
+    // Free and full versions of Headwind MDM launcher have the same version name but different version codes
+    // This is a dirty hack determining the full version by the URL
+    // It's however better to use different versions, for example 5.16.1 for free and 5.16.2 for full
+    private static boolean upgradingHmdmFreeToFull(Context context, Application application, PackageInfo packageInfo) {
+        if (!application.getPkg().equals(context.getPackageName())) {
+            return false;
+        }
+        return BuildConfig.FLAVOR.equals("opensource") && application.getUrl().endsWith("master.apk");
+    }
+
     private static boolean areVersionsEqual(String v1, String v2) {
         if (v1 == null || v2 == null) {
             // Exceptional case, we should never be here but this shouldn't crash the app with NPE
@@ -178,6 +188,16 @@ public class InstallUtils {
 
     // Returns -1 if v1 < v2, 0 if v1 == v2 and 1 if v1 > v2
     public static int compareVersions(String v1, String v2) {
+        // Exceptional cases: null values
+        if (v1 == null && v2 == null) {
+            return 0;
+        }
+        if (v1 == null) {
+            return -1;
+        }
+        if (v2 == null) {
+            return 1;
+        }
         // Versions are numbers separated by a dot
         String v1d = v1.replaceAll("[^\\d.]", "");
         String v2d = v2.replaceAll("[^\\d.]", "");

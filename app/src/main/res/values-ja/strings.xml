@@ -1,0 +1,135 @@
+<!--
+  ~ Headwind MDM: Open Source Android MDM Software
+  ~ https://h-mdm.com
+  ~
+  ~ Copyright (C) 2019 Headwind Solutions LLC (http://h-sms.com)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resources>
+    <string name="white_app_name" translatable="false">MDMエージェント</string>
+    <string name="app_name" translatable="false">Headwind MDM</string>
+    <string name="admin_title">管理者</string>
+    <string name="vendor" translatable="false">h-mdm.com</string>
+    <string name="install_error">インストールエラー</string>
+    <string name="dialog_enter_device_id_error">このIDは %s に登録されていません。コントロールパネルの\"端末\" タブからIDを取得して下さい。</string>
+    <string name="dialog_enter_device_id_qrcode">QRコード</string>
+    <string name="dialog_enter_device_id_variants">バリアント</string>
+    <string name="dialog_enter_device_id_save">保存</string>
+    <string name="dialog_enter_device_id_exit">終了</string>
+    <string name="dialog_enter_device_id_title">%s にデバイスIDを入力してください</string>
+    <string name="main_start_preparations">起動中</string>
+    <string name="main_downloading_configuration">設定ファイルを更新中</string>
+    <string name="main_downloading_content">データ更新中</string>
+    <string name="main_update_applications">アプリケーションのインストールと更新</string>
+    <string name="dialog_root_message">ROOT権限が必要です</string>
+    <string name="main_application_start">アプリケーションを開始</string>
+    <string name="main_app_installing">アプリケーションをインストール</string>
+    <string name="main_app_downloading">アプリケーションをダウンロードしています</string>
+    <string name="main_app_downloading_error">パッケージのダウンロードに失敗しました</string>
+    <string name="main_app_removing">アプリケーションをアンインストールしています</string>
+    <string name="main_file_downloading">ファイルをダウンロードしています</string>
+    <string name="main_file_downloading_error">ファイルのダウンロードに失敗しました</string>
+    <string name="main_activity_repeat">再試行</string>
+    <string name="main_activity_reset">リセット</string>
+    <string name="main_activity_wifi">WiFi</string>
+    <string name="main_activity_cancel">キャンセル</string>
+    <string name="main_activity_details">詳細</string>
+    <string name="select_system_launcher">%s をデフォルトのランチャーとして選択し、\'常に\' にチェックを入れます:</string>
+    <string name="dialog_network_error_title">%s への接続エラー。インターネット接続を確認して、再試行してください。</string>
+    <string name="main_activity_update_config">サーバーから設定ファイルをリクエストしています</string>
+    <string name="main_activity_applications_update">アプリケーションの更新</string>
+    <string name="dialog_overlay_settings_title">アプリが他のウィンドウの上に描画できるようにしてください。\n\nこのオプションは、不要なアプリをより効果的にブロックし、キオスクモードの緊急ロック解除を可能にします。\n\n\"続行\" をタップして設定を開きますシート。 \"%s\" アイテムを見つけて許可を与え、\"戻る\" をタップしてください。</string>
+    <string name="dialog_history_settings_title">アプリが使用状況データにアクセスできるようにしてください。\n\nこのオプションにより、アプリと設定の制御が可能になります。\n\nこのオプションにより、バッテリーの消耗が早くなる可能性があります。バッテリーを節約するには、このオプションをスキップしてください (代わりにアクセシビリティサービスまたはキオスクモードを使用してください)。\n\n \"続行\" をタップして設定シートを開きます。 \"%s\" アイテムを見つけて権限を与え、\"戻る\" をタップしてください。</string>
+    <string name="dialog_history_settings_continue">続ける</string>
+    <string name="dialog_history_settings_skip">スキップ</string>
+    <string name="dialog_unknown_sources_title">提供元不明のインストールを許可してください。設定シートが開きます。 \"不明なソース\" を見つけて、インストールを許可し、\"戻る\" をクリックします。</string>
+    <string name="dialog_unknown_sources_continue">続ける</string>
+    <string name="dialog_miui_permissions_title">MIUIではカスタム権限を手動で設定する必要があります。アプリの権限ウィンドウが開きます。 \"その他の権限\" をタップし、\"バックグラウンドでの実行中にポップアップウィンドウを表示する\" を許可して、\"戻る\" をクリックします。</string>
+    <string name="dialog_miui_developer_title">MIUIでは、デバイスを手動でセットアップする必要があります。情報画面で、「ビルド番号」を 7 回タップします。これにより、開発者設定が有効になります。</string>
+    <string name="dialog_miui_optimization_title">MIUIでは、デバイスを手動でセットアップする必要があります。開発者設定ウィンドウが開きます。画面を下にスクロールし、\"MIUI最適化\" のチェックを外します。</string>
+    <string name="dialog_administrator_mode_message">アプリがデバイス管理者モードで動作することを許可してください。設定シートが開きます。 \"デバイス管理者\" を選択し、\"%s\" アイテムを見つけ、管理者を有効にして、\"戻る\" をタップします。</string>
+    <string name="dialog_administrator_mode_continue">続ける</string>
+    <string name="dialog_administrator_mode_skip">スキップ</string>
+    <string name="accessibility_service_description">MDMアプリケーションによるアクティブなアプリの監視</string>
+    <string name="dialog_accessibility_service_message">アプリがアクセシビリティサービスを使用できるようにしてください。設定シートが開きます。 \"%s\" アイテムを見つけて、ユーザー補助サービスの使用を許可し、\"戻る\" をタップしてください。</string>
+    <string name="dialog_accessibility_service_continue">続ける</string>
+    <string name="dialog_accessibility_service_skip">スキップ</string>
+    <string name="access_to_app_denied">このアプリ (%s) へのアクセスは管理者によってブロックされています。 \'ホーム\' をクリックして続行します。</string>
+    <string name="dialog_app_not_allowed_close">閉じる</string>
+    <string name="dialog_app_not_allowed_admin">管理者</string>
+    <string name="device_id">デバイスID</string>
+    <string name="imei">IMEI</string>
+    <string name="serial_number">シリアル番号</string>
+    <string name="phone_number">電話番号</string>
+    <string name="launcher_version">ランチャーのバージョン</string>
+    <string name="close">閉じる</string>
+    <string name="admin_change_device_id">デバイスIDを変更</string>
+    <string name="admin_change_server_url">サーバーのURLを変更</string>
+    <string name="admin_allow_settings">設定を開く</string>
+    <string name="settings_allowed">3 分以内で設定を変更できます。</string>
+    <string name="admin_clear_restrictions">制限を解除</string>
+    <string name="permissive_mode_enabled">すべてのアプリを 3 分以内で実行できます。</string>
+    <string name="admin_refresh">設定を更新</string>
+    <string name="admin_exit">システムランチャーに戻る</string>
+    <string name="admin_reset_permissions">権限を確認</string>
+    <string name="admin_reset_network">ネットワークポリシーをリセット</string>
+    <string name="admin_reset_network_hint">ネットワークポリシーがクリアされました。これで、ネットワークを有効にして構成をリロードできます。</string>
+    <string name="reboot">デバイスを再起動</string>
+    <string name="reboot_failed">デバイスを再起動するための権限がありません.</string>
+    <string name="message_turn_on_gps">設定画面が開きます。この画面でGPS位置情報をオンにして、[戻る] をクリックしてください。</string>
+    <string name="message_turn_off_gps">設定画面が開きます。この画面でGPS位置情報をオフにして、[戻る] をクリックしてください。</string>
+    <string name="message_turn_on_mobile_data">モバイルデータが無効になっています!ステータスバーを開いてモバイルデータをオンにしてください。</string>
+    <string name="message_turn_off_mobile_data">モバイルデータが有効になっています。ステータスバーを開いてモバイルデータをオフにしてください。</string>
+    <string name="message_set_password">パスワードの強度が十分ではありません。設定画面よりパスワードを変更し [戻る] をクリックしてください。</string>
+    <string name="switch_off_blockings">制限をオフにしています...</string>
+    <string name="kiosk_mode_requires_overlays">キオスクモードが無効です: 他のウィンドウの上に描画する権限がありません。 %s が他のウィンドウの上に描画できるようにしてください。</string>
+    <string name="enter_admin_password">管理者パスワードを入力してください</string>
+    <string name="wrong_password">パスワードが違います</string>
+    <string name="dialog_enter_password_login">ログイン</string>
+    <string name="dialog_enter_password_cancel">キャンセル</string>
+    <string name="internal_error">アプリで内部エラーが発生しました。デバイスを再起動の上、再試行してください。</string>
+    <string name="empty_configuration">設定がありません。サーバーからの取得を再試行しています!</string>
+    <string name="permissions_reset_hint">管理パネルを閉じ、権限を確認してください。</string>
+    <string name="dialog_enter_server_error">有効なサーバーURLを入力してください。</string>
+    <string name="dialog_enter_server_ok">OK</string>
+    <string name="dialog_enter_server_title">サーバーのURLを入力してください</string>
+    <string name="dialog_enter_server_hint" translatable="false">http://hmdm.example.com:8080/hmdm/</string>
+    <string name="critical_server_failure">サーバー障害のため終了します。障害修復後に %s を再起動するか、完全に削除して再インストールしてください。</string>
+    <string name="dialog_permission_title">アプリを実行するには権限が必要です。必要な権限を付与してください。</string>
+    <string name="main_activity_exit">終了</string>
+    <string name="browser_not_found">ブラウザを見つけられないため、ウェブページを開くことができません。デバイス構成にブラウザーアプリを追加してください。</string>
+    <string name="invalid_web_link">リンクの形式が正しくないため、開くことができません。詳細は、管理者にお問い合わせください。</string>
+    <string name="location_service_text">デバイスの位置情報は監視されています</string>
+    <string name="qrcode_contents_error">QRコードの内容が無効です。 %s WebパネルでプロビジョニングQRコードを生成してください。</string>
+    <string name="device_locked">このデバイス (%s) は管理者によってロックされています.</string>
+    <string name="fault_loop_detected">ランチャーに回復不能なエラーが発生しました。システム管理者に連絡してください。</string>
+    <string name="mqtt_service_text">プッシュ通知が有効です</string>
+    <string name="background_location">%s にはバックグラウンドでの位置情報の許可が必要です。 \'続行\' をクリックしてアクセス許可を開き、 \'Location\' をクリックして位置情報を許可してください。</string>
+    <string name="location_disable">位置情報を無効にする</string>
+    <string name="background_location_continue">続ける</string>
+    <string name="initializing_mdm">モバイルデバイス管理アプリケーションを初期化しています...</string>
+    <string name="dialog_server_error_title">MDMサーバー %s が無効な応答を返しました。管理者に連絡してください。</string>
+    <string name="mdm_choice_message">このデバイスは組織によって完全に管理されます。データは秘匿されず、管理者がいつでも消去または確認することができます。</string>
+    <string name="overlays_not_supported">お使いのデバイスではオーバーレイがサポートされていません.</string>
+    <string name="admin_not_supported">お使いのデバイスにはデバイス管理者オプションがありません。続けるには [スキップ] をクリックして下さい。</string>
+
+    <string-array name="certificates" translatable="false">
+        <!-- If you want to install custom SSL certificates, place them in assets folder
+             in the PEM format and list the file names here in the <item> tag. -->
+        <!--
+        <item>custom_ca.cer</item>
+        -->
+    </string-array>
+</resources>
