@@ -99,6 +99,7 @@ public class ServerConfig {
     private boolean permissive;
     private boolean kioskExit;
     private boolean disableScreenshots;
+    private boolean autostartForeground;
 
     private boolean showWifi;
 
@@ -119,6 +120,9 @@ public class ServerConfig {
     public static final String TITLE_CUSTOM1 = "custom1";
     public static final String TITLE_CUSTOM2 = "custom2";
     public static final String TITLE_CUSTOM3 = "custom3";
+    public static final String TITLE_IMEI = "imei";
+    public static final String TITLE_SERIAL = "serialNumber";
+    public static final String TITLE_EXTERNAL_IP = "externalIp";
     public static final int DEFAULT_ICON_SIZE = 100;
 
     public static final int SYSTEM_UPDATE_DEFAULT = 0;
@@ -594,6 +598,14 @@ public class ServerConfig {
 
     public void setDisableScreenshots(boolean disableScreenshots) {
         this.disableScreenshots = disableScreenshots;
+    }
+
+    public boolean isAutostartForeground() {
+        return autostartForeground;
+    }
+
+    public void setAutostartForeground(boolean autostartForeground) {
+        this.autostartForeground = autostartForeground;
     }
 
     public boolean isShowWifi() {

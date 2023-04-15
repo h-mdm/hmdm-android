@@ -28,10 +28,14 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.hmdm.IMdmApi;
+import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.RemoteLogItem;
+import com.hmdm.launcher.pro.ProUtils;
+import com.hmdm.launcher.util.DeviceInfoProvider;
 import com.hmdm.launcher.util.RemoteLogger;
+import com.hmdm.launcher.util.Utils;
 
 public class PluginApiService extends Service {
     // Data keys
@@ -42,6 +46,11 @@ public class PluginApiService extends Service {
     public static final String KEY_CUSTOM_1 = "CUSTOM_1";
     public static final String KEY_CUSTOM_2 = "CUSTOM_2";
     public static final String KEY_CUSTOM_3 = "CUSTOM_3";
+    public static final String KEY_IMEI = "IMEI";
+    public static final String KEY_SERIAL = "SERIAL";
+    public static final String KEY_IS_MANAGED = "IS_MANAGED";
+    public static final String KEY_IS_KIOSK = "IS_KIOSK";
+    public static final String KEY_ERROR = "ERROR";
 
     @Override
     public void onCreate() {
@@ -57,7 +66,18 @@ public class PluginApiService extends Service {
     private final IMdmApi.Stub mBinder = new IMdmApi.Stub() {
 
         @Override
+        public int getVersion() {
+            // 1.1.3
+            return 113;
+        }
+
+        @Override
         public Bundle queryConfig() {
+            return queryPrivilegedConfig(null);
+        }
+
+        @Override
+        public Bundle queryPrivilegedConfig(String apiKey) {
             SettingsHelper settingsHelper = SettingsHelper.getInstance(PluginApiService.this);
             if ( settingsHelper.getConfig() == null ) {
                 // This shouldn't happen!
@@ -68,6 +88,8 @@ public class PluginApiService extends Service {
                 bundle.putString(KEY_SECONDARY_SERVER_HOST, settingsHelper.getSecondaryBaseUrl());
                 bundle.putString(KEY_SERVER_PATH, settingsHelper.getServerProject());
                 bundle.putString(KEY_DEVICE_ID, settingsHelper.getDeviceId());
+                bundle.putBoolean(KEY_IS_MANAGED, Utils.isDeviceOwner(PluginApiService.this));
+                bundle.putBoolean(KEY_IS_KIOSK, ProUtils.isKioskModeRunning(PluginApiService.this));
                 if (settingsHelper.getConfig().getCustom1() != null) {
                     bundle.putString(KEY_CUSTOM_1, settingsHelper.getConfig().getCustom1());
                 }
@@ -77,6 +99,16 @@ public class PluginApiService extends Service {
                 if (settingsHelper.getConfig().getCustom3() != null) {
                     bundle.putString(KEY_CUSTOM_3, settingsHelper.getConfig().getCustom3());
                 }
+                if (apiKey != null) {
+                    if (apiKey.equals(BuildConfig.LIBRARY_API_KEY)) {
+                        // IMEI and serial are set only to authorized requests
+                        bundle.putString(KEY_IMEI, DeviceInfoProvider.getImei(PluginApiService.this));
+                        bundle.putString(KEY_SERIAL, DeviceInfoProvider.getSerialNumber());
+                    } else {
+                        bundle.putString(KEY_ERROR, "KEY_NOT_MATCH");
+                    }
+                }
+
                 return bundle;
             }
         }
@@ -120,6 +152,26 @@ public class PluginApiService extends Service {
                 return;
             }
             settingsHelper.commitAppPreferences(packageId);
+        }
+
+        @Override
+        public void setCustom(int number, String value) {
+            SettingsHelper settingsHelper = SettingsHelper.getInstance(PluginApiService.this);
+            if ( settingsHelper.getConfig() == null ) {
+                // This shouldn't happen!
+                return;
+            }
+            switch (number) {
+                case 1:
+                    settingsHelper.getConfig().setCustom1(value);
+                    break;
+                case 2:
+                    settingsHelper.getConfig().setCustom2(value);
+                    break;
+                case 3:
+                    settingsHelper.getConfig().setCustom3(value);
+                    break;
+            }
         }
     };
 }

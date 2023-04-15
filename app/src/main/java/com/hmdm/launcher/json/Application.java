@@ -43,6 +43,7 @@ public class Application {
     private Integer screenOrder;
     private Integer keyCode;
     private boolean bottom;
+    private boolean longTap;
 
     public Application() {}
 
@@ -172,5 +173,13 @@ public class Application {
 
     public void setBottom(boolean bottom) {
         this.bottom = bottom;
+    }
+
+    public boolean isLongTap() {
+        return longTap;
+    }
+
+    public void setLongTap(boolean longTap) {
+        this.longTap = longTap;
     }
 }

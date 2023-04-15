@@ -57,4 +57,6 @@ public class MDMError {
     public static final int ERROR_GENERAL = 3;          // Library error
     public static final int ERROR_DISCONNECTED = 4;     // Service disconnected
     public static final int ERROR_INVALID_PARAMETER = 5;
+    public static final int ERROR_VERSION = 6;          // Launcher needs to update
+    public static final int ERROR_KEY_NOT_MATCH = 7;    // API key does not match
 }

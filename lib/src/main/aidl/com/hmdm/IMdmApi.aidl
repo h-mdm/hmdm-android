@@ -1,9 +1,11 @@
 // IMdmApi.aidl
 package com.hmdm;
 
+// Declare any non-default types here with import statements
+
 interface IMdmApi {
     /**
-     * Get the MDM configuration
+     * Get the MDM configuration (non-privileged, no sensitive info)
      */
     Bundle queryConfig();
 
@@ -26,4 +28,22 @@ interface IMdmApi {
      * Send app preferences to server
      */
     void commitAppPreferences(String packageId);
+
+    // Added in library version 1.1.3
+    // All new methods should be added at the end of the AIDL file!!!
+
+    /**
+     * Get the API version supported by the launcher (1.1.3 = 113)
+     */
+    int getVersion();
+
+    /**
+     * Get the MDM configuration (privileged, including IMEI and serial number)
+     */
+    Bundle queryPrivilegedConfig(String apiKey);
+
+    /**
+     * Set a custom field to send it to the server
+     */
+    void setCustom(int number, String value);
 }

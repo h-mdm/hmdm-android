@@ -50,6 +50,12 @@ public class HeadwindMDM {
     private String custom1;
     private String custom2;
     private String custom3;
+    private boolean isManaged;
+    private boolean isKiosk;
+    private String imei;
+    private String serial;
+    private int version;
+    private String apiKey;
 
     private BroadcastReceiver configUpdateReceiver = new BroadcastReceiver() {
         @Override
@@ -59,6 +65,10 @@ public class HeadwindMDM {
             }
         }
     };
+
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
+    }
 
     /**
      * Connect to Headwind MDM service
@@ -156,6 +166,39 @@ public class HeadwindMDM {
         }
     }
 
+    public boolean isManaged() {
+        return isManaged;
+    }
+
+    public boolean isKiosk() {
+        return isKiosk;
+    }
+
+    public String getSerial() {
+        return serial;
+    }
+
+    public String getImei() {
+        return imei;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public boolean setCustom(int number, String value) {
+        if (!mdmConnected) {
+            return false;
+        }
+        try {
+            mdmService.setCustom(number, value);
+        } catch (MDMException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
     /* Automatic reconnection mechanism */
 
     public MDMService.ResultHandler resultHandler = new MDMService.ResultHandler() {
@@ -165,7 +208,13 @@ public class HeadwindMDM {
 
             Bundle data = null;
             try {
-                data = mdmService.queryConfig();
+                version = mdmService.getVersion();
+                if (version > MDMService.INITIAL_VERSION && apiKey != null) {
+                    data = mdmService.queryConfig(apiKey);
+                } else {
+                    data = mdmService.queryConfig();
+                }
+
                 // NPE can be here! queryConfig() may return null if Headwind MDM
                 // is not configured. Not sure how to handle this, though
                 serverHost = data.getString(MDMService.KEY_SERVER_HOST);
@@ -175,7 +224,13 @@ public class HeadwindMDM {
                 custom1 = data.getString(MDMService.KEY_CUSTOM_1);
                 custom2 = data.getString(MDMService.KEY_CUSTOM_2);
                 custom3 = data.getString(MDMService.KEY_CUSTOM_3);
+                // null / false values for older launcher API versions or wrong API key
+                isManaged = data.getBoolean(MDMService.KEY_IS_MANAGED);
+                isKiosk = data.getBoolean(MDMService.KEY_IS_KIOSK);
+                imei = data.getString(MDMService.KEY_IMEI);
+                serial = data.getString(MDMService.KEY_SERIAL);
             } catch (MDMException e) {
+                e.printStackTrace();
             }
 
             if (eventHandler != null) {

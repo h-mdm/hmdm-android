@@ -68,6 +68,7 @@ public class AppShortcutManager {
                 newInfo.packageName = p.packageName;
                 newInfo.iconUrl = app.getIcon();
                 newInfo.screenOrder = app.getScreenOrder();
+                newInfo.longTap = app.isLongTap() ? 1 : 0;
                 appInfos.add(newInfo);
             }
         }

@@ -553,7 +553,7 @@ public class MainActivity
                     }
                 }
                 // Hide apps after start to avoid users confusion
-                if (appStarted) {
+                if (appStarted && !config.isAutostartForeground()) {
                     try {
                         Thread.sleep(PAUSE_BETWEEN_AUTORUNS_SEC * 1000);
                     } catch (InterruptedException e) {
@@ -575,8 +575,8 @@ public class MainActivity
 
     // Does not seem to work, though. See the comment to SystemUtils.becomeDeviceOwner()
     private void setSelfAsDeviceOwner() {
-        // We set self as device owner only once
-        if (preferences.getInt(Const.PREFERENCES_DEVICE_OWNER, -1) != -1) {
+        // We set self as device owner each time so we could trace errors if device owner setup fails
+        if (Utils.isDeviceOwner(this)) {
             checkAndStartLauncher();
             return;
         }
@@ -1837,12 +1837,28 @@ public class MainActivity
                 }
             }
             binding.activityMainTitle.setVisibility(View.VISIBLE);
+            String imei = DeviceInfoProvider.getImei(this);
+            if (imei == null) {
+                imei = "";
+            }
+            String serial = DeviceInfoProvider.getSerialNumber();
+            if (serial == null) {
+                serial = "";
+            }
+            String ip = SettingsHelper.getInstance(this).getExternalIp();
+            if (ip == null) {
+                ip = "";
+            }
             String titleText = titleType
                     .replace(ServerConfig.TITLE_DEVICE_ID, SettingsHelper.getInstance(this).getDeviceId())
                     .replace(ServerConfig.TITLE_DESCRIPTION, config.getDescription() != null ? config.getDescription() : "")
                     .replace(ServerConfig.TITLE_CUSTOM1, config.getCustom1() != null ? config.getCustom1() : "")
                     .replace(ServerConfig.TITLE_CUSTOM2, config.getCustom2() != null ? config.getCustom2() : "")
-                    .replace(ServerConfig.TITLE_CUSTOM3, config.getCustom3() != null ? config.getCustom3() : "");
+                    .replace(ServerConfig.TITLE_CUSTOM3, config.getCustom3() != null ? config.getCustom3() : "")
+                    .replace(ServerConfig.TITLE_IMEI, imei)
+                    .replace(ServerConfig.TITLE_SERIAL, serial)
+                    .replace(ServerConfig.TITLE_EXTERNAL_IP, ip)
+                    .replace("\\n", "\n");
             binding.activityMainTitle.setText(titleText);
         } else {
             binding.activityMainTitle.setVisibility(View.GONE);

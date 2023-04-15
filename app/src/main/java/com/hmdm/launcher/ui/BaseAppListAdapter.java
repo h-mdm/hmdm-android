@@ -87,6 +87,7 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         ViewHolder viewHolder = new ViewHolder(layoutInflater.inflate(R.layout.item_app, parent, false));
         viewHolder.binding.rootLinearLayout.setOnClickListener(onClickListener);
+        viewHolder.binding.rootLinearLayout.setOnLongClickListener(onLongClickListener);
         return viewHolder;
     }
 
@@ -222,6 +223,16 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
         } else {
             chooseApp((AppInfo) v.getTag());
         }
+    };
+
+    protected View.OnLongClickListener onLongClickListener = v -> {
+        AppInfo appInfo = (AppInfo) v.getTag();
+        if (appInfo.type == AppInfo.TYPE_APP && appInfo.longTap == 1) {
+            // Open app settings on long click
+            openAppSettings(appInfo);
+            return true;
+        }
+        return false;
     };
 
     protected void chooseApp(AppInfo appInfo) {
@@ -361,4 +372,8 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
         chooseApp(items.get(selectedItem));
     }
 
+    private void openAppSettings(AppInfo appInfo) {
+        context.startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.parse("package:" + appInfo.packageName)));
+    }
 }

@@ -36,6 +36,13 @@ public class MDMService {
     public static final String KEY_CUSTOM_1 = "CUSTOM_1";
     public static final String KEY_CUSTOM_2 = "CUSTOM_2";
     public static final String KEY_CUSTOM_3 = "CUSTOM_3";
+    public static final String KEY_IMEI = "IMEI";
+    public static final String KEY_SERIAL = "SERIAL";
+    public static final String KEY_IS_MANAGED = "IS_MANAGED";
+    public static final String KEY_IS_KIOSK = "IS_KIOSK";
+    public static final String KEY_ERROR = "ERROR";
+
+    public static final int INITIAL_VERSION = 112;
 
     private Context context;
     private IMdmApi mdmApi;
@@ -106,6 +113,22 @@ public class MDMService {
     }
 
     /**
+     * Get version
+     */
+    public int getVersion() throws MDMException {
+        if (mdmApi == null) {
+            throw new MDMException(MDMError.ERROR_DISCONNECTED);
+        }
+
+        try {
+            return mdmApi.getVersion();
+        } catch (RemoteException e) {
+            // No getVersion() method prior to 1.1.3, so return 0 by default
+            return 0;
+        }
+    }
+
+    /**
      * Query configuration
      */
     public Bundle queryConfig() throws MDMException {
@@ -120,6 +143,52 @@ public class MDMService {
         }
     }
 
+    /**
+     * Query configuration (including privileged fields)
+     */
+    public Bundle queryConfig(String apiKey) throws MDMException {
+        if (mdmApi == null) {
+            throw new MDMException(MDMError.ERROR_DISCONNECTED);
+        }
+
+        if (getVersion() <= INITIAL_VERSION) {
+            throw new MDMException(MDMError.ERROR_VERSION);
+        }
+
+        try {
+            Bundle config = mdmApi.queryPrivilegedConfig(apiKey);
+            String error = config.getString(KEY_ERROR);
+            if (error != null) {
+                if (error.equals("KEY_NOT_MATCH")) {
+                    throw new MDMException(MDMError.ERROR_KEY_NOT_MATCH);
+                } else {
+                    throw new MDMException(MDMError.ERROR_INTERNAL);
+                }
+            }
+            return config;
+        } catch (RemoteException e) {
+            throw new MDMException(MDMError.ERROR_INTERNAL);
+        }
+    }
+
+    /**
+     * Set a custom field to send its value to the server
+     */
+    public void setCustom(int number, String value) throws MDMException {
+        if (mdmApi == null) {
+            throw new MDMException(MDMError.ERROR_DISCONNECTED);
+        }
+
+        if (getVersion() <= INITIAL_VERSION) {
+            throw new MDMException(MDMError.ERROR_VERSION);
+        }
+
+        try {
+            mdmApi.setCustom(number, value);
+        } catch (RemoteException e) {
+            throw new MDMException(MDMError.ERROR_INTERNAL);
+        }
+    }
 
     /**
      * Usage:
