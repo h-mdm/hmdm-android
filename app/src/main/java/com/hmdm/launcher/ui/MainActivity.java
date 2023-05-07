@@ -1600,9 +1600,10 @@ public class MainActivity
                 Picasso.Builder builder = new Picasso.Builder(this);
                 if (BuildConfig.TRUST_ANY_CERTIFICATE) {
                     builder.downloader(new OkHttp3Downloader(UnsafeOkHttpClient.getUnsafeOkHttpClient()));
-                } else if (BuildConfig.CHECK_SIGNATURE) {
-                    // Here we assume TRUST_ANY_CERTIFICATE and CHECK_SIGNATURE are not turned on together!
-                    // That makes no sense: TRUST_ANY_CERTIFICATE is unsafe, but CHECK_SIGNATURE is for safe setup
+                } else {
+                    // Add signature to all requests to protect against unauthorized API calls
+                    // For TRUST_ANY_CERTIFICATE, we won't add signatures because it's unsafe anyway
+                    // and is just a workaround to use Headwind MDM on the LAN
                     OkHttpClient clientWithSignature = new OkHttpClient.Builder()
                             .addInterceptor(chain -> {
                                 okhttp3.Request.Builder requestBuilder = chain.request().newBuilder();

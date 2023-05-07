@@ -305,11 +305,9 @@ public class InstallUtils {
             connection.setRequestProperty("Accept-Encoding", "identity");
             connection.setConnectTimeout((int) Const.CONNECTION_TIMEOUT);
             connection.setReadTimeout((int) Const.CONNECTION_TIMEOUT);
-            if (BuildConfig.CHECK_SIGNATURE) {
-                String signature = getRequestSignature(strUrl);
-                if (signature != null) {
-                    connection.setRequestProperty("X-Request-Signature", signature);
-                }
+            String signature = getRequestSignature(strUrl);
+            if (signature != null) {
+                connection.setRequestProperty("X-Request-Signature", signature);
             }
             connection.connect();
 
