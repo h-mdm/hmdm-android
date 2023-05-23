@@ -131,6 +131,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
@@ -216,6 +217,8 @@ public class MainActivity
     private int lastNetworkType;
 
     private ConfigUpdater configUpdater = new ConfigUpdater();
+
+    private Picasso picasso = null;
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -1597,43 +1600,47 @@ public class MainActivity
             needRedrawContentAfterReconfigure = false;
 
             if ( config.getBackgroundImageUrl() != null && config.getBackgroundImageUrl().length() > 0 ) {
-                Picasso.Builder builder = new Picasso.Builder(this);
-                if (BuildConfig.TRUST_ANY_CERTIFICATE) {
-                    builder.downloader(new OkHttp3Downloader(UnsafeOkHttpClient.getUnsafeOkHttpClient()));
-                } else {
-                    // Add signature to all requests to protect against unauthorized API calls
-                    // For TRUST_ANY_CERTIFICATE, we won't add signatures because it's unsafe anyway
-                    // and is just a workaround to use Headwind MDM on the LAN
-                    OkHttpClient clientWithSignature = new OkHttpClient.Builder()
-                            .addInterceptor(chain -> {
-                                okhttp3.Request.Builder requestBuilder = chain.request().newBuilder();
-                                String signature = InstallUtils.getRequestSignature(chain.request().url().toString());
-                                if (signature != null) {
-                                    requestBuilder.addHeader("X-Request-Signature", signature);
-                                }
-                                return chain.proceed(requestBuilder.build());
+                if (picasso == null) {
+                    // Initialize it once because otherwise it doesn't work offline
+                    Picasso.Builder builder = new Picasso.Builder(this);
+                    if (BuildConfig.TRUST_ANY_CERTIFICATE) {
+                        builder.downloader(new OkHttp3Downloader(UnsafeOkHttpClient.getUnsafeOkHttpClient()));
+                    } else {
+                        // Add signature to all requests to protect against unauthorized API calls
+                        // For TRUST_ANY_CERTIFICATE, we won't add signatures because it's unsafe anyway
+                        // and is just a workaround to use Headwind MDM on the LAN
+                        OkHttpClient clientWithSignature = new OkHttpClient.Builder()
+                                .cache(new Cache(new File(getApplication().getCacheDir(), "image_cache"), 1000000L))
+                                .addInterceptor(chain -> {
+                                    okhttp3.Request.Builder requestBuilder = chain.request().newBuilder();
+                                    String signature = InstallUtils.getRequestSignature(chain.request().url().toString());
+                                    if (signature != null) {
+                                        requestBuilder.addHeader("X-Request-Signature", signature);
+                                    }
+                                    return chain.proceed(requestBuilder.build());
 
-                            })
-                            .build();
-                    builder.downloader(new OkHttp3Downloader(clientWithSignature));
-                }
-                builder.listener(new Picasso.Listener()
-                {
-                    @Override
-                    public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception)
-                    {
-                        // On fault, get the background image from the cache
-                        // This is a workaround against a bug in Picasso: it doesn't display cached images by default!
-                        Picasso.with(MainActivity.this)
-                            .load(config.getBackgroundImageUrl())
-                            .networkPolicy(NetworkPolicy.OFFLINE)
-                            .fit()
-                            .centerCrop()
-                            .into(binding.activityMainBackground);
+                                })
+                                .build();
+                        builder.downloader(new OkHttp3Downloader(clientWithSignature));
                     }
-                });
-                builder.build()
-                    .load(config.getBackgroundImageUrl())
+                    builder.listener(new Picasso.Listener()
+                    {
+                        @Override
+                        public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception)
+                        {
+                            // On fault, get the background image from the cache
+                            // This is a workaround against a bug in Picasso: it doesn't display cached images by default!
+                            picasso.load(config.getBackgroundImageUrl())
+                                    .networkPolicy(NetworkPolicy.OFFLINE)
+                                    .fit()
+                                    .centerCrop()
+                                    .into(binding.activityMainBackground);
+                        }
+                    });
+                    picasso = builder.build();
+                }
+
+                picasso.load(config.getBackgroundImageUrl())
                     // fit and centerCrop is a workaround against a crash on too large images on some devices
                     .fit()
                     .centerCrop()
@@ -1919,6 +1926,7 @@ public class MainActivity
         isBackground = true;
 
         dismissDialog(fileNotDownloadedDialog);
+        dismissDialog(enterServerDialog);
         dismissDialog(enterDeviceIdDialog);
         dismissDialog(networkErrorDialog);
         dismissDialog(enterPasswordDialog);

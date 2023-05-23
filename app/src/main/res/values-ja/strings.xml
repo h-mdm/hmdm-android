@@ -122,6 +122,7 @@
     <string name="initializing_mdm">モバイルデバイス管理アプリケーションを初期化しています...</string>
     <string name="dialog_server_error_title">MDMサーバー %s が無効な応答を返しました。管理者に連絡してください。</string>
     <string name="mdm_choice_message">このデバイスは組織によって完全に管理されます。データは秘匿されず、管理者がいつでも消去または確認することができます。</string>
+    <string name="work_profile_message">このデバイスは、組織に属する管理対象の仕事用プロファイルを取得します。 仕事用プロファイルはプライベート プロファイルから分離されており、いつでもプロファイルを切り替えることができます。</string>
     <string name="overlays_not_supported">お使いのデバイスではオーバーレイがサポートされていません.</string>
     <string name="admin_not_supported">お使いのデバイスにはデバイス管理者オプションがありません。続けるには [スキップ] をクリックして下さい。</string>
 

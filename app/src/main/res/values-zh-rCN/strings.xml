@@ -119,6 +119,7 @@
 	<string name="initializing_mdm">正在初始化移动设备管理应用程序...</string>
 	<string name="dialog_server_error_title">MDM 服务器 %s 返回无效响应。 请联系您的管理员。</string>
 	<string name="mdm_choice_message">此设备将由您的组织完全管理。 您的数据不会是私密的，您的 IT 管理员可以随时删除或查看您的数据。</string>
+	<string name="work_profile_message">此设备将获得属于您的组织的受管理工作配置文件。 工作资料与您的私人资料分开，您可以随时在资料之间切换。</string>
 	<string name="overlays_not_supported">不幸的是，您的设备不支持覆盖。</string>
 	<string name="admin_not_supported">您的设备没有设备管理员选项。 单击跳过以继续。</string>
 </resources>

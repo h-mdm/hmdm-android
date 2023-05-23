@@ -118,6 +118,7 @@
     <string name="initializing_mdm">جاري تهيئة تطبيق إدارة الجهاز المحمول ...</string>
     <string name="dialog_server_error_title">أرجع خادم MDM%s استجابة غير صالحة. الرجاء الاتصال بالمسؤول الخاص بك.</string>
     <string name="mdm_choice_message">ستتم إدارة هذا الجهاز بالكامل بواسطة مؤسستك. لن تكون بياناتك خاصة ويمكن مسحها أو مراجعتها بواسطة مسؤول تكنولوجيا المعلومات في أي وقت.</string>
+    <string name="work_profile_message">سيحصل هذا الجهاز على ملف شخصي للعمل مُدار ينتمي إلى مؤسستك. يتم فصل الملف الشخصي للعمل عن ملفك الشخصي الخاص ويمكنك التبديل بين الملفات الشخصية في أي وقت.</string>
     <string name="overlays_not_supported">للأسف لا يدعم جهازك التراكبات.</string>
     <string name="admin_not_supported">جهازك ليس لديه خيار مسؤول الجهاز. انقر فوق تخطي للمتابعة.</string>
 </resources>

@@ -1,14 +1,14 @@
 package com.hmdm.launcher.ui;
 
-import android.content.Context;
+import android.app.Activity;
 import android.view.LayoutInflater;
 
 public class BottomAppListAdapter extends BaseAppListAdapter {
     private LayoutInflater layoutInflater;
 
-    public BottomAppListAdapter(Context context, OnAppChooseListener appChooseListener, SwitchAdapterListener switchAdapterListener) {
-        super(context, appChooseListener, switchAdapterListener);
-        items = AppShortcutManager.getInstance().getInstalledApps(context, true);
+    public BottomAppListAdapter(Activity parentActivity, OnAppChooseListener appChooseListener, SwitchAdapterListener switchAdapterListener) {
+        super(parentActivity, appChooseListener, switchAdapterListener);
+        items = AppShortcutManager.getInstance().getInstalledApps(parentActivity, true);
         initShortcuts();
     }
 }

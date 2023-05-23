@@ -62,6 +62,22 @@
             android:layout_marginTop="@dimen/activity_vertical_margin"
             android:layout_marginBottom="@dimen/activity_vertical_margin"/>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal"
+        >
+
+        <Button
+            android:id="@+id/showDeviceIdQrCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textSize="@dimen/button_text_size_small"
+            android:text="@string/dialog_enter_device_id_qrcode"
+            android:onClick="showDeviceIdQrCode"/>
+
             <Button
                 android:id="@+id/saveServerUrl"
                 android:layout_width="wrap_content"
@@ -69,6 +85,7 @@
                 android:layout_gravity="center"
                 android:text="@string/dialog_enter_server_ok"
                 android:onClick="saveServerUrl"/>
+    </LinearLayout>
 
     </LinearLayout>
 

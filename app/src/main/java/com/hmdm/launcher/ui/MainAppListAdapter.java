@@ -19,7 +19,7 @@
 
 package com.hmdm.launcher.ui;
 
-import android.content.Context;
+import android.app.Activity;
 
 /**
  * Created by Ivan Lozenko on 21.02.2017.
@@ -27,9 +27,9 @@ import android.content.Context;
 
 public class MainAppListAdapter extends BaseAppListAdapter {
 
-    public MainAppListAdapter(Context context, OnAppChooseListener appChooseListener, SwitchAdapterListener switchAdapterListener) {
-        super(context, appChooseListener, switchAdapterListener);
-        items = AppShortcutManager.getInstance().getInstalledApps(context, false);
+    public MainAppListAdapter(Activity parentActivity, OnAppChooseListener appChooseListener, SwitchAdapterListener switchAdapterListener) {
+        super(parentActivity, appChooseListener, switchAdapterListener);
+        items = AppShortcutManager.getInstance().getInstalledApps(parentActivity, false);
         initShortcuts();
     }
 }

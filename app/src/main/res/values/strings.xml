@@ -122,6 +122,7 @@
     <string name="initializing_mdm">Initializing the mobile device management application...</string>
     <string name="dialog_server_error_title">MDM server %s returned an invalid response. Please contact your administrator.</string>
     <string name="mdm_choice_message">This device will be fully managed by your organization. Your data won\'t be private and can be erased or reviewed by your IT admin at any time.</string>
+    <string name="work_profile_message">This device will get a managed work profile belonging to your organization. The work profile is separated from your private profile and you may switch between profiles at any time.</string>
     <string name="overlays_not_supported">Unfortunately overlays are not supported by your device.</string>
     <string name="admin_not_supported">Your device has no device administrator option. Click Skip to continue.</string>
 

@@ -1,8 +1,8 @@
 package com.hmdm.launcher.ui;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 
 public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.ViewHolder> {
@@ -45,7 +46,7 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
     protected Map<Integer, AppInfo> shortcuts;        // Keycode -> Application, filled in getInstalledApps()
     protected MainAppListAdapter.OnAppChooseListener appChooseListener;
     protected MainAppListAdapter.SwitchAdapterListener switchAdapterListener;
-    protected Context context;
+    protected Activity parentActivity;
     protected SettingsHelper settingsHelper;
     protected int spanCount;
     protected int selectedItem = -1;
@@ -53,13 +54,15 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
     protected GradientDrawable selectedItemBorder;
     protected boolean focused = true;
 
-    public BaseAppListAdapter(Context context, MainAppListAdapter.OnAppChooseListener appChooseListener, MainAppListAdapter.SwitchAdapterListener switchAdapterListener) {
-        layoutInflater = LayoutInflater.from(context);
+    protected Picasso picasso = null;
+
+    public BaseAppListAdapter(Activity parentActivity, MainAppListAdapter.OnAppChooseListener appChooseListener, MainAppListAdapter.SwitchAdapterListener switchAdapterListener) {
+        layoutInflater = LayoutInflater.from(parentActivity);
 
         this.appChooseListener = appChooseListener;
         this.switchAdapterListener = switchAdapterListener;
-        this.context = context;
-        this.settingsHelper = SettingsHelper.getInstance( context );
+        this.parentActivity = parentActivity;
+        this.settingsHelper = SettingsHelper.getInstance(parentActivity);
 
         boolean isDarkBackground = true;
         ServerConfig config = settingsHelper.getConfig();
@@ -111,54 +114,55 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
             if (iconScale == null) {
                 iconScale = ServerConfig.DEFAULT_ICON_SIZE;
             }
-            int iconSize = context.getResources().getDimensionPixelOffset(R.dimen.app_icon_size) * iconScale / 100;
+            int iconSize = parentActivity.getResources().getDimensionPixelOffset(R.dimen.app_icon_size) * iconScale / 100;
             holder.binding.imageView.getLayoutParams().width = iconSize;
             holder.binding.imageView.getLayoutParams().height = iconSize;
             if (appInfo.iconUrl != null) {
                 // Load the icon
-                Picasso.Builder builder = new Picasso.Builder(context);
-                if (BuildConfig.TRUST_ANY_CERTIFICATE) {
-                    builder.downloader(new OkHttp3Downloader(UnsafeOkHttpClient.getUnsafeOkHttpClient()));
-                } else {
-                    // Add signature to all requests to protect against unauthorized API calls
-                    // For TRUST_ANY_CERTIFICATE, we won't add signatures because it's unsafe anyway
-                    // and is just a workaround to use Headwind MDM on the LAN
-                    OkHttpClient clientWithSignature = new OkHttpClient.Builder()
-                            .addInterceptor(chain -> {
-                                okhttp3.Request.Builder requestBuilder = chain.request().newBuilder();
-                                String signature = InstallUtils.getRequestSignature(chain.request().url().toString());
-                                if (signature != null) {
-                                    requestBuilder.addHeader("X-Request-Signature", signature);
-                                }
-                                return chain.proceed(requestBuilder.build());
+                if (picasso == null) {
+                    Picasso.Builder builder = new Picasso.Builder(parentActivity);
+                    if (BuildConfig.TRUST_ANY_CERTIFICATE) {
+                        builder.downloader(new OkHttp3Downloader(UnsafeOkHttpClient.getUnsafeOkHttpClient()));
+                    } else {
+                        // Add signature to all requests to protect against unauthorized API calls
+                        // For TRUST_ANY_CERTIFICATE, we won't add signatures because it's unsafe anyway
+                        // and is just a workaround to use Headwind MDM on the LAN
+                        OkHttpClient clientWithSignature = new OkHttpClient.Builder()
+                                .cache(new Cache(new File(parentActivity.getApplication().getCacheDir(), "image_cache"), 1000000L))
+                                .addInterceptor(chain -> {
+                                    okhttp3.Request.Builder requestBuilder = chain.request().newBuilder();
+                                    String signature = InstallUtils.getRequestSignature(chain.request().url().toString());
+                                    if (signature != null) {
+                                        requestBuilder.addHeader("X-Request-Signature", signature);
+                                    }
+                                    return chain.proceed(requestBuilder.build());
 
-                            })
-                            .build();
-                    builder.downloader(new OkHttp3Downloader(clientWithSignature));
-                }
-                builder.listener(new Picasso.Listener()
-                {
-                    @Override
-                    public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception)
-                    {
-                        // On fault, get the image from the cache
-                        // This is a workaround against a bug in Picasso: it doesn't display cached images by default!
-                        Picasso.with(context)
-                                .load(appInfo.iconUrl)
-                                .networkPolicy(NetworkPolicy.OFFLINE)
-                                .into(holder.binding.imageView);
+                                })
+                                .build();
+                        builder.downloader(new OkHttp3Downloader(clientWithSignature));
                     }
-                });
-                builder.build()
-                        .load(appInfo.iconUrl)
+                    builder.listener(new Picasso.Listener() {
+                        @Override
+                        public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
+                            // On fault, get the image from the cache
+                            // This is a workaround against a bug in Picasso: it doesn't display cached images by default!
+                            picasso.load(appInfo.iconUrl)
+                                    .networkPolicy(NetworkPolicy.OFFLINE)
+                                    .into(holder.binding.imageView);
+                        }
+                    });
+                    picasso = builder.build();
+                }
+
+                picasso.load(appInfo.iconUrl)
                         .into(holder.binding.imageView);
             } else {
                 switch (appInfo.type) {
                     case AppInfo.TYPE_APP:
-                        holder.binding.imageView.setImageDrawable(context.getPackageManager().getApplicationIcon(appInfo.packageName));
+                        holder.binding.imageView.setImageDrawable(parentActivity.getPackageManager().getApplicationIcon(appInfo.packageName));
                         break;
                     case AppInfo.TYPE_WEB:
-                        holder.binding.imageView.setImageDrawable(context.getResources().getDrawable(R.drawable.weblink));
+                        holder.binding.imageView.setImageDrawable(parentActivity.getResources().getDrawable(R.drawable.weblink));
                         break;
                 }
             }
@@ -239,14 +243,14 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
     protected void chooseApp(AppInfo appInfo) {
         switch (appInfo.type) {
             case AppInfo.TYPE_APP:
-                Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(
+                Intent launchIntent = parentActivity.getPackageManager().getLaunchIntentForPackage(
                         appInfo.packageName);
                 if (launchIntent != null) {
                     // These magic flags are found in the source code of the default Android launcher
                     // These flags preserve the app activity stack (otherwise a launch activity appears at the top which is not correct)
                     launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
                             Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-                    context.startActivity(launchIntent);
+                    parentActivity.startActivity(launchIntent);
                 }
                 break;
             case AppInfo.TYPE_WEB:
@@ -260,9 +264,9 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
                         String path = uri.getPath();
                         File file = new File(path);
                         try {
-                            uri = FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", file);
+                            uri = FileProvider.getUriForFile(parentActivity, parentActivity.getApplicationContext().getPackageName() + ".provider", file);
                         } catch (/*IllegalArgument*/Exception e) {
-                            Toast.makeText(context, R.string.invalid_web_link, Toast.LENGTH_LONG).show();
+                            Toast.makeText(parentActivity, R.string.invalid_web_link, Toast.LENGTH_LONG).show();
                             break;
                         }
                         i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -278,11 +282,11 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
                     }
 
                     try {
-                        context.startActivity(i);
+                        parentActivity.startActivity(i);
                     } catch (ActivityNotFoundException e) {
-                        Toast.makeText(context, R.string.browser_not_found, Toast.LENGTH_LONG).show();
+                        Toast.makeText(parentActivity, R.string.browser_not_found, Toast.LENGTH_LONG).show();
                     } catch (Exception e) {
-                        Toast.makeText(context, R.string.invalid_web_link, Toast.LENGTH_LONG).show();
+                        Toast.makeText(parentActivity, R.string.invalid_web_link, Toast.LENGTH_LONG).show();
                     }
                 }
                 break;
@@ -374,7 +378,7 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
     }
 
     private void openAppSettings(AppInfo appInfo) {
-        context.startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        parentActivity.startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                 Uri.parse("package:" + appInfo.packageName)));
     }
 }

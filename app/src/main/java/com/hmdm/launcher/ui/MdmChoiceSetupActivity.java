@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.app.admin.DevicePolicyManager.EXTRA_PROVISIONING_MODE;
-import static android.app.admin.DevicePolicyManager.PROVISIONING_MODE_FULLY_MANAGED_DEVICE;
 
 public class MdmChoiceSetupActivity extends AppCompatActivity {
     private ActivityMdmChoiceBinding binding;
@@ -87,7 +86,7 @@ public class MdmChoiceSetupActivity extends AppCompatActivity {
 
     public void continueSetup(View view) {
         final Intent intent = new Intent();
-        intent.putExtra(EXTRA_PROVISIONING_MODE, PROVISIONING_MODE_FULLY_MANAGED_DEVICE);
+        intent.putExtra(EXTRA_PROVISIONING_MODE, DevicePolicyManager.PROVISIONING_MODE_FULLY_MANAGED_DEVICE);
         setResult(RESULT_OK, intent);
         finish();
     }

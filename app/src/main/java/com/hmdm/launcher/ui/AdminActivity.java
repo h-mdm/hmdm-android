@@ -154,6 +154,7 @@ public class AdminActivity extends BaseActivity {
     @Override
     protected void updateSettingsFromQr(String qrcode) {
         super.updateSettingsFromQr(qrcode);
+        dismissDialog(enterServerDialog);
         dismissDialog(enterDeviceIdDialog);
         binding.deviceId.setText(settingsHelper.getDeviceId());
     }
