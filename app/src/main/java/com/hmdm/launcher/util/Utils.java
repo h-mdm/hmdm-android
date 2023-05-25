@@ -73,6 +73,11 @@ public class Utils {
         return dpm != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && dpm.isDeviceOwnerApp(context.getPackageName());
     }
 
+    // In the open source variant, there are no flavors, so by default it's "opensource"
+    public static String getLauncherVariant() {
+        return BuildConfig.FLAVOR == null || BuildConfig.FLAVOR.equals("") ? "opensource" : BuildConfig.FLAVOR;
+    }
+
     // Automatically get dangerous permissions
     // Notice: default (null) app permission strategy is "Grant all"
     @TargetApi(Build.VERSION_CODES.M)

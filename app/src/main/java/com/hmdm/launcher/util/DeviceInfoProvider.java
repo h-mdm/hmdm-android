@@ -35,7 +35,6 @@ import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.db.DatabaseHelper;
 import com.hmdm.launcher.db.RemoteFileTable;
@@ -166,7 +165,7 @@ public class DeviceInfoProvider {
         deviceInfo.setLocation(getLocation(context));
         deviceInfo.setMdmMode(Utils.isDeviceOwner(context));
         deviceInfo.setKioskMode(ProUtils.isKioskModeRunning(context));
-        deviceInfo.setLauncherType(BuildConfig.FLAVOR);
+        deviceInfo.setLauncherType(Utils.getLauncherVariant());
         deviceInfo.setCpu(Build.CPU_ABI);
         deviceInfo.setSerial(getSerialNumber());
 

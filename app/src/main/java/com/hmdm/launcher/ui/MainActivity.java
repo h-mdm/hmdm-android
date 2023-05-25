@@ -369,7 +369,7 @@ public class MainActivity
         Utils.lockSafeBoot(this);
         Utils.initPasswordReset(this);
 
-        RemoteLogger.log(this, Const.LOG_INFO, "MDM Launcher " + BuildConfig.VERSION_NAME + "-" + BuildConfig.FLAVOR + " started");
+        RemoteLogger.log(this, Const.LOG_INFO, "MDM Launcher " + BuildConfig.VERSION_NAME + "-" + Utils.getLauncherVariant() + " started");
 
         InstallUtils.clearTempFiles(this);
 

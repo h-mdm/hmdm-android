@@ -171,7 +171,7 @@ public class InstallUtils {
         if (!application.getPkg().equals(context.getPackageName())) {
             return false;
         }
-        return BuildConfig.FLAVOR.equals("opensource") && application.getUrl().endsWith("master.apk");
+        return Utils.getLauncherVariant().equals("opensource") && application.getUrl().endsWith("master.apk");
     }
 
     private static boolean areVersionsEqual(String v1, String v2) {
