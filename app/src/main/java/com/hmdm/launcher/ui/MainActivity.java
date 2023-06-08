@@ -1265,17 +1265,18 @@ public class MainActivity
     }
 
     @Override
-    public void onConfigUpdateServerError() {
+    public void onConfigUpdateServerError(String errorText) {
         if ( enterDeviceIdDialog != null ) {
             enterDeviceIdDialogBinding.setError( true );
             enterDeviceIdDialog.show();
         } else {
+            networkErrorDetails = errorText;
             createAndShowEnterDeviceIdDialog( true, settingsHelper.getDeviceId() );
         }
     }
 
     @Override
-    public void onConfigUpdateNetworkError() {
+    public void onConfigUpdateNetworkError(String errorText) {
         if (ProUtils.isKioskModeRunning(this) && settingsHelper.getConfig() != null &&
                 !getPackageName().equals(settingsHelper.getConfig().getMainApp())) {
             interruptResumeFlow = true;
@@ -1285,7 +1286,7 @@ public class MainActivity
         }
         // Do not show the reset button if the launcher is installed by scanning a QR code
         // Only show the reset button on manual setup at first start (when config is not yet loaded)
-        createAndShowNetworkErrorDialog(settingsHelper.getBaseUrl(), settingsHelper.getServerProject(),
+        createAndShowNetworkErrorDialog(settingsHelper.getBaseUrl(), settingsHelper.getServerProject(), errorText,
                 settingsHelper.getConfig() == null && !settingsHelper.isQrProvisioning(),
                 settingsHelper.getConfig() == null || (settingsHelper.getConfig() != null && settingsHelper.getConfig().isShowWifi()));
     }
@@ -2170,6 +2171,10 @@ public class MainActivity
             configFault = true;
             updateConfig( false );
         }
+    }
+
+    public void networkErrorDetailsClicked(View view) {
+        ErrorDetailsActivity.display(this, networkErrorDetails, false);
     }
 
     private boolean checkPermissions( boolean startSettings ) {

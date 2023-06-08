@@ -69,15 +69,15 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
     }
 
     @Override
-    public void onConfigUpdateServerError() {
+    public void onConfigUpdateServerError(String errorText) {
         Log.d(Const.LOG_TAG, "Initial setup activity: onConfigUpdateServerError");
-        displayError(getString(R.string.dialog_server_error_title, concatenateServerUrl(settingsHelper.getBaseUrl(), settingsHelper.getServerProject())));
+        displayError(getString(R.string.dialog_server_error_title, concatenateServerUrl(settingsHelper.getBaseUrl(), settingsHelper.getServerProject())), errorText);
     }
 
     @Override
-    public void onConfigUpdateNetworkError() {
+    public void onConfigUpdateNetworkError(String errorText) {
         Log.d(Const.LOG_TAG, "Initial setup activity: onConfigUpdateNetworkError");
-        displayError(getString(R.string.dialog_network_error_title, concatenateServerUrl(settingsHelper.getBaseUrl(), settingsHelper.getServerProject())));
+        displayError(getString(R.string.dialog_network_error_title, concatenateServerUrl(settingsHelper.getBaseUrl(), settingsHelper.getServerProject())), errorText);
     }
 
     @Override
@@ -140,11 +140,11 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
         finish();
     }
 
-    private void displayError(String message) {
+    private void displayError(String message, String detailsText) {
         try {
             new AlertDialog.Builder(this)
                     .setMessage(message)
-                    .setNeutralButton(R.string.main_activity_reset, (dialogInterface, i) -> abort())
+                    .setNeutralButton(R.string.main_activity_details, (dialogInterface, i) -> details(detailsText))
                     .setNegativeButton(R.string.main_activity_wifi, (dialogInterface, i) -> openWiFiSettings())
                     .setPositiveButton(R.string.main_activity_repeat, (dialogInterface, i) -> updateConfig())
                     .create()
@@ -155,6 +155,11 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
             // Shouldn't we reset the device here to avoid hanging up?
             e.printStackTrace();
         }
+    }
+
+    private void details(String detailsText) {
+        configuring = false;
+        ErrorDetailsActivity.display(this, detailsText, true);
     }
 
     private void openWiFiSettings() {

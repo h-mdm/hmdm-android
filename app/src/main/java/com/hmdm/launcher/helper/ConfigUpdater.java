@@ -57,8 +57,8 @@ public class ConfigUpdater {
 
     public static interface UINotifier {
         void onConfigUpdateStart();
-        void onConfigUpdateServerError();
-        void onConfigUpdateNetworkError();
+        void onConfigUpdateServerError(String errorText);
+        void onConfigUpdateNetworkError(String errorText);
         void onConfigLoaded();
         void onPoliciesUpdated();
         void onFileDownloading(final RemoteFile remoteFile);
@@ -152,7 +152,7 @@ public class ConfigUpdater {
                     case Const.TASK_ERROR:
                         RemoteLogger.log(context, Const.LOG_WARN, "Failed to update config: server error");
                         if (uiNotifier != null) {
-                            uiNotifier.onConfigUpdateServerError();
+                            uiNotifier.onConfigUpdateServerError(getErrorText());
                         }
                         break;
                     case Const.TASK_NETWORK_ERROR:
@@ -172,13 +172,13 @@ public class ConfigUpdater {
                                     // Show network error dialog with Wi-Fi settings
                                     // if it is required by the web panel
                                     // so the user can set up WiFi even in kiosk mode
-                                    uiNotifier.onConfigUpdateNetworkError();
+                                    uiNotifier.onConfigUpdateNetworkError(getErrorText());
                                 } else {
                                     updateRemoteLogConfig();
                                 }
                             } else {
                                 if (uiNotifier != null) {
-                                    uiNotifier.onConfigUpdateNetworkError();
+                                    uiNotifier.onConfigUpdateNetworkError(getErrorText());
                                 }
                             }
                         }

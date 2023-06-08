@@ -37,8 +37,18 @@
             android:layout_width="@dimen/dialog_enter_device_id_width"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
-            android:text="@string/dialog_network_error_title"
-            android:layout_marginBottom="@dimen/activity_vertical_margin"/>
+            android:text="@string/dialog_network_error_title"/>
+
+        <TextView
+            android:id="@+id/details"
+            android:layout_width="@dimen/dialog_enter_device_id_width"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:text="@string/main_activity_details"
+            android:textColor="@color/colorAccent"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:onClick="networkErrorDetailsClicked"
+            />
 
         <LinearLayout
             android:layout_width="match_parent"

@@ -113,6 +113,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.ErrorDetailsActivity"
+            android:theme="@style/SetupWizardTheme" />
+
         <receiver
             android:name="com.hmdm.launcher.AdminReceiver"
             android:label="@string/white_app_name"

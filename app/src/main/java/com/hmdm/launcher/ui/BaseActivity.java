@@ -72,6 +72,7 @@ public class BaseActivity extends AppCompatActivity {
 
     protected Dialog networkErrorDialog;
     protected DialogNetworkErrorBinding dialogNetworkErrorBinding;
+    protected String networkErrorDetails;
 
     protected Dialog deviceInfoDialog;
     protected DialogDeviceInfoBinding dialogDeviceInfoBinding;
@@ -145,6 +146,10 @@ public class BaseActivity extends AppCompatActivity {
         IntentIntegrator integrator = new IntentIntegrator(this);
         integrator.setOrientationLocked(false);
         integrator.initiateScan();
+    }
+
+    public void showErrorDetails(View view) {
+        ErrorDetailsActivity.display(this, networkErrorDetails, false);
     }
 
     @Override
@@ -252,6 +257,7 @@ public class BaseActivity extends AppCompatActivity {
 
     protected void createAndShowNetworkErrorDialog(String serverName,
                                                    String serverPath,
+                                                   String errorDetails,
                                                    boolean showResetButton,
                                                    boolean showWifiButton) {
         dismissDialog(networkErrorDialog);
@@ -263,6 +269,7 @@ public class BaseActivity extends AppCompatActivity {
                 false );
         networkErrorDialog.setCancelable( false );
         networkErrorDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
+        networkErrorDetails = errorDetails;
 
         String serverUrl = serverName;
         if (serverPath != null && serverPath.length() > 0) {

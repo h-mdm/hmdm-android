@@ -50,9 +50,17 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
     private ServerService serverService;
     private ServerService secondaryServerService;
 
+    private String serverHost;
+    private String urlTemplate = "{project}/rest/public/sync/configuration/{number}";
+    private String errorText;
+
     public GetServerConfigTask( Context context ) {
         this.context = context;
         this.settingsHelper = SettingsHelper.getInstance( context );
+    }
+
+    public String getErrorText() {
+        return errorText;
     }
 
     @Override
@@ -76,6 +84,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
             serverService = ServerServiceKeeper.getServerServiceInstance(context);
             secondaryServerService = ServerServiceKeeper.getSecondaryServerServiceInstance(context);
         } catch (Exception e) {
+            errorText = "Exception: " + e.getMessage();
             return Const.TASK_NETWORK_ERROR;
         }
 
@@ -135,6 +144,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
             }
         } catch ( Exception e ) {
             e.printStackTrace();
+            buildNetworkErrorText(e.getMessage());
         }
 
         return Const.TASK_NETWORK_ERROR;
@@ -143,6 +153,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
     private ServerConfig getServerConfigPlain(String deviceId, String signature) throws Exception {
         Response<ServerConfigResponse> response = null;
         try {
+            serverHost = settingsHelper.getBaseUrl();
             response = serverService.getServerConfig(settingsHelper.getServerProject(),
                     deviceId, signature, Build.CPU_ABI).execute();
         } catch (Exception e) {
@@ -150,6 +161,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         }
 
         if (response == null) {
+            serverHost = settingsHelper.getSecondaryBaseUrl();
             response = secondaryServerService.getServerConfig(settingsHelper.getServerProject(),
                     deviceId, signature, Build.CPU_ABI).execute();
         }
@@ -157,6 +169,8 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         if (response.isSuccessful() && Const.STATUS_OK.equals(response.body().getStatus()) && response.body().getData() != null) {
             SettingsHelper.getInstance(context).setExternalIp(response.headers().get(Const.HEADER_IP_ADDRESS));
             return response.body().getData();
+        } else {
+            buildTaskErrorText(response);
         }
         return null;
     }
@@ -167,6 +181,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         Response<ResponseBody> response = null;
 
         try {
+            serverHost = settingsHelper.getBaseUrl();
             response = serverService.getRawServerConfig(settingsHelper.getServerProject(),
                     deviceId, signature, Build.CPU_ABI).execute();
         } catch (Exception e) {
@@ -174,6 +189,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         }
 
         if (response == null) {
+            serverHost = settingsHelper.getSecondaryBaseUrl();
             response = secondaryServerService.getRawServerConfig(settingsHelper.getServerProject(),
                     deviceId, signature, Build.CPU_ABI).execute();
         }
@@ -184,7 +200,8 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
             // Check response signature
             String serverSignature = response.headers().get(Const.HEADER_RESPONSE_SIGNATURE);
             if (serverSignature == null) {
-                Log.e(Const.LOG_TAG, "Missing " + Const.HEADER_RESPONSE_SIGNATURE + " flag, dropping response");
+                errorText = "Missing " + Const.HEADER_RESPONSE_SIGNATURE + " flag, dropping response";
+                Log.e(Const.LOG_TAG, errorText);
                 return null;
             }
 
@@ -199,10 +216,13 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
             String serverData = serverResponse.substring(pos + dataMarker.length(), serverResponse.length() - 1);
             String calculatedSignature = CryptoHelper.getSHA1String(BuildConfig.REQUEST_SIGNATURE + serverData.replaceAll("\\s", ""));
             if (!calculatedSignature.equalsIgnoreCase(serverSignature)) {
-                Log.e(Const.LOG_TAG, "Server signature " + serverSignature + " doesn't match calculated signature " + calculatedSignature + ", dropping response");
+                errorText = "Server signature " + serverSignature + " doesn't match calculated signature " + calculatedSignature + ", dropping response";
+                Log.e(Const.LOG_TAG, errorText);
                 return null;
             }
             return new ObjectMapper().readValue(serverData, ServerConfig.class);
+        } else {
+            buildTaskErrorText(response);
         }
         return null;
     }
@@ -212,6 +232,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
                                                        String signature) throws Exception {
         Response<ServerConfigResponse> response = null;
         try {
+            serverHost = settingsHelper.getBaseUrl();
             response = serverService.createAndGetServerConfig(settingsHelper.getServerProject(),
                     deviceId, signature, Build.CPU_ABI, createOptions).execute();
         } catch (Exception e) {
@@ -219,6 +240,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         }
 
         if (response == null) {
+            serverHost = settingsHelper.getSecondaryBaseUrl();
             response = secondaryServerService.createAndGetServerConfig(settingsHelper.getServerProject(),
                     deviceId, signature, Build.CPU_ABI, createOptions).execute();
         }
@@ -226,6 +248,8 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         if (response.isSuccessful() && Const.STATUS_OK.equals(response.body().getStatus()) && response.body().getData() != null) {
             SettingsHelper.getInstance(context).setExternalIp(response.headers().get(Const.HEADER_IP_ADDRESS));
             return response.body().getData();
+        } else {
+            buildTaskErrorText(response);
         }
         return null;
     }
@@ -239,6 +263,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         Response<ResponseBody> response = null;
 
         try {
+            serverHost = settingsHelper.getBaseUrl();
             response = serverService.
                     createAndGetRawServerConfig(settingsHelper.getServerProject(),
                             deviceId, signature, Build.CPU_ABI, createOptions).execute();
@@ -247,6 +272,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         }
 
         if (response == null) {
+            serverHost = settingsHelper.getSecondaryBaseUrl();
             response = secondaryServerService.
                     createAndGetRawServerConfig(settingsHelper.getServerProject(),
                             deviceId, signature, Build.CPU_ABI, createOptions).execute();
@@ -277,6 +303,41 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
                 return null;
             }
             return new ObjectMapper().readValue(serverData, ServerConfig.class);
+        } else {
+            buildTaskErrorText(response);
+        }
+        return null;
+    }
+
+    private void buildTaskErrorText(Response response) {
+        String message = "HTTP status: " + response.code();
+        if (response.isSuccessful()) {
+            Response<ServerConfigResponse> serverConfigResponse = (Response<ServerConfigResponse>)response;
+            message += "\n" +
+                    "JSON status: " + serverConfigResponse.body().getStatus() + "\n" +
+                    "JSON message: " + serverConfigResponse.body().getMessage();
+        }
+        buildNetworkErrorText(message);
+    }
+
+    private void buildNetworkErrorText(String message) {
+        String url = serverHost + urlTemplate
+                .replace("{project}", settingsHelper.getServerProject())
+                .replace("{number}", settingsHelper.getDeviceId());
+
+        errorText = url + "\n\n" +
+                message;
+
+        String tag = queryTag(message);
+        if (tag != null) {
+            errorText += "\n\nError tag: " +
+                    tag;
+        }
+    }
+
+    private String queryTag(String message) {
+        if (message.contains("Trust anchor")) {
+            return "trust_anchor";
         }
         return null;
     }

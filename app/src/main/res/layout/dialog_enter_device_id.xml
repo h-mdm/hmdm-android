@@ -47,6 +47,16 @@
             android:text="@string/dialog_enter_device_id_error"/>
 
         <TextView
+            android:id="@+id/deviceIdErrorDetails"
+            android:layout_width="@dimen/dialog_enter_device_id_width"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:textColor="@color/colorAccent"
+            bind:boolToVisible="@{error}"
+            android:text="@string/main_activity_details"
+            android:onClick="showErrorDetails"/>
+
+        <TextView
             android:id="@+id/deviceIdPrompt"
             android:layout_width="@dimen/dialog_enter_device_id_width"
             android:gravity="center_horizontal"
