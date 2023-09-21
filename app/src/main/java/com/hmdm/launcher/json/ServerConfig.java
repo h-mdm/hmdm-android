@@ -100,6 +100,7 @@ public class ServerConfig {
     private boolean kioskExit;
     private boolean disableScreenshots;
     private boolean autostartForeground;
+    private boolean mobileRequireAdditionalPermissions;
 
     private boolean showWifi;
 
@@ -582,6 +583,14 @@ public class ServerConfig {
 
     public void setPermissive(boolean permissive) {
         this.permissive = permissive;
+    }
+
+    public boolean isMobileRequireAdditionalPermissions() {
+        return mobileRequireAdditionalPermissions;
+    }
+
+    public void setMobileRequireAdditionalPermissions(boolean mobileRequireAdditionalPermissions) {
+        this.mobileRequireAdditionalPermissions = mobileRequireAdditionalPermissions;
     }
 
     public boolean isKioskExit() {
