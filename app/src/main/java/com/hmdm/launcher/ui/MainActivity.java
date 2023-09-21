@@ -785,7 +785,7 @@ public class MainActivity
         }
 
         int overlayMode = preferences.getInt( Const.PREFERENCES_OVERLAY, - 1 );
-        if (ProUtils.isPro() && overlayMode == -1 && needRequestOverlay()) {
+        if (overlayMode == -1 && needRequestOverlay()) {
             if ( checkAlarmWindow() ) {
                 preferences.
                         edit().
@@ -797,7 +797,7 @@ public class MainActivity
         }
 
         int usageStatisticsMode = preferences.getInt( Const.PREFERENCES_USAGE_STATISTICS, - 1 );
-        if (ProUtils.isPro() && usageStatisticsMode == -1 && needRequestUsageStats()) {
+        if (usageStatisticsMode == -1 && needRequestUsageStats()) {
             if ( checkUsageStatistics() ) {
                 preferences.
                         edit().
@@ -817,7 +817,7 @@ public class MainActivity
         int accessibilityService = preferences.getInt( Const.PREFERENCES_ACCESSIBILITY_SERVICE, - 1 );
         // Check the same condition as for usage stats here
         // because accessibility is used as a secondary condition when usage stats is not available
-        if (ProUtils.isPro() && accessibilityService == -1 && needRequestUsageStats()) {
+        if (accessibilityService == -1 && needRequestUsageStats()) {
             if ( checkAccessibilityService() ) {
                 preferences.
                         edit().
@@ -1047,7 +1047,7 @@ public class MainActivity
     }
 
     private boolean checkAlarmWindow() {
-        if (ProUtils.isPro() && !Utils.canDrawOverlays(this)) {
+        if (!Utils.canDrawOverlays(this)) {
             createAndShowOverlaySettingsDialog();
             return false;
         } else {
