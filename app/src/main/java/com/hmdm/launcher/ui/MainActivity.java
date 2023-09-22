@@ -719,6 +719,9 @@ public class MainActivity
     private void checkAndStartLauncher() {
 
         boolean deviceOwner = Utils.isDeviceOwner(this);
+
+        ServerConfig config = settingsHelper.getConfig();
+
         preferences.edit().putInt(Const.PREFERENCES_DEVICE_OWNER, deviceOwner ?
             Const.PREFERENCES_ON : Const.PREFERENCES_OFF).commit();
 
