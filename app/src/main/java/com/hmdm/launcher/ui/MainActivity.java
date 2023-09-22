@@ -785,7 +785,7 @@ public class MainActivity
         }
 
         int overlayMode = preferences.getInt( Const.PREFERENCES_OVERLAY, - 1 );
-        if ((ProUtils.isPro() && config.isMobileRequireAdditionalPermissions()) && overlayMode == -1 && needRequestOverlay()) {
+        if (ProUtils.isPro() && !config.getSkipUserInteractivePermissions() && overlayMode == -1 && needRequestOverlay()) {
             if ( checkAlarmWindow() ) {
                 preferences.
                         edit().
@@ -797,7 +797,7 @@ public class MainActivity
         }
 
         int usageStatisticsMode = preferences.getInt( Const.PREFERENCES_USAGE_STATISTICS, - 1 );
-        if ((ProUtils.isPro() && config.isMobileRequireAdditionalPermissions()) && usageStatisticsMode == -1 && needRequestUsageStats()) {
+        if (ProUtils.isPro() && !config.getSkipUserInteractivePermissions() && usageStatisticsMode == -1 && needRequestUsageStats()) {
             if ( checkUsageStatistics() ) {
                 preferences.
                         edit().
@@ -817,7 +817,7 @@ public class MainActivity
         int accessibilityService = preferences.getInt( Const.PREFERENCES_ACCESSIBILITY_SERVICE, - 1 );
         // Check the same condition as for usage stats here
         // because accessibility is used as a secondary condition when usage stats is not available
-        if ((ProUtils.isPro() && config.isMobileRequireAdditionalPermissions()) && accessibilityService == -1 && needRequestUsageStats()) {
+        if (ProUtils.isPro() && !config.getSkipUserInteractivePermissions() && accessibilityService == -1 && needRequestUsageStats()) {
             if ( checkAccessibilityService() ) {
                 preferences.
                         edit().
