@@ -102,7 +102,6 @@
     <string name="dialog_enter_server_error">Por favor digite uma URL válida do servidor.</string>
     <string name="dialog_enter_server_ok">OK</string>
     <string name="dialog_enter_server_title">Digite a URL do servidor</string>
-    <string name="dialog_enter_server_hint" translatable="false">http://hmdm.example.com:8080/hmdm/</string>
     <string name="critical_server_failure">Ocorreu um problema no servidor! Por favor corrija o erro e reinicie %s, ou remova completamente e reinstale.</string>
     <string name="dialog_permission_title">O Aplicativo requer permissões para iniciar. Por favor garanta as permissões necessárias.</string>
     <string name="main_activity_exit">Sair</string>

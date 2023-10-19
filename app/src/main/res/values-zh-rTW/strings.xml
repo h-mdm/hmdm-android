@@ -102,7 +102,6 @@
 	<string name="dialog_enter_server_error">請輸入有效的服務器URL。</string>
 	<string name="dialog_enter_server_ok">OK</string>
 	<string name="dialog_enter_server_title">請輸入服務器網址</string>
-	<string name="dialog_enter_server_hint" translatable="false">http://hmdm.example.com:8080/hmdm/</string>
 	<string name="critical_server_failure">由於服務器故障而退出！請解決此問題，然後重新啟動%s，或將其完全刪除並重新安裝。</string>
 	<string name="dialog_permission_title">該應用需要權限才能運行。請授予請求的權限。</string>
 	<string name="main_activity_exit">退出</string>

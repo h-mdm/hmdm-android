@@ -18,10 +18,7 @@
   -->
 
 <resources>
-    <string name="white_app_name" translatable="false">MDMエージェント</string>
-    <string name="app_name" translatable="false">Headwind MDM</string>
     <string name="admin_title">管理者</string>
-    <string name="vendor" translatable="false">h-mdm.com</string>
     <string name="install_error">インストールエラー</string>
     <string name="dialog_enter_device_id_error">このIDは %s に登録されていません。コントロールパネルの\"端末\" タブからIDを取得して下さい。</string>
     <string name="dialog_enter_device_id_qrcode">QRコード</string>
@@ -105,7 +102,6 @@
     <string name="dialog_enter_server_error">有効なサーバーURLを入力してください。</string>
     <string name="dialog_enter_server_ok">OK</string>
     <string name="dialog_enter_server_title">サーバーのURLを入力してください</string>
-    <string name="dialog_enter_server_hint" translatable="false">http://hmdm.example.com:8080/hmdm/</string>
     <string name="critical_server_failure">サーバー障害のため終了します。障害修復後に %s を再起動するか、完全に削除して再インストールしてください。</string>
     <string name="dialog_permission_title">アプリを実行するには権限が必要です。必要な権限を付与してください。</string>
     <string name="main_activity_exit">終了</string>
@@ -126,12 +122,4 @@
     <string name="work_profile_message">このデバイスは、組織に属する管理対象の仕事用プロファイルを取得します。 仕事用プロファイルはプライベート プロファイルから分離されており、いつでもプロファイルを切り替えることができます。</string>
     <string name="overlays_not_supported">お使いのデバイスではオーバーレイがサポートされていません.</string>
     <string name="admin_not_supported">お使いのデバイスにはデバイス管理者オプションがありません。続けるには [スキップ] をクリックして下さい。</string>
-
-    <string-array name="certificates" translatable="false">
-        <!-- If you want to install custom SSL certificates, place them in assets folder
-             in the PEM format and list the file names here in the <item> tag. -->
-        <!--
-        <item>custom_ca.cer</item>
-        -->
-    </string-array>
 </resources>

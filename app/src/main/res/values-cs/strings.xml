@@ -107,6 +107,7 @@
     <string name="main_activity_exit">Ukončit</string>
     <string name="browser_not_found">Webová stránka nelze otevřít, protože nebyl nalezen prohlížeč. Prosím přidejte aplikaci prohlížeče do konfigurace zařízení.</string>
     <string name="invalid_web_link">Webový odkaz nelze otevřít, protože má špatný formát. Prosím kontaktujte vašeho administrátora.</string>
+    <string name="activity_not_found">Nelze provést akci %s, protože aktivita nebyla nalezena.</string>
     <string name="location_service_text">Poloha zařízení je sledována</string>
     <string name="qrcode_contents_error">Neplatný obsah QR kódu. Prosím vygenerujte QR kód znovu ve webové administraci %s.</string>
     <string name="device_locked">Toto zařízení (%s) bylo zamknuto administrátorem.</string>

@@ -102,7 +102,6 @@
 	<string name="dialog_enter_server_error">请输入有效的服务器URL。</string>
 	<string name="dialog_enter_server_ok">OK</string>
 	<string name="dialog_enter_server_title">请输入服务器网址</string>
-	<string name="dialog_enter_server_hint" translatable="false">http://hmdm.example.com:8080/hmdm/</string>
 	<string name="critical_server_failure">由於服务器故障而退出！请解决此问题，然後重新启动%s，或将其完全删除并重新安装。</string>
 	<string name="dialog_permission_title">该应用需要权限才能运行。请授予请求的权限。</string>
 	<string name="main_activity_exit">退出</string>
