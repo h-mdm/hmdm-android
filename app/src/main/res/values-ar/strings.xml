@@ -102,6 +102,7 @@
     <string name="main_activity_exit">خروج</string>
     <string name="browser_not_found">لا يمكن فتح صفحة الويب لأن المستعرض غير موجود. الرجاء إضافة تطبيق متصفح إلى اعدادات الجهاز.</string>
     <string name="invalid_web_link">لا يمكن فتح رابط الويب لأنه غير منسق بشكل جيد. يرجى الاتصال بالمسؤول للحصول على التفاصيل.</string>
+    <string name="activity_not_found">لا يمكن تنفيذ الإجراء %s لأنه لم يتم العثور على النشاط.</string>
     <string name="location_service_text">يتم مراقبة موقع الجهاز</string>
     <string name="qrcode_contents_error">محتويات رمز QR غير صالحة. يرجى إنشاء رمز الاستجابة السريعة التوفير في لوحة الويب %s.</string>
     <string name="main_file_downloading">تحميل الملف</string>

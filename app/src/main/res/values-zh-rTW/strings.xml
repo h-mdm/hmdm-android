@@ -108,6 +108,7 @@
 	<string name="main_activity_exit">退出</string>
 	<string name="browser_not_found">由於找不到瀏覽器，因此無法打開網頁。請在設備配置中添加瀏覽器應用。</string>
 	<string name="invalid_web_link">無法打開 Web 鏈接，因為它的格式不正確。 有關詳細信息，請聯繫您的管理員。</string>
+	<string name="activity_not_found">無法執行操作 %s，因為未找到該活動。</string>
 	<string name="location_service_text">設備位置受到監控</string>
 	<string name="qrcode_contents_error">無效的QR碼內容。請在%s Web面板中生成預配置QR碼。</string>
 	<string name="device_locked">此設備 (%s) 已被管理員鎖定。</string>

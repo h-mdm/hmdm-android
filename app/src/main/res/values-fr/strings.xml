@@ -107,6 +107,7 @@
     <string name="main_activity_exit">Sortie</string>
     <string name="browser_not_found">Impossible d\'ouvrir la page Web car le navigateur est introuvable. Veuillez ajouter une app de navigateur à la configuration de l\'appareil.</string>
     <string name="invalid_web_link">Impossible d\'ouvrir le lien Web car il n\'est pas bien formé. Veuillez contacter votre administrateur pour plus de détails.</string>
+    <string name="activity_not_found">Impossible d\'effectuer l\'action %s car l\'activité est introuvable.</string>
     <string name="location_service_text">La localisation de l\'appareil est surveillée</string>
     <string name="qrcode_contents_error">Contenu du code QR non valide. Veuillez générer le code QR de provisionnement dans le panneau Web %s.</string>
     <string name="device_locked">Cet appareil (%s) a été verrouillé par l\'administrateur.</string>

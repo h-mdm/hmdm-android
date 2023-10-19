@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.provider.DocumentsContract;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -162,7 +163,12 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
                         holder.binding.imageView.setImageDrawable(parentActivity.getPackageManager().getApplicationIcon(appInfo.packageName));
                         break;
                     case AppInfo.TYPE_WEB:
-                        holder.binding.imageView.setImageDrawable(parentActivity.getResources().getDrawable(R.drawable.weblink));
+                        holder.binding.imageView.setImageDrawable(
+                                parentActivity.getResources().getDrawable(getDrawableResourceForWebApp(appInfo)));
+                        break;
+                    case AppInfo.TYPE_INTENT:
+                        holder.binding.imageView.setImageDrawable(
+                                parentActivity.getResources().getDrawable(getDrawableResourceForIntent(appInfo)));
                         break;
                 }
             }
@@ -174,6 +180,26 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
             // DeadObjectException (when a device is being turned off)
             e.printStackTrace();
             holder.binding.imageView.setImageResource(R.drawable.ic_android_white_50dp);
+        }
+    }
+
+    public int getDrawableResourceForWebApp(AppInfo appInfo) {
+        if (appInfo.url.startsWith("file://")) {
+            if (appInfo.url.endsWith("/")) {
+                return R.drawable.localfolder;
+            } else {
+                return R.drawable.locallink;
+            }
+        } else {
+            return R.drawable.weblink;
+        }
+    }
+
+    public int getDrawableResourceForIntent(AppInfo appInfo) {
+        if (appInfo.intent != null && appInfo.intent.equals("android.intent.action.DIAL")) {
+            return R.drawable.dialer;
+        } else {
+            return R.drawable.settings;
         }
     }
 
@@ -258,6 +284,7 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
                     Intent i = new Intent(Intent.ACTION_VIEW);
 
                     Uri uri = Uri.parse(appInfo.url);
+                    String mimeType = null;
 
                     if (uri.getScheme().equals("file")) {
                         // Avoid FileUriExposedException
@@ -269,12 +296,20 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
                             Toast.makeText(parentActivity, R.string.invalid_web_link, Toast.LENGTH_LONG).show();
                             break;
                         }
+                        if (appInfo.url.endsWith("/")) {
+                            // This is the directory, we need to specify the MIME type explicitly
+                            mimeType = DocumentsContract.Document.MIME_TYPE_DIR;
+                        }
                         i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     }
 
                     Log.d(Const.LOG_TAG, "BaseAppListAdapter: opening web app: " + uri.toString());
-                    i.setData(uri);
-                    i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    if (mimeType != null) {
+                        i.setDataAndType(uri, mimeType);
+                    } else {
+                        i.setData(uri);
+                    }
+                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
                     if (appInfo.useKiosk != 0) {
                         Log.d(Const.LOG_TAG, "Component: " + Const.KIOSK_BROWSER_PACKAGE_NAME + ".MainActivity");
@@ -290,6 +325,17 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
                     }
                 }
                 break;
+            case AppInfo.TYPE_INTENT:
+                if (appInfo.intent != null) {
+                    try {
+                        Intent i = new Intent(appInfo.intent);
+                        parentActivity.startActivity(i);
+                    } catch (Exception e) {
+                        Toast.makeText(parentActivity, parentActivity.getString(R.string.activity_not_found, appInfo.intent), Toast.LENGTH_LONG).show();
+                    }
+                }
+                break;
+
         }
         if (appChooseListener != null) {
             appChooseListener.onAppChoose(appInfo);

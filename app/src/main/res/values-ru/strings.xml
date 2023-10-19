@@ -107,6 +107,7 @@
     <string name="main_activity_exit">Выход</string>
     <string name="browser_not_found">Невозможно открыть веб-страницу: браузер не найден. Пожалуйста, добавьте приложение-браузер в конфигурацию устройства.</string>
     <string name="invalid_web_link">Не удается открыть веб-ссылку, поскольку она имеет неправильный формат. Пожалуйста, свяжитесь с вашим администратором для получения подробной информации.</string>
+    <string name="activity_not_found">Невозможно выполнить действие %s, поскольку activity не найдена.</string>
     <string name="location_service_text">Местоположение устройства передается на сервер</string>
     <string name="qrcode_contents_error">Неверное содержимое QR кода. Пожалуйста, сформируйте QR код на сервере %s.</string>
     <string name="device_locked">Это устройство (%s) заблокировано администратором.</string>

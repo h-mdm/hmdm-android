@@ -104,6 +104,7 @@
     <string name="main_activity_exit">Wyjdź</string>
     <string name="browser_not_found">Nie można otworzyć strony internetowej, ponieważ nie znaleziono przeglądarki. Dodaj aplikację przeglądarki do konfiguracji urządzenia.</string>
     <string name="invalid_web_link">Nie można otworzyć wskazanego linku, ponieważ jest nieprawidłowy. Aby uzyskać szczegółowe informacje, skontaktuj się z administratorem.</string>
+    <string name="activity_not_found">Nie można wykonać akcji %s, ponieważ nie znaleziono działania.</string>
     <string name="location_service_text">Lokalizacja tego urządzenia jest monitorowana</string>
     <string name="qrcode_contents_error">Kod QR ma nieprawidłową zawartość. Wygeneruj kod QR w panelu administratora na %s.</string>
     <string name="device_locked">To urządzenie (%s) zostało zablokowane przez administratora.</string>

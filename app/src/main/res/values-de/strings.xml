@@ -108,6 +108,7 @@
     <string name="main_activity_exit">Beenden Sie</string>
     <string name="browser_not_found">Die Webseite kann nicht geöffnet werden, da der Browser nicht gefunden wird. Bitte fügen Sie der Gerätekonfiguration eine Browser-App hinzu.</string>
     <string name="invalid_web_link">Der Weblink kann nicht geöffnet werden, da er nicht wohlgeformt ist. Wenden Sie sich für Einzelheiten bitte an Ihren Administrator.</string>
+    <string name="activity_not_found">Die Aktion %s kann nicht ausgeführt werden, da die Aktivität nicht gefunden wurde.</string>
     <string name="location_service_text">Der Gerätestandort wird überwacht</string>
     <string name="qrcode_contents_error">Ungültiger Inhalt des QR-Codes. Bitte generieren Sie den Bereitstellungs-QR-Code im Webpanel von %s.</string>
     <string name="device_locked">Dieses Gerät (%s) wurde vom Administrator gesperrt.</string>

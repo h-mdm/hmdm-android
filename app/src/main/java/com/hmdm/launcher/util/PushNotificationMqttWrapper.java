@@ -64,6 +64,7 @@ public class PushNotificationMqttWrapper {
 
     private MqttAndroidClient client;
     private Handler handler = new Handler(Looper.getMainLooper());
+    private Handler connectHangupMonitorHandler = new Handler(Looper.getMainLooper());
     private BroadcastReceiver debugReceiver;
     private Context context;
     private boolean needProcessConnectExtended;
@@ -157,15 +158,33 @@ public class PushNotificationMqttWrapper {
 
         try {
             needProcessConnectExtended = false;
+
+            // If connection hangs up, consider it as failure and continue the flow
+            connectHangupMonitorHandler.postDelayed(() -> {
+                RemoteLogger.log(context, Const.LOG_WARN, "MQTT connection timeout, disconnecting");
+                try {
+                    client.disconnect();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                scheduleReconnectionAfterFailure(context, host, port, pushType, keepaliveTime, deviceId);
+                if (onFailure != null) {
+                    handler.post(onFailure);
+                }
+            }, 30000);
+
             client.connect(connectOptions, null, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
+                    // We believe that if connect is successful, subscribe() won't hang up
+                    connectHangupMonitorHandler.removeCallbacksAndMessages(null);
                     subscribe(context, deviceId, onSuccess, onFailure);
                 }
 
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable e) {
                     e.printStackTrace();
+                    connectHangupMonitorHandler.removeCallbacksAndMessages(null);
                     RemoteLogger.log(context, Const.LOG_WARN, "MQTT connection failure");
                     scheduleReconnectionAfterFailure(context, host, port, pushType, keepaliveTime, deviceId);
                     // We fail here but Mqtt client tries to reconnect and we need to subscribe
@@ -178,6 +197,8 @@ public class PushNotificationMqttWrapper {
                     }
                 }
             });
+
+
         } catch (MqttException e) {
             e.printStackTrace();
             if (onFailure != null) {

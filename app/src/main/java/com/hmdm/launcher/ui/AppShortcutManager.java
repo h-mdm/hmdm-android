@@ -76,13 +76,14 @@ public class AppShortcutManager {
         // Then we display weblinks
         for (Map.Entry<String, Application> entry : requiredLinks.entrySet()) {
             AppInfo newInfo = new AppInfo();
-            newInfo.type = AppInfo.TYPE_WEB;
+            newInfo.type = entry.getValue().getType().equals(Application.TYPE_INTENT) ? AppInfo.TYPE_INTENT : AppInfo.TYPE_WEB;
             newInfo.keyCode = entry.getValue().getKeyCode();
             newInfo.name = entry.getValue().getIconText();
             newInfo.url = entry.getValue().getUrl();
             newInfo.iconUrl = entry.getValue().getIcon();
             newInfo.screenOrder = entry.getValue().getScreenOrder();
             newInfo.useKiosk = entry.getValue().isUseKiosk() ? 1 : 0;
+            newInfo.intent = entry.getValue().getIntent();
             appInfos.add(newInfo);
         }
 
@@ -102,6 +103,8 @@ public class AppShortcutManager {
                         requiredPackages.put(application.getPkg(), application);
                     } else if (application.getType().equals(Application.TYPE_WEB)) {
                         requiredLinks.put(application.getUrl(), application);
+                    } else if (application.getType().equals(Application.TYPE_INTENT)) {
+                        requiredLinks.put(application.getIntent(), application);
                     }
                 }
             }

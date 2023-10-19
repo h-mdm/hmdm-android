@@ -26,6 +26,7 @@ public class Application {
 
     public static final String TYPE_APP = "app";
     public static final String TYPE_WEB = "web";
+    public static final String TYPE_INTENT = "intent";
 
     private String type;
     private String name;
@@ -44,6 +45,7 @@ public class Application {
     private Integer keyCode;
     private boolean bottom;
     private boolean longTap;
+    private String intent;
 
     public Application() {}
 
@@ -181,5 +183,13 @@ public class Application {
 
     public void setLongTap(boolean longTap) {
         this.longTap = longTap;
+    }
+
+    public String getIntent() {
+        return intent;
+    }
+
+    public void setIntent(String intent) {
+        this.intent = intent;
     }
 }

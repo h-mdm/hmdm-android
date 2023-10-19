@@ -111,6 +111,7 @@
     <string name="main_activity_exit">終了</string>
     <string name="browser_not_found">ブラウザを見つけられないため、ウェブページを開くことができません。デバイス構成にブラウザーアプリを追加してください。</string>
     <string name="invalid_web_link">リンクの形式が正しくないため、開くことができません。詳細は、管理者にお問い合わせください。</string>
+    <string name="activity_not_found">アクティビティが見つからないため、アクション %s を実行できません。</string>
     <string name="location_service_text">デバイスの位置情報は監視されています</string>
     <string name="qrcode_contents_error">QRコードの内容が無効です。 %s WebパネルでプロビジョニングQRコードを生成してください。</string>
     <string name="device_locked">このデバイス (%s) は管理者によってロックされています.</string>

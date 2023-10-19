@@ -108,6 +108,7 @@
     <string name="main_activity_exit">Sair</string>
     <string name="browser_not_found">A página web não pode ser aberta porque um navegador não foi encontrado. Por favor adicione o navegador nas configurações do dispositivo.</string>
     <string name="invalid_web_link">Não é possível abrir o link da web porque não está bem formado. Entre em contato com seu administrador para obter detalhes.</string>
+    <string name="activity_not_found">Não é possível executar a ação %s porque a atividade não foi encontrada.</string>
     <string name="location_service_text">Localização do dispositivo está ativa</string>
     <string name="qrcode_contents_error">QR code com conteúdo inválido. Por favor gere o QR Code de provisionamento no painel administrativo %s.</string>
     <string name="device_locked">Este dispositivo (%s) está bloqueado pelo administrador.</string>

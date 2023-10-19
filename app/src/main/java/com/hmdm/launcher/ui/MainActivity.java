@@ -1561,7 +1561,7 @@ public class MainActivity
                     // If Headwind MDM itself is set as kiosk app, the kiosk mode is already turned on;
                     // So here we just proceed to drawing the content
                     (!kioskApp.equals(getPackageName()) || !ProUtils.isKioskModeRunning(this))) {
-                if (ProUtils.startCosuKioskMode(kioskApp, this, false)) {
+                if (ProUtils.getKioskAppIntent(kioskApp, this) != null && startKiosk(kioskApp)) {
                     getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                     return;
                 } else {
@@ -1683,6 +1683,27 @@ public class MainActivity
         binding.setShowContent(true);
         // We can now sleep, uh
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    // Added an option to delay restarting the kiosk app
+    // Because some apps need time to finish their work
+    private boolean startKiosk(String kioskApp) {
+        String kioskDelayStr = settingsHelper.getAppPreference(getPackageName(), "kiosk_restart_delay_ms");
+        int kioskDelay = 0;
+        try {
+            if (kioskDelayStr != null) {
+                kioskDelay = Integer.parseInt(kioskDelayStr);
+            }
+        } catch (/*NumberFormat*/Exception e) {
+        }
+        if (kioskDelay == 0) {
+            // Standard flow: no delay as earlier
+            return ProUtils.startCosuKioskMode(kioskApp, MainActivity.this, false);
+        } else {
+            // Delayed kiosk start
+            handler.postDelayed(() -> ProUtils.startCosuKioskMode(kioskApp, MainActivity.this, false), kioskDelay);
+            return true;
+        }
     }
 
     private void showLockScreen() {

@@ -25,6 +25,7 @@ import android.os.Parcelable;
 public class AppInfo implements Parcelable {
     public static final int TYPE_APP = 0;
     public static final int TYPE_WEB = 1;
+    public static final int TYPE_INTENT = 2;
 
     public int type;
     public Integer keyCode;
@@ -35,6 +36,7 @@ public class AppInfo implements Parcelable {
     public Integer screenOrder;
     public int useKiosk;
     public int longTap;
+    public String intent;
 
     public AppInfo(){}
 
@@ -48,6 +50,7 @@ public class AppInfo implements Parcelable {
         screenOrder = (Integer)in.readSerializable();
         useKiosk = in.readInt();
         longTap = in.readInt();
+        intent = in.readString();
     }
 
     @Override
@@ -61,6 +64,7 @@ public class AppInfo implements Parcelable {
         dest.writeSerializable(screenOrder);
         dest.writeInt(useKiosk);
         dest.writeInt(longTap);
+        dest.writeString(intent);
     }
 
     @Override

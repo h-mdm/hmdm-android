@@ -108,6 +108,7 @@
     <string name="main_activity_exit">Salir</string>
     <string name="browser_not_found">No se pudo abrir la pagina web porque no se encontro el explorador web. Por favor, añada un explorador web a la configuracion del dispositivo.</string>
     <string name="invalid_web_link">No se puede abrir el enlace web porque no está bien formado. Póngase en contacto con su administrador para obtener más información.</string>
+    <string name="activity_not_found">No se puede realizar la acción %s porque no se encuentra la actividad.</string>
     <string name="location_service_text">La localizacion del dispositivo esta siendo monitoreada</string>
     <string name="qrcode_contents_error">Codigo QR invalido. Por favor, genere un nuevo QR desde el panel de administrador de %s.</string>
     <string name="device_locked">Este dispositivo (%s) ha sido bloqueado por el administrador.</string>
