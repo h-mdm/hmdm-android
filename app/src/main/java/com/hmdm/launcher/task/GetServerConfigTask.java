@@ -53,6 +53,12 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
     private String serverHost;
     private String urlTemplate = "{project}/rest/public/sync/configuration/{number}";
     private String errorText;
+    // There are actually three types of errors: network error, HTTP error and application error
+    // First two should be treated similarly and reported only in the foreground mode
+    // This flag is introduced to distinguish between HTTP and application errors
+    private boolean isDeviceNotFound;
+    // This is the only application error which requires reporting in the background
+    private String notFoundError = "error.notfound.device";
 
     public GetServerConfigTask( Context context ) {
         this.context = context;
@@ -95,6 +101,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         } catch (Exception e) {
         }
 
+        isDeviceNotFound = false;
         try {
             ServerConfig serverConfig = null;
             if (createOptions == null) {
@@ -140,7 +147,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
 
                 return Const.TASK_SUCCESS;
             } else {
-                return Const.TASK_ERROR;
+                return isDeviceNotFound ? Const.TASK_ERROR : Const.TASK_NETWORK_ERROR;
             }
         } catch ( Exception e ) {
             e.printStackTrace();
@@ -170,6 +177,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
             SettingsHelper.getInstance(context).setExternalIp(response.headers().get(Const.HEADER_IP_ADDRESS));
             return response.body().getData();
         } else {
+            isDeviceNotFound = response.body() != null && notFoundError.equals(response.body().getMessage());
             buildTaskErrorText(response);
         }
         return null;
@@ -197,11 +205,30 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         if (response.isSuccessful()) {
             String serverResponse = response.body().string();
 
+            ServerConfigResponse serverConfigResponse;
+            try {
+                serverConfigResponse = new ObjectMapper().readValue(serverResponse, ServerConfigResponse.class);
+            } catch (Exception e) {
+                errorText = "Failed to parse JSON";
+                Log.e(Const.LOG_TAG, errorText);
+                buildTaskErrorTextSecure(response, serverResponse);
+                return null;
+            }
+
+            // Check for application errors before checking the signature
+            // Because the errors are not signed
+            if (!Const.STATUS_OK.equals(serverConfigResponse.getStatus())) {
+                isDeviceNotFound = notFoundError.equals(serverConfigResponse.getMessage());
+                buildTaskErrorTextSecure(response, serverResponse);
+                return null;
+            }
+
             // Check response signature
             String serverSignature = response.headers().get(Const.HEADER_RESPONSE_SIGNATURE);
             if (serverSignature == null) {
                 errorText = "Missing " + Const.HEADER_RESPONSE_SIGNATURE + " flag, dropping response";
                 Log.e(Const.LOG_TAG, errorText);
+                buildTaskErrorTextSecure(response, serverResponse);
                 return null;
             }
 
@@ -210,7 +237,9 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
             final String dataMarker = "\"data\":";
             int pos = serverResponse.indexOf(dataMarker);
             if (pos == -1) {
-                Log.e(Const.LOG_TAG, "Wrong server response, missing data: " + serverResponse);
+                errorText = "Wrong server response, missing data";
+                Log.e(Const.LOG_TAG, errorText + ": " + serverResponse);
+                buildTaskErrorTextSecure(response, serverResponse);
                 return null;
             }
             String serverData = serverResponse.substring(pos + dataMarker.length(), serverResponse.length() - 1);
@@ -218,11 +247,12 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
             if (!calculatedSignature.equalsIgnoreCase(serverSignature)) {
                 errorText = "Server signature " + serverSignature + " doesn't match calculated signature " + calculatedSignature + ", dropping response";
                 Log.e(Const.LOG_TAG, errorText);
+                buildTaskErrorTextSecure(response, serverResponse);
                 return null;
             }
             return new ObjectMapper().readValue(serverData, ServerConfig.class);
         } else {
-            buildTaskErrorText(response);
+            buildTaskErrorTextSecure(response, null);
         }
         return null;
     }
@@ -249,6 +279,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
             SettingsHelper.getInstance(context).setExternalIp(response.headers().get(Const.HEADER_IP_ADDRESS));
             return response.body().getData();
         } else {
+            isDeviceNotFound = response.body() != null && notFoundError.equals(response.body().getMessage());
             buildTaskErrorText(response);
         }
         return null;
@@ -281,11 +312,30 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         if (response.isSuccessful()) {
             String serverResponse = response.body().string();
 
+            ServerConfigResponse serverConfigResponse;
+            try {
+                serverConfigResponse = new ObjectMapper().readValue(serverResponse, ServerConfigResponse.class);
+            } catch (Exception e) {
+                errorText = "Failed to parse JSON";
+                Log.e(Const.LOG_TAG, errorText);
+                buildTaskErrorTextSecure(response, serverResponse);
+                return null;
+            }
+
+            // Check for application errors before checking the signature
+            // Because the errors are not signed
+            if (!Const.STATUS_OK.equals(serverConfigResponse.getStatus())) {
+                isDeviceNotFound = notFoundError.equals(serverConfigResponse.getMessage());
+                buildTaskErrorTextSecure(response, serverResponse);
+                return null;
+            }
+
             // Check response signature
             String serverSignature = response.headers().get(Const.HEADER_RESPONSE_SIGNATURE);
             if (serverSignature == null) {
-                Log.e(Const.LOG_TAG, "Missing " + Const.HEADER_RESPONSE_SIGNATURE + " flag, dropping response");
-                return null;
+                errorText = "Missing " + Const.HEADER_RESPONSE_SIGNATURE + " flag, dropping response";
+                Log.e(Const.LOG_TAG, errorText);
+                buildTaskErrorTextSecure(response, serverResponse);
             }
 
             // We need to extract data from the response body
@@ -293,31 +343,47 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
             final String dataMarker = "\"data\":";
             int pos = serverResponse.indexOf(dataMarker);
             if (pos == -1) {
-                Log.e(Const.LOG_TAG, "Wrong server response, missing data: " + serverResponse);
+                errorText = "Wrong server response, missing data";
+                Log.e(Const.LOG_TAG, errorText + ": " + serverResponse);
+                buildTaskErrorTextSecure(response, serverResponse);
                 return null;
             }
             String serverData = serverResponse.substring(pos + dataMarker.length(), serverResponse.length() - 1);
             String calculatedSignature = CryptoHelper.getSHA1String(BuildConfig.REQUEST_SIGNATURE + serverData.replaceAll("\\s", ""));
             if (!calculatedSignature.equalsIgnoreCase(serverSignature)) {
-                Log.e(Const.LOG_TAG, "Server signature " + serverSignature + " doesn't match calculated signature " + calculatedSignature + ", dropping response");
+                errorText = "Server signature " + serverSignature + " doesn't match calculated signature " + calculatedSignature + ", dropping response";
+                Log.e(Const.LOG_TAG, errorText);
+                buildTaskErrorTextSecure(response, serverResponse);
                 return null;
             }
             return new ObjectMapper().readValue(serverData, ServerConfig.class);
         } else {
-            buildTaskErrorText(response);
+            buildTaskErrorTextSecure(response, null);
         }
         return null;
     }
 
-    private void buildTaskErrorText(Response response) {
+    private void buildTaskErrorText(Response<ServerConfigResponse> response) {
         String message = "HTTP status: " + response.code();
         if (response.isSuccessful()) {
-            Response<ServerConfigResponse> serverConfigResponse = (Response<ServerConfigResponse>)response;
             message += "\n" +
-                    "JSON status: " + serverConfigResponse.body().getStatus() + "\n" +
-                    "JSON message: " + serverConfigResponse.body().getMessage();
+                    "JSON status: " + response.body().getStatus() + "\n" +
+                    "JSON message: " + response.body().getMessage();
         }
         buildNetworkErrorText(message);
+    }
+
+    private void buildTaskErrorTextSecure(Response<ResponseBody> response, String body) {
+        String reason = errorText;
+        String message = "HTTP status: " + response.code();
+        if (response.isSuccessful()) {
+            message += "\n" +
+                    "Body: " + body;
+        }
+        buildNetworkErrorText(message);
+        if (reason != null && !reason.equals("")) {
+            errorText = reason + "\n\n" + errorText;
+        }
     }
 
     private void buildNetworkErrorText(String message) {
