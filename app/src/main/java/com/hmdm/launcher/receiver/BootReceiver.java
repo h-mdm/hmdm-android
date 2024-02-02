@@ -6,9 +6,9 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.hmdm.launcher.Const;
+import com.hmdm.launcher.helper.Initializer;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.pro.ProUtils;
-import com.hmdm.launcher.service.ServiceHelper;
 
 public class BootReceiver extends BroadcastReceiver {
     @Override
@@ -31,6 +31,9 @@ public class BootReceiver extends BroadcastReceiver {
             return;
         }
 
+        Initializer.init(context);
+        Initializer.startServicesAndLoadConfig(context);
+
         SettingsHelper.getInstance(context).setMainActivityRunning(false);
         if (ProUtils.kioskModeRequired(context)) {
             Log.i(Const.LOG_TAG, "Kiosk mode required, forcing Headwind MDM to run in the foreground");
@@ -41,7 +44,5 @@ public class BootReceiver extends BroadcastReceiver {
             context.startActivity(homeIntent);
             return;
         }
-
-        ServiceHelper.startServices(context);
     }
 }

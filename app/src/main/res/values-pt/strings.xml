@@ -63,7 +63,9 @@
     <string name="dialog_accessibility_service_message">Por favor permita o acesso aos serviços de acessibilidade. Uma tela de configurações vai ser aberta. Procure o item \"%s\", permita o acesso aos serviços de acessibilidade, e toque em \"Voltar\".</string>
     <string name="dialog_accessibility_service_continue">Continuar</string>
     <string name="dialog_accessibility_service_skip">Pular</string>
-    <string name="access_to_app_denied">O Acesso ao aplicativo (%s) está bloqueado pelo administrador. Toque em \'Home\' para continuar.</string>
+    <string name="access_to_app_denied">O pacote não é permitido:</string>
+    <string name="access_to_app_denied_2">Por favor, peça ao seu administrador para ativar este pacote na configuração.\n\nClique em \'Fechar\' ou no botão Home para continuar.</string>
+    <string name="package_id_copied">O ID do pacote é copiado para a área de transferência</string>
     <string name="dialog_app_not_allowed_close">Fechar</string>
     <string name="dialog_app_not_allowed_admin">Administrador</string>
     <string name="device_id">ID do Dispositivo</string>

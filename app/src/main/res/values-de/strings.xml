@@ -63,7 +63,9 @@
     <string name="dialog_accessibility_service_message">Bitte erlauben Sie der App, Eingabehilfedienste zu verwenden. Ein Einstellungsblatt wird jetzt geöffnet. Suchen Sie das Element \"%s\", erlauben Sie die Verwendung von Eingabehilfen und tippen Sie auf \"Zurück\".</string>
     <string name="dialog_accessibility_service_continue">Weiter</string>
     <string name="dialog_accessibility_service_skip">Überspringen</string>
-    <string name="access_to_app_denied">Der Zugriff auf diese App (%s) wird vom Administrator blockiert. Klicken Sie auf \'Home\', um fortzufahren.</string>
+    <string name="access_to_app_denied">Das Paket ist nicht erlaubt:</string>
+    <string name="access_to_app_denied_2">Bitten Sie Ihren Administrator, dieses Paket in der Konfiguration zu aktivieren.\n\nKlicken Sie auf die Schaltfläche \'Schließen\' oder die Startseite, um fortzufahren.</string>
+    <string name="package_id_copied">Die Paket-ID wird in die Zwischenablage kopiert</string>
     <string name="dialog_app_not_allowed_close">Schließen</string>
     <string name="dialog_app_not_allowed_admin">Administrator</string>
     <string name="device_id">Geräte-ID</string>

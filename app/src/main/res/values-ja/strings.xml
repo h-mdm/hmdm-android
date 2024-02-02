@@ -63,7 +63,9 @@
     <string name="dialog_accessibility_service_message">アプリがアクセシビリティサービスを使用できるようにしてください。設定シートが開きます。 \"%s\" アイテムを見つけて、ユーザー補助サービスの使用を許可し、\"戻る\" をタップしてください。</string>
     <string name="dialog_accessibility_service_continue">続ける</string>
     <string name="dialog_accessibility_service_skip">スキップ</string>
-    <string name="access_to_app_denied">このアプリ (%s) へのアクセスは管理者によってブロックされています。 \'ホーム\' をクリックして続行します。</string>
+    <string name="access_to_app_denied">パッケージは許可されていません:</string>
+    <string name="access_to_app_denied_2">構成でこのパッケージを有効にするよう管理者に依頼してください。\n\n「閉じる」または「ホーム」ボタンをクリックして続行してください。</string>
+    <string name="package_id_copied">パッケージIDがクリップボードにコピーされます</string>
     <string name="dialog_app_not_allowed_close">閉じる</string>
     <string name="dialog_app_not_allowed_admin">管理者</string>
     <string name="device_id">デバイスID</string>

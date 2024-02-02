@@ -66,7 +66,9 @@
     <string name="dialog_accessibility_service_message">Please allow the app to use accessibility services. A Settings sheet will now open. Find the \"%s\" item, allow to use accessibility services, and tap \"Back\".</string>
     <string name="dialog_accessibility_service_continue">Continue</string>
     <string name="dialog_accessibility_service_skip">Skip</string>
-    <string name="access_to_app_denied">Access to this app (%s) is blocked by the administrator. Click \'Home\' to proceed.</string>
+    <string name="access_to_app_denied">The package is not allowed:</string>
+    <string name="access_to_app_denied_2">Please ask your administrator to enable this package in the configuration.\n\nClick \'Close\' or Home button to proceed.</string>
+    <string name="package_id_copied">The package ID is copied to the clipboard</string>
     <string name="dialog_app_not_allowed_close">Close</string>
     <string name="dialog_app_not_allowed_admin">Administrator</string>
     <string name="device_id">Device ID</string>

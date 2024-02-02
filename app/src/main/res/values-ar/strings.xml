@@ -59,7 +59,9 @@
     <string name="dialog_accessibility_service_message">يرجى السماح للتطبيق باستخدام خدمات إمكانية الوصول. سيتم فتح ورقة الإعدادات الآن. ابحث عن عنصر \"%s\" ، واسمح باستخدام خدمات إمكانية الوصول ، وانقر على \"رجوع\".</string>
     <string name="dialog_accessibility_service_continue">استمر</string>
     <string name="dialog_accessibility_service_skip">تخطى</string>
-    <string name="access_to_app_denied">تم حظر الوصول إلى هذا التطبيق (%s) من قبل المسؤول. انقر فوق \"الصفحة الرئيسية\" للمتابعة.</string>
+    <string name="access_to_app_denied">الحزمة غير مسموح بها:</string>
+    <string name="access_to_app_denied_2">الرجاء مطالبة المسؤول بتمكين هذه الحزمة في التكوين.\n\nانقر فوق \'إغلاق\' أو زر الصفحة الرئيسية للمتابعة.</string>
+    <string name="package_id_copied">يتم نسخ معرف الحزمة إلى الحافظة</string>
     <string name="dialog_app_not_allowed_close">أغلق</string>
     <string name="dialog_app_not_allowed_admin">مسؤول</string>
     <string name="device_id">ID الجهاز</string>

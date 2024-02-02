@@ -63,7 +63,9 @@
     <string name="dialog_accessibility_service_message">Veuillez autoriser \'app à utiliser les services d\'accessibilité. Une fiche de paramètres s\'ouvrira. Trouvez l\'élément \"%s\", autorisez l\'utilisation des services d\'accessibilité, et appuyez sur \"Retour\".</string>
     <string name="dialog_accessibility_service_continue">Continuer</string>
     <string name="dialog_accessibility_service_skip">Passer</string>
-    <string name="access_to_app_denied">L\'accès à cette app (%s) est bloqué par l\'administrateur. Cliquez sur \'Accueil\' pour continuer.</string>
+    <string name="access_to_app_denied">Le colis n\'est pas autorisé:</string>
+    <string name="access_to_app_denied_2">Veuillez demander à votre administrateur d\'activer ce package dans la configuration.\n\nCliquez sur \'Fermer\' ou sur le bouton Accueil pour continuer.</string>
+    <string name="package_id_copied">L\'ID du package est copié dans le presse-papiers</string>
     <string name="dialog_app_not_allowed_close">Fermer</string>
     <string name="dialog_app_not_allowed_admin">Administrateur</string>
     <string name="device_id">ID de l\'appareil</string>

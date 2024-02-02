@@ -105,7 +105,11 @@ public class ConfigUpdater {
     }
 
     public static void forceConfigUpdate(final Context context) {
-        new ConfigUpdater().updateConfig(context, null, false);
+        forceConfigUpdate(context, null);
+    }
+
+    public static void forceConfigUpdate(final Context context, final UINotifier notifier) {
+        new ConfigUpdater().updateConfig(context, notifier, false);
     }
 
     public void setLoadOnly(boolean loadOnly) {

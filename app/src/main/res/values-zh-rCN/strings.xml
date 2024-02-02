@@ -63,7 +63,9 @@
 	<string name="dialog_accessibility_service_message">请允许该应用使用辅助功能。现在将打开一个设置表。找到\"%s\"项，允许使用辅助功能，然後点击\" Back \"。</string>
 	<string name="dialog_accessibility_service_continue">继续</string>
 	<string name="dialog_accessibility_service_skip">跳下一步</string>
-	<string name="access_to_app_denied">管理员已阻止对此应用程序（%s）的访问。点击\'Home \'继续。</string>
+	<string name="access_to_app_denied">不允许使用以下包裹：</string>
+	<string name="access_to_app_denied_2">请请求管理员在配置中启用此程序包。\n\n单击“关闭”或“主页”按钮继续。</string>
+	<string name="package_id_copied">包 ID 已复制到剪贴板</string>
 	<string name="dialog_app_not_allowed_close">关闭</string>
 	<string name="dialog_app_not_allowed_admin">管理员</string>
 	<string name="device_id">设备编号</string>

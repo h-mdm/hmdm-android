@@ -63,7 +63,9 @@
     <string name="dialog_accessibility_service_message">Пожалуйста, разрешите приложению использовать специальные возможности. Сейчас откроется окно настроек Android, выберите пункт \"%s\", в открывшемся окне активируйте приложение и нажмите \"Назад\".</string>
     <string name="dialog_accessibility_service_continue">Продолжить</string>
     <string name="dialog_accessibility_service_skip">Без разрешения</string>
-    <string name="access_to_app_denied">Доступ к этому приложению (%s) ограничен администратором. Нажмите \'Home\' для возврата.</string>
+    <string name="access_to_app_denied">Пакет не разрешен:</string>
+    <string name="access_to_app_denied_2">Пожалуйста, попросите администратора разрешить пакет в конфигурации.\n\nНажмите \'Закрыть\' или кнопку Home для продолжения.</string>
+    <string name="package_id_copied">Идентификатор пакета скопирован в буфер обмена</string>
     <string name="dialog_app_not_allowed_close">Закрыть</string>
     <string name="dialog_app_not_allowed_admin">Администратор</string>
     <string name="device_id">ID устройства</string>

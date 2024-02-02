@@ -36,7 +36,25 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
+            android:text="@string/access_to_app_denied"
             android:id="@+id/message"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_margin="@dimen/activity_vertical_margin"
+            android:textSize="@dimen/title_text_size"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:id="@+id/package_id"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/access_to_app_denied_2"
+            android:id="@+id/message2"/>
 
         <LinearLayout
             android:layout_width="wrap_content"

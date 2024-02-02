@@ -63,7 +63,9 @@
     <string name="dialog_accessibility_service_message">Zezwól aplikacji na korzystanie z usług ułatwień dostępu. Otworzy się teraz ekran ustawień. Znajdź element \"%s\", zezwól na korzystanie z usług ułatwień dostępu i naciśnij przycisk \"Wstecz\".</string>
     <string name="dialog_accessibility_service_continue">Kontynuuj</string>
     <string name="dialog_accessibility_service_skip">Pomiń</string>
-    <string name="access_to_app_denied">Dostęp do tej aplikacji (%s) został zablokowany przez administratora. Naciśnij przycisk \"Strona główna\", aby kontynuować.</string>
+    <string name="access_to_app_denied">Pakiet nie jest dozwolony:</string>
+    <string name="access_to_app_denied_2">Poproś administratora o włączenie tego pakietu w konfiguracji.\n\nKliknij przycisk \'Zamknij\' lub przycisk Strona główna, aby kontynuować.</string>
+    <string name="package_id_copied">Identyfikator pakietu zostanie skopiowany do schowka</string>
     <string name="dialog_app_not_allowed_close">Zamknij</string>
     <string name="dialog_app_not_allowed_admin">Administrator</string>
     <string name="device_id">ID urządzenia</string>

@@ -63,7 +63,9 @@
     <string name="dialog_accessibility_service_message">Por favor, permita a la aplicacion trabajar con opciones de accesibilidad. La pantalla de configuracion sera abierta ahora. Encuentre la opcion \"%s\", permita el uso de servicios de accesibilidad, and presione \"Atras\".</string>
     <string name="dialog_accessibility_service_continue">Continuar</string>
     <string name="dialog_accessibility_service_skip">Omitir</string>
-    <string name="access_to_app_denied">El acceso a esta aplicacion (%s) esta bloqueado por el administrador. Presione \'Inicio\' para proceder.</string>
+    <string name="access_to_app_denied">El paquete no está permitido:</string>
+    <string name="access_to_app_denied_2">Pídale a su administrador que habilite este paquete en la configuración.\n\nHaga clic en el botón \'Cerrar\' o Inicio para continuar.</string>
+    <string name="package_id_copied">El ID del paquete se copia al portapapeles.</string>
     <string name="dialog_app_not_allowed_close">Cerrar</string>
     <string name="dialog_app_not_allowed_admin">Administrador</string>
     <string name="device_id">ID Dispositivo</string>

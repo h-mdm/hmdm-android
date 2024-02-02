@@ -24,6 +24,8 @@ import android.app.Dialog;
 import android.app.admin.DevicePolicyManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -68,11 +70,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
-import androidx.work.Worker;
-import androidx.work.WorkerParameters;
 
 import com.github.anrwatchdog.ANRWatchDog;
 import com.hmdm.launcher.BuildConfig;
@@ -89,9 +86,9 @@ import com.hmdm.launcher.databinding.DialogOverlaySettingsBinding;
 import com.hmdm.launcher.databinding.DialogPermissionsBinding;
 import com.hmdm.launcher.databinding.DialogSystemSettingsBinding;
 import com.hmdm.launcher.databinding.DialogUnknownSourcesBinding;
-import com.hmdm.launcher.helper.CertInstaller;
 import com.hmdm.launcher.helper.ConfigUpdater;
 import com.hmdm.launcher.helper.CryptoHelper;
+import com.hmdm.launcher.helper.Initializer;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.DeviceInfo;
@@ -100,8 +97,6 @@ import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.pro.service.CheckForegroundAppAccessibilityService;
 import com.hmdm.launcher.pro.service.CheckForegroundApplicationService;
-import com.hmdm.launcher.pro.worker.DetailedInfoWorker;
-import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
 import com.hmdm.launcher.server.UnsafeOkHttpClient;
 import com.hmdm.launcher.service.LocationService;
@@ -117,8 +112,7 @@ import com.hmdm.launcher.util.PreferenceLogger;
 import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.SystemUtils;
 import com.hmdm.launcher.util.Utils;
-import com.hmdm.launcher.worker.PushNotificationWorker;
-import com.hmdm.launcher.worker.ScheduledAppUpdateWorker;
+import com.hmdm.launcher.worker.SendDeviceInfoWorker;
 import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
@@ -129,12 +123,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
-import okhttp3.ResponseBody;
-import retrofit2.Response;
 
 public class MainActivity
         extends BaseActivity
@@ -192,8 +183,6 @@ public class MainActivity
     private static boolean interruptResumeFlow = false;
     private static final int BOOT_DURATION_SEC = 120;
     private static final int PAUSE_BETWEEN_AUTORUNS_SEC = 5;
-    private static final int SEND_DEVICE_INFO_PERIOD_MINS = 15;
-    private static final String WORK_TAG_DEVICEINFO = "com.hmdm.launcher.WORK_TAG_DEVICEINFO";
     private boolean sendDeviceInfoScheduled = false;
     // This flag notifies "download error" dialog what we're downloading: application or file
     // We cannot send this flag as the method parameter because dialog calls MainActivity methods
@@ -235,9 +224,8 @@ public class MainActivity
                         showLockScreen();
                     } else if ( applicationNotAllowed != null &&
                             (!ProUtils.kioskModeRequired(MainActivity.this) || !ProUtils.isKioskAppInstalled(MainActivity.this)) ) {
-                        TextView textView = ( TextView ) applicationNotAllowed.findViewById( R.id.message );
-                        textView.setText( String.format( getString(R.string.access_to_app_denied),
-                                intent.getStringExtra( Const.PACKAGE_NAME ) ) );
+                        TextView textView = ( TextView ) applicationNotAllowed.findViewById( R.id.package_id );
+                        textView.setText(intent.getStringExtra(Const.PACKAGE_NAME));
 
                         applicationNotAllowed.setVisibility( View.VISIBLE );
                         handler.postDelayed( new Runnable() {
@@ -245,7 +233,7 @@ public class MainActivity
                             public void run() {
                                 applicationNotAllowed.setVisibility( View.GONE );
                             }
-                        }, 5000 );
+                        }, 20000 );
                     }
                     break;
 
@@ -354,34 +342,12 @@ public class MainActivity
             }
         });
 
-        // Crashlytics is not included in the open-source version
-        ProUtils.initCrashlytics(this);
 
         if (BuildConfig.ANR_WATCHDOG) {
             anrWatchDog = new ANRWatchDog();
             anrWatchDog.start();
         }
-
-        if (BuildConfig.TRUST_ANY_CERTIFICATE) {
-            InstallUtils.initUnsafeTrustManager();
-        }
-
-        Utils.lockSafeBoot(this);
-        Utils.initPasswordReset(this);
-
-        RemoteLogger.log(this, Const.LOG_INFO, "MDM Launcher " + BuildConfig.VERSION_NAME + "-" + Utils.getLauncherVariant() + " started");
-
-        InstallUtils.clearTempFiles(this);
-
-        // Install the certificates (repeat the action from InitialSetupActivity because
-        // the customer may wish to install new certificates without re-enrolling the device
-        CertInstaller.installCertificatesFromAssets(this);
-
-        DetailedInfoWorker.schedule(MainActivity.this);
-        if (BuildConfig.ENABLE_PUSH) {
-            PushNotificationWorker.schedule(MainActivity.this);
-        }
-        ScheduledAppUpdateWorker.schedule(MainActivity.this);
+        Initializer.init(this);
 
         // Prevent showing the lock screen during the app download/installation
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -1109,6 +1075,20 @@ public class MainActivity
                 createAndShowEnterPasswordDialog();
             }
         } );
+        final TextView tvPackageId = applicationNotAllowed.findViewById(R.id.package_id);
+        tvPackageId.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("Package ID", tvPackageId.getText().toString());
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(MainActivity.this, R.string.package_id_copied, Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
         applicationNotAllowed.setVisibility( View.GONE );
 
@@ -1136,6 +1116,8 @@ public class MainActivity
         lockScreen = LayoutInflater.from( this ).inflate( R.layout.layout_application_not_allowed, null );
         lockScreen.findViewById( R.id.layout_application_not_allowed_continue ).setVisibility(View.GONE);
         lockScreen.findViewById( R.id.layout_application_not_allowed_admin ).setVisibility(View.GONE);
+        lockScreen.findViewById( R.id.package_id ).setVisibility(View.GONE);
+        lockScreen.findViewById( R.id.message2 ).setVisibility(View.GONE);
         TextView textView = lockScreen.findViewById( R.id.message );
         textView.setText(getString(R.string.device_locked, SettingsHelper.getInstance(this).getDeviceId()));
 
@@ -1455,11 +1437,12 @@ public class MainActivity
     }
 
     private boolean applyEarlyPolicies(ServerConfig config) {
-        Utils.applyEarlyNonInteractivePolicies(this, config);
+        Initializer.applyEarlyNonInteractivePolicies(this, config);
         return true;
     }
 
     // Network policies are applied after getting all applications
+    // These are interactive policies so can't be used when in background mode
     private boolean applyLatePolicies(ServerConfig config) {
         // To delay opening the settings activity
         boolean dialogWillShow = false;
@@ -1758,53 +1741,6 @@ public class MainActivity
         startActivity(intent);
     }
 
-    public static class SendDeviceInfoWorker extends Worker {
-
-        private Context context;
-        private SettingsHelper settingsHelper;
-
-        public SendDeviceInfoWorker(
-                @NonNull final Context context,
-                @NonNull WorkerParameters params) {
-            super(context, params);
-            this.context = context;
-            settingsHelper = SettingsHelper.getInstance(context);
-        }
-
-        @Override
-        // This is running in a background thread by WorkManager
-        public Result doWork() {
-            if (settingsHelper == null || settingsHelper.getConfig() == null) {
-                return Result.failure();
-            }
-
-            DeviceInfo deviceInfo = DeviceInfoProvider.getDeviceInfo(context, true, true);
-
-            ServerService serverService = ServerServiceKeeper.getServerServiceInstance(context);
-            ServerService secondaryServerService = ServerServiceKeeper.getSecondaryServerServiceInstance(context);
-            Response<ResponseBody> response = null;
-
-            try {
-                response = serverService.sendDevice(settingsHelper.getServerProject(), deviceInfo).execute();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            try {
-                if (response == null) {
-                    response = secondaryServerService.sendDevice(settingsHelper.getServerProject(), deviceInfo).execute();
-                }
-                if ( response.isSuccessful() ) {
-                    SettingsHelper.getInstance(context).setExternalIp(response.headers().get(Const.HEADER_IP_ADDRESS));
-                    return Result.success();
-                }
-            }
-            catch ( Exception e ) { e.printStackTrace(); }
-
-            return Result.failure();
-        }
-    }
-
     // If we updated the configuration, let's send the final state to the server
     private void sendDeviceInfoAfterReconfigure() {
         if (needSendDeviceInfoAfterReconfigure) {
@@ -1820,12 +1756,7 @@ public class MainActivity
             return;
         }
         sendDeviceInfoScheduled = true;
-        PeriodicWorkRequest request =
-                new PeriodicWorkRequest.Builder(SendDeviceInfoWorker.class, SEND_DEVICE_INFO_PERIOD_MINS, TimeUnit.MINUTES)
-                        .addTag(Const.WORK_TAG_COMMON)
-                        .setInitialDelay(SEND_DEVICE_INFO_PERIOD_MINS, TimeUnit.MINUTES)
-                        .build();
-        WorkManager.getInstance(getApplicationContext()).enqueueUniquePeriodicWork(WORK_TAG_DEVICEINFO, ExistingPeriodicWorkPolicy.REPLACE, request);
+        SendDeviceInfoWorker.scheduleDeviceInfoSending(this);
     }
 
     private void scheduleInstalledAppsRun() {

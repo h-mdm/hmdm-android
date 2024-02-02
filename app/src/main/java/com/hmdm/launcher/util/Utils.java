@@ -26,7 +26,6 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.admin.DevicePolicyManager;
 import android.app.admin.SystemUpdatePolicy;
-import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -1021,59 +1020,6 @@ public class Utils {
             return false;
         }
 
-    }
-
-    // Used by InitialSetupActivity
-    public static void applyEarlyNonInteractivePolicies(Context context, ServerConfig config) {
-        if (config.getSystemUpdateType() != null &&
-                config.getSystemUpdateType() != ServerConfig.SYSTEM_UPDATE_DEFAULT &&
-                Utils.isDeviceOwner(context)) {
-            Utils.setSystemUpdatePolicy(context, config.getSystemUpdateType(), config.getSystemUpdateFrom(), config.getSystemUpdateTo());
-        }
-
-        if (config.getBluetooth() != null) {
-            try {
-                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                if (bluetoothAdapter != null) {
-                    boolean enabled = bluetoothAdapter.isEnabled();
-                    if (config.getBluetooth() && !enabled) {
-                        bluetoothAdapter.enable();
-                    } else if (!config.getBluetooth() && enabled) {
-                        bluetoothAdapter.disable();
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (config.getTimeZone() != null) {
-            Utils.setTimeZone(config.getTimeZone(), context);
-        }
-
-        if (config.getUsbStorage() != null) {
-            Utils.lockUsbStorage(config.getUsbStorage(), context);
-        }
-
-        // Null value is processed here, it means unlock brightness
-        Utils.setBrightnessPolicy(config.getAutoBrightness(), config.getBrightness(), context);
-
-        if (config.getManageTimeout() != null) {
-            Utils.setScreenTimeoutPolicy(config.getManageTimeout(), config.getTimeout(), context);
-        }
-
-        if (config.getManageVolume() != null && config.getManageVolume() && config.getVolume() != null) {
-            Utils.lockVolume(false, context);
-            if (!Utils.setVolume(config.getVolume(), context)) {
-                RemoteLogger.log(context, Const.LOG_WARN, "Failed to set the device volume");
-            }
-        }
-
-        if (config.getLockVolume() != null) {
-            Utils.lockVolume(config.getLockVolume(), context);
-        }
-
-        Utils.disableScreenshots(config.isDisableScreenshots(), context);
     }
 
 }

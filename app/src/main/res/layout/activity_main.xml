@@ -117,11 +117,11 @@
                 />
 
             <androidx.recyclerview.widget.RecyclerView
-                android:layout_below="@+id/activity_main_title"
-                android:layout_above="@+id/activity_bottom_layout"
+                android:id="@+id/activity_main_content"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:id="@+id/activity_main_content"/>
+                android:layout_above="@+id/activity_bottom_layout"
+                android:layout_below="@+id/activity_main_title" />
 
             <RelativeLayout
                 android:id="@+id/activity_bottom_layout"

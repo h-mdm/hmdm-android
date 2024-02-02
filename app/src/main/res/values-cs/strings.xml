@@ -63,7 +63,9 @@
     <string name="dialog_accessibility_service_message">Prosím povolte aplikaci oprávnění ke službám přístupnosti. Bude otevřeno nastavení. Najděte \"%s\" a povolte přístup, poté se vraťte.</string>
     <string name="dialog_accessibility_service_continue">Pokračovat</string>
     <string name="dialog_accessibility_service_skip">Přeskočit</string>
-    <string name="access_to_app_denied">Přístup k aplikaci (%s) je zablokován adminstrátorem. Vyberte \'Zavřít\' pro pokračování.</string>
+    <string name="access_to_app_denied">Balíček není povolen:</string>
+    <string name="access_to_app_denied_2">Požádejte svého administrátora, aby tento balíček povolil v konfiguraci.\n\nPokračujte kliknutím na tlačítko \'Zavřít\' nebo Domů.</string>
+    <string name="package_id_copied">ID balíčku se zkopíruje do schránky</string>
     <string name="dialog_app_not_allowed_close">Zavřít</string>
     <string name="dialog_app_not_allowed_admin">Administrátor</string>
     <string name="device_id">ID zařízení</string>

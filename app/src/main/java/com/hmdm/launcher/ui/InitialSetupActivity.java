@@ -15,11 +15,11 @@ import com.hmdm.launcher.R;
 import com.hmdm.launcher.databinding.ActivityInitialSetupBinding;
 import com.hmdm.launcher.helper.CertInstaller;
 import com.hmdm.launcher.helper.ConfigUpdater;
+import com.hmdm.launcher.helper.Initializer;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.RemoteFile;
 import com.hmdm.launcher.json.ServerConfig;
-import com.hmdm.launcher.service.ServiceHelper;
 import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.Utils;
 
@@ -117,7 +117,8 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
                 // so watchdog services are not being started at this point.
                 // Perhaps we need to request these permissions at this step?
                 Log.d(Const.LOG_TAG, "Working in background, starting services and installing apps");
-                ServiceHelper.startServices(InitialSetupActivity.this);
+                Initializer.init(InitialSetupActivity.this);
+                Initializer.startServicesAndLoadConfig(InitialSetupActivity.this);
             }
         }
         completeConfig(settingsHelper);
@@ -127,7 +128,7 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
         configuring = false;
         if (settingsHelper.getConfig() != null) {
             try {
-                Utils.applyEarlyNonInteractivePolicies(this, settingsHelper.getConfig());
+                Initializer.applyEarlyNonInteractivePolicies(this, settingsHelper.getConfig());
             } catch (Exception e) {
                 e.printStackTrace();
             }
