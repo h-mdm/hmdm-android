@@ -102,7 +102,7 @@ public class InstallUtils {
                 PackageInfo packageInfo = packageManager.getPackageInfo( application.getPkg(), 0 );
 
                 if (application.isRemove() && !application.getVersion().equals("0") &&
-                        !areVersionsEqual(packageInfo.versionName, application.getVersion())) {
+                        !areVersionsEqual(packageInfo.versionName, packageInfo.versionCode, application.getVersion(), application.getCode())) {
                     // If a removal is required, but the app version doesn't match, do not remove
                     Log.d(Const.LOG_TAG, "checkAndUpdateApplications(): app " + application.getPkg() + " version not match: "
                             + application.getVersion() + " " + packageInfo.versionName + ", skipping");
@@ -111,7 +111,8 @@ public class InstallUtils {
                 }
 
                 if (!application.isRemove() && !upgradingHmdmFreeToFull(context, application, packageInfo) &&
-                        (application.isSkipVersion() || application.getVersion().equals("0") || areVersionsEqual(packageInfo.versionName, application.getVersion()))) {
+                        (application.isSkipVersion() || application.getVersion().equals("0") ||
+                                areVersionsEqual(packageInfo.versionName, packageInfo.versionCode, application.getVersion(), application.getCode()))) {
                     // If installation is required, but the app of the same version already installed, do not install
                     Log.d(Const.LOG_TAG, "checkAndUpdateApplications(): app " + application.getPkg() + " versions match: "
                             + application.getVersion() + " " + packageInfo.versionName + ", skipping");
@@ -119,7 +120,8 @@ public class InstallUtils {
                     continue;
                 }
 
-                if (!application.isRemove() && compareVersions(packageInfo.versionName, application.getVersion()) > 0) {
+                if (!application.isRemove() &&
+                        compareVersions(packageInfo.versionName, packageInfo.versionCode, application.getVersion(), application.getCode()) > 0) {
                     // Downgrade requested!
                     // It will only succeed if a higher version is marked as "Remove"
                     // Let's check that condition to avoid failed attempts to install and downloads of the lower version each time
@@ -127,7 +129,8 @@ public class InstallUtils {
                             ": installed version " + packageInfo.versionName + ", required version " + application.getVersion());
                     boolean canDowngrade = false;
                     for (Application a : applications) {
-                        if (a.getPkg().equalsIgnoreCase(application.getPkg()) && a.isRemove() && areVersionsEqual(packageInfo.versionName, a.getVersion())) {
+                        if (a.getPkg().equalsIgnoreCase(application.getPkg()) && a.isRemove() &&
+                                areVersionsEqual(packageInfo.versionName, packageInfo.versionCode, a.getVersion(), a.getCode())) {
                             // Current version will be removed
                             canDowngrade = true;
                             break;
@@ -174,7 +177,12 @@ public class InstallUtils {
         return Utils.getLauncherVariant().equals("opensource") && application.getUrl().endsWith("master.apk");
     }
 
-    private static boolean areVersionsEqual(String v1, String v2) {
+    private static boolean areVersionsEqual(String v1, int c1, String v2, Integer c2) {
+        if (c2 != null && c2 != 0) {
+            // If version code is present, let's compare version codes instead of names
+            return c1 == c2;
+        }
+
         if (v1 == null || v2 == null) {
             // Exceptional case, we should never be here but this shouldn't crash the app with NPE
             return v1 == v2;
@@ -187,7 +195,18 @@ public class InstallUtils {
     }
 
     // Returns -1 if v1 < v2, 0 if v1 == v2 and 1 if v1 > v2
-    public static int compareVersions(String v1, String v2) {
+    public static int compareVersions(String v1, int c1, String v2, Integer c2) {
+        if (c2 != null && c2 != 0) {
+            // If version code is present, let's compare version codes instead of names
+            if (c1 < c2) {
+                return -1;
+            } else if (c1 > c2) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+
         // Exceptional cases: null values
         if (v1 == null && v2 == null) {
             return 0;

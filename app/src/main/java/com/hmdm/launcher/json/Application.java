@@ -32,6 +32,7 @@ public class Application {
     private String name;
     private String pkg;
     private String version;
+    private Integer code;
     private String url;
     private boolean useKiosk;
     private boolean showIcon;
@@ -79,6 +80,14 @@ public class Application {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+
+    public void setCode(Integer code) {
+        this.code = code;
     }
 
     public String getUrl() {
