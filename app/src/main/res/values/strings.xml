@@ -50,8 +50,8 @@
     <string name="dialog_network_error_title">Error connecting to %s. Please check the Internet connection and try again.</string>
     <string name="main_activity_update_config">Requesting configuration file from server</string>
     <string name="main_activity_applications_update">Updating applications</string>
-    <string name="dialog_overlay_settings_title">Please allow the app to draw over other windows.\n\nThis option helps better blocking unwanted apps, and enables emergency unlocking the kiosk mode.\n\nTap \"Continue\" to open a settings sheet. Find the \"%s\" item, grant the permission, and tap \"Back\".</string>
-    <string name="dialog_history_settings_title">Please allow the app to access usage data.\n\nThis option enables control of apps and settings.\n\nThis option may cause faster battery drain. To save battery, skip this option (use accessibility services or kiosk mode instead).\n\nTap \"Continue\" to open a settings sheet. Find the \"%s\" item, grant the permission, and tap \"Back\".</string>
+    <string name="dialog_overlay_settings_title">Please allow the app to draw over other windows.\n\nThis option aids the blocking of unwanted apps, and enables emergency unlocking of the kiosk mode.\n\nTap \"Continue\" to open the settings. Find the \"%s\" item, grant the permission, then tap \"Back\".</string>
+    <string name="dialog_history_settings_title">Please allow the app to access usage data.\n\nThis option enables control of apps and settings.\n\nThis option may cause faster battery drain. To save battery, skip this option (use accessibility services or kiosk mode instead).\n\nTap \"Continue\" to open the settings. Find the \"%s\" item, grant the permission, then tap \"Back\".</string>
     <string name="dialog_history_settings_continue">Continue</string>
     <string name="dialog_history_settings_skip">Skip</string>
     <string name="dialog_unknown_sources_title">Please allow installation from unknown sources. A settings sheet will now open. Find \"Unknown sources\", allow the installation and click \"Back\".</string>
@@ -80,9 +80,9 @@
     <string name="admin_change_device_id">Change device ID</string>
     <string name="admin_change_server_url">Change server URL</string>
     <string name="admin_allow_settings">Open settings</string>
-    <string name="settings_allowed">You are allowed to change settings within 3 minutes.</string>
+    <string name="settings_allowed">You are allowed to change settings for 3 minutes.</string>
     <string name="admin_clear_restrictions">Clear restrictions</string>
-    <string name="permissive_mode_enabled">You are allowed to run all apps within 3 minutes.</string>
+    <string name="permissive_mode_enabled">You are allowed to run all apps for 3 minutes.</string>
     <string name="admin_refresh">Update configuration</string>
     <string name="admin_exit">Exit to system launcher</string>
     <string name="admin_reset_permissions">Check permissions</string>
@@ -92,8 +92,8 @@
     <string name="reboot_failed">Not enough rights to reboot the device.</string>
     <string name="message_turn_on_gps">The settings screen will open. Please turn on GPS location on this screen and click Back.</string>
     <string name="message_turn_off_gps">The settings screen will open. Please TURN OFF GPS location on this screen and click Back.</string>
-    <string name="message_turn_on_mobile_data">Mobile data are disabled! Please open the status bar and turn on mobile data.</string>
-    <string name="message_turn_off_mobile_data">Mobile data are enabled. Please open the status bar and TURN OFF mobile data.</string>
+    <string name="message_turn_on_mobile_data">Mobile data is disabled! Please open the status bar and turn on mobile data.</string>
+    <string name="message_turn_off_mobile_data">Mobile data is enabled. Please open the status bar and TURN OFF mobile data.</string>
     <string name="message_set_password">Your password quality is not good enough. The settings screen will open. Please change the password and click Back.</string>
     <string name="switch_off_blockings">Switching off restrictions...</string>
     <string name="kiosk_mode_requires_overlays">Kiosk mode disabled: no permission to draw over other windows. Please allow %s to draw over other windows.</string>
