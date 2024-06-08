@@ -28,6 +28,7 @@ import com.hmdm.launcher.json.RemoteFile;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.pro.worker.DetailedInfoWorker;
 import com.hmdm.launcher.server.ServerServiceKeeper;
+import com.hmdm.launcher.service.PushLongPollingService;
 import com.hmdm.launcher.task.ConfirmDeviceResetTask;
 import com.hmdm.launcher.task.ConfirmPasswordResetTask;
 import com.hmdm.launcher.task.ConfirmRebootTask;
@@ -105,11 +106,11 @@ public class ConfigUpdater {
     }
 
     public static void forceConfigUpdate(final Context context) {
-        forceConfigUpdate(context, null);
+        forceConfigUpdate(context, null, false);
     }
 
-    public static void forceConfigUpdate(final Context context, final UINotifier notifier) {
-        new ConfigUpdater().updateConfig(context, notifier, false);
+    public static void forceConfigUpdate(final Context context, final UINotifier notifier, final boolean userInteraction) {
+        new ConfigUpdater().updateConfig(context, notifier, userInteraction);
     }
 
     public void setLoadOnly(boolean loadOnly) {
@@ -279,17 +280,32 @@ public class ConfigUpdater {
                 keepaliveTime = newKeepaliveTime;
             }
         }
-        if (BuildConfig.ENABLE_PUSH && pushOptions != null && (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER)
-                || pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM))) {
-            try {
-                URL url = new URL(settingsHelper.getBaseUrl());
-                Runnable nextRunnable = () -> {
+        if (BuildConfig.ENABLE_PUSH && pushOptions != null) {
+            if (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER)
+                    || pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM)) {
+                try {
+                    URL url = new URL(settingsHelper.getBaseUrl());
+                    Runnable nextRunnable = () -> {
+                        checkFactoryReset();
+                    };
+                    PushNotificationMqttWrapper.getInstance().connect(context, url.getHost(), BuildConfig.MQTT_PORT,
+                            pushOptions, keepaliveTime, settingsHelper.getDeviceId(), nextRunnable, nextRunnable);
+                } catch (Exception e) {
+                    e.printStackTrace();
                     checkFactoryReset();
-                };
-                PushNotificationMqttWrapper.getInstance().connect(context, url.getHost(), BuildConfig.MQTT_PORT,
-                        pushOptions, keepaliveTime, settingsHelper.getDeviceId(), nextRunnable, nextRunnable);
-            } catch (Exception e) {
-                e.printStackTrace();
+                }
+            } else {
+                try {
+                    Intent serviceStartIntent = new Intent(context, PushLongPollingService.class);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(serviceStartIntent);
+                    } else {
+                        context.startService(serviceStartIntent);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
                 checkFactoryReset();
             }
         } else {

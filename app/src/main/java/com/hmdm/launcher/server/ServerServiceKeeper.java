@@ -72,20 +72,25 @@ public class ServerServiceKeeper {
     }
 
     // Made public for downloading from third party servers
-    public static ServerService createServerService( String baseUrl ) {
-        return createBuilder( baseUrl ).build().create( ServerService.class );
+    public static ServerService createServerService(String baseUrl) {
+        return createBuilder(baseUrl, Const.CONNECTION_TIMEOUT).build().create(ServerService.class);
     }
 
-    private static Retrofit.Builder createBuilder( String baseUrl ) {
+    // For long polling, read timeout should be adjustable
+    public static ServerService createServerService(String baseUrl, long readTimeout) {
+        return createBuilder(baseUrl, readTimeout).build().create(ServerService.class);
+    }
+
+    private static Retrofit.Builder createBuilder(String baseUrl, long readTimeout) {
         Retrofit.Builder builder = new Retrofit.Builder();
 
         if (BuildConfig.TRUST_ANY_CERTIFICATE) {
             builder.client(UnsafeOkHttpClient.getUnsafeOkHttpClient());
         } else {
             OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder().
-                    connectTimeout( Const.CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS ).
-                    readTimeout( Const.CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS ).
-                    writeTimeout( Const.CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS );
+                    connectTimeout(Const.CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS).
+                    readTimeout(readTimeout, TimeUnit.MILLISECONDS).
+                    writeTimeout(Const.CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
             builder.client(clientBuilder.build());
         }
 

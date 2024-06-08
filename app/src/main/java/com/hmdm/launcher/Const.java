@@ -42,6 +42,7 @@ public class Const {
     public static final String EXTRA_ENABLED = "ENABLED";
 
     public static long CONNECTION_TIMEOUT = 10000;
+    public static long LONG_POLLING_READ_TIMEOUT = 300000;
     public static final String STATUS_OK = "OK";
     public static final String ORIENTATION = "ORIENTATION";
     public static final String PACKAGE_NAME = "PACKAGE_NAME";

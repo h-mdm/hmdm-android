@@ -46,4 +46,10 @@ interface IMdmApi {
      * Set a custom field to send it to the server
      */
     void setCustom(int number, String value);
+
+    // Added in library version 1.1.5
+    /**
+     * Force the configuration update
+     */
+    void forceConfigUpdate();
 }

@@ -1,8 +1,10 @@
 package org.eclipse.paho.android.service;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.hmdm.launcher.Const;
+import com.hmdm.launcher.util.RemoteLogger;
 
 public class PingDeathDetector {
     private static PingDeathDetector instance;
@@ -23,8 +25,13 @@ public class PingDeathDetector {
         lastPingTimestamp = System.currentTimeMillis();
     }
 
-    public boolean detectPingDeath() {
+    public boolean detectPingDeath(Context context) {
         Log.d(Const.LOG_TAG, "checkPingDeath(): last connect " + lastPingTimestamp + ", current time " + System.currentTimeMillis());
-        return lastPingTimestamp < System.currentTimeMillis() - 1800000;
+        boolean pingDeath = lastPingTimestamp != 0 && lastPingTimestamp < System.currentTimeMillis() - 1800000;
+        if (pingDeath) {
+            RemoteLogger.log(context, Const.LOG_DEBUG, "PingDeathDetector: lastPingTimestamp=" + lastPingTimestamp +
+                    ", now=" + System.currentTimeMillis());
+        }
+        return pingDeath;
     }
 }

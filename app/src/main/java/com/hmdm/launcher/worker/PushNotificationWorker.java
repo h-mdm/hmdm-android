@@ -53,7 +53,7 @@ public class PushNotificationWorker extends Worker {
     public static final int FIRE_PERIOD_MINS = 15;
 
     // Interval to update configuration to avoid losing device due to push failure
-    public static final long CONFIG_UPDATE_INTERVAL = 6 * 3600000l;
+    public static final long CONFIG_UPDATE_INTERVAL = 3600000l;
 
     private static final String WORK_TAG_PERIODIC = "com.hmdm.launcher.WORK_TAG_PUSH_PERIODIC";
 
@@ -96,7 +96,10 @@ public class PushNotificationWorker extends Worker {
             return doMqttWork();
         } else {
             // PUSH_OPTIONS_POLLING by default
-            return doPollingWork();
+            //return doPollingWork();
+            // Long polling is done in a related service
+            // This is just a reserve task to prevent devices from being lost just in case
+            return doLongPollingWork();
         }
     }
 
@@ -147,13 +150,22 @@ public class PushNotificationWorker extends Worker {
     }
 
     // Periodic configuration update requests
+    private Result doLongPollingWork() {
+        return forceConfigUpdateWork();
+    }
+
+    // Periodic configuration update requests
     private Result doMqttWork() {
 
-        if (PushNotificationMqttWrapper.getInstance().checkPingDeath()) {
+        if (PushNotificationMqttWrapper.getInstance().checkPingDeath(context)) {
             RemoteLogger.log(context, Const.LOG_INFO, "MQTT ping death detected, reconnecting!");
             mqttReconnect();
         }
 
+        return forceConfigUpdateWork();
+    }
+
+    private Result forceConfigUpdateWork() {
         long lastConfigUpdateTimestamp = settingsHelper.getConfigUpdateTimestamp();
         long now = System.currentTimeMillis();
         if (lastConfigUpdateTimestamp == 0) {

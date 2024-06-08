@@ -194,6 +194,8 @@
 
         <service android:name=".service.StatusControlService"/>
 
+        <service android:name=".service.PushLongPollingService"/>
+
     </application>
 
 </manifest>

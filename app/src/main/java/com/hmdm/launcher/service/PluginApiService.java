@@ -30,6 +30,7 @@ import androidx.annotation.Nullable;
 import com.hmdm.IMdmApi;
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
+import com.hmdm.launcher.helper.ConfigUpdater;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.RemoteLogItem;
 import com.hmdm.launcher.pro.ProUtils;
@@ -67,8 +68,8 @@ public class PluginApiService extends Service {
 
         @Override
         public int getVersion() {
-            // 1.1.3
-            return 113;
+            // 1.1.5
+            return 115;
         }
 
         @Override
@@ -172,6 +173,12 @@ public class PluginApiService extends Service {
                     settingsHelper.getConfig().setCustom3(value);
                     break;
             }
+        }
+
+        @Override
+        public void forceConfigUpdate() {
+            // userInteraction is set to true so the applications are also updated unrelated from the app update schedule
+            ConfigUpdater.forceConfigUpdate(PluginApiService.this, null, true);
         }
     };
 }

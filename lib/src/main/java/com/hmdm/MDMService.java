@@ -129,6 +129,23 @@ public class MDMService {
     }
 
     /**
+     * Request the configuration update by the app
+     * This method forces the application update even if the background update is scheduled
+     * Reason: this method may be called manually from a kiosk app
+     */
+    public void forceConfigUpdate() throws MDMException {
+        if (mdmApi == null) {
+            throw new MDMException(MDMError.ERROR_DISCONNECTED);
+        }
+
+        try {
+            mdmApi.forceConfigUpdate();
+        } catch (RemoteException e) {
+            // No forceConfigUpdate() method prior to 1.1.5
+        }
+    }
+
+    /**
      * Query configuration
      */
     public Bundle queryConfig() throws MDMException {

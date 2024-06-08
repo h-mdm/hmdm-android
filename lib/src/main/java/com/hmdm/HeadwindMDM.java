@@ -1,14 +1,18 @@
 package com.hmdm;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import dalvik.system.PathClassLoader;
 
 /**
  * Higher level Headwind MDM integration API incapsulating reconnection to the service and configuration update
@@ -186,6 +190,16 @@ public class HeadwindMDM {
         return version;
     }
 
+    public void forceConfigUpdate() {
+        if (mdmConnected) {
+            try {
+                mdmService.forceConfigUpdate();
+            } catch (MDMException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public boolean setCustom(int number, String value) {
         if (!mdmConnected) {
             return false;
@@ -197,6 +211,45 @@ public class HeadwindMDM {
             return false;
         }
         return true;
+    }
+
+    // Get the admin component for applications using "com.hmdm" shared user ID
+    // This component could be used to use DevicePolicyManager in those applications
+    public ComponentName getAdminComponent(Context context) {
+        // We must use the context of Device Owner
+        // Since we're using the same shared user, it should be returned without any security issues
+        Context deviceOwnerContext = null;
+        try {
+            deviceOwnerContext = context.createPackageContext(Const.PACKAGE, 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        // Android SDK is not supposed to load classes of another application
+        // However since we're using the same shared user ID (so it's the same application underhood),
+        // we can use a hack to get the required class
+        String apkName = null;
+        try {
+            apkName = context.getPackageManager().getApplicationInfo(Const.PACKAGE, 0).sourceDir;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        PathClassLoader pathClassLoader = new dalvik.system.PathClassLoader(
+                apkName,
+                ClassLoader.getSystemClassLoader());
+
+        Class adminReceiverClass = null;
+        try {
+            adminReceiverClass = Class.forName(Const.ADMIN_RECEIVER_CLASS, true, pathClassLoader);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return new ComponentName(deviceOwnerContext, adminReceiverClass);
     }
 
     /* Automatic reconnection mechanism */

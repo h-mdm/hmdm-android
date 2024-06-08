@@ -80,6 +80,9 @@ public interface ServerService {
     @GET("{project}/rest/notifications/device/{number}")
     Call<PushResponse> queryPushNotifications(@Path("project") String project, @Path("number") String number);
 
+    @GET("{project}/rest/notification/polling/{number}")
+    Call<PushResponse> queryPushLongPolling(@Path("project") String project, @Path("number") String number);
+
     @GET( "{project}/rest/plugins/devicelog/log/rules/{number}" )
     Call<RemoteLogConfigResponse> getRemoteLogConfig(@Path("project") String project, @Path("number") String number);
 

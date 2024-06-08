@@ -440,7 +440,7 @@ public class InstallUtils {
                 context,
                 sessionId,
                 intent,
-                0);
+                PendingIntent.FLAG_IMMUTABLE);
         return pendingIntent.getIntentSender();
     }
 

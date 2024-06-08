@@ -19,6 +19,7 @@ import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.pro.service.CheckForegroundAppAccessibilityService;
 import com.hmdm.launcher.pro.service.CheckForegroundApplicationService;
 import com.hmdm.launcher.pro.worker.DetailedInfoWorker;
+import com.hmdm.launcher.service.PushLongPollingService;
 import com.hmdm.launcher.service.StatusControlService;
 import com.hmdm.launcher.task.SendDeviceInfoTask;
 import com.hmdm.launcher.util.DeviceInfoProvider;
@@ -76,27 +77,40 @@ public class Initializer {
                 keepaliveTime = newKeepaliveTime;
             }
         }
-        if (BuildConfig.MQTT_SERVICE_FOREGROUND && BuildConfig.ENABLE_PUSH && pushOptions != null &&
-                (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER)
-                        || pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM))) {
-            try {
-                URL url = new URL(settingsHelper.getBaseUrl());
-                // Broadcast receivers are not allowed to bind to services
-                // Therefore we start a service, and it binds to itself using
-                // PushNotificationMqttWrapper.getInstance().connect()
-                Intent serviceStartIntent = new Intent();
-                serviceStartIntent.setClassName(context, MqttAndroidClient.SERVICE_NAME);
-                serviceStartIntent.putExtra(MqttAndroidClient.EXTRA_START_AT_BOOT, true);
-                serviceStartIntent.putExtra(MqttAndroidClient.EXTRA_DOMAIN, url.getHost());
-                serviceStartIntent.putExtra(MqttAndroidClient.EXTRA_KEEPALIVE_TIME, keepaliveTime);
-                serviceStartIntent.putExtra(MqttAndroidClient.EXTRA_PUSH_OPTIONS, pushOptions);
-                serviceStartIntent.putExtra(MqttAndroidClient.EXTRA_DEVICE_ID, settingsHelper.getDeviceId());
-                Object service = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ?
-                        context.startForegroundService(serviceStartIntent) :
+        if (BuildConfig.MQTT_SERVICE_FOREGROUND && BuildConfig.ENABLE_PUSH && pushOptions != null) {
+            if (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER)
+                    || pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM)) {
+                try {
+                    URL url = new URL(settingsHelper.getBaseUrl());
+                    // Broadcast receivers are not allowed to bind to services
+                    // Therefore we start a service, and it binds to itself using
+                    // PushNotificationMqttWrapper.getInstance().connect()
+                    Intent serviceStartIntent = new Intent();
+                    serviceStartIntent.setClassName(context, MqttAndroidClient.SERVICE_NAME);
+                    serviceStartIntent.putExtra(MqttAndroidClient.EXTRA_START_AT_BOOT, true);
+                    serviceStartIntent.putExtra(MqttAndroidClient.EXTRA_DOMAIN, url.getHost());
+                    serviceStartIntent.putExtra(MqttAndroidClient.EXTRA_KEEPALIVE_TIME, keepaliveTime);
+                    serviceStartIntent.putExtra(MqttAndroidClient.EXTRA_PUSH_OPTIONS, pushOptions);
+                    serviceStartIntent.putExtra(MqttAndroidClient.EXTRA_DEVICE_ID, settingsHelper.getDeviceId());
+                    Object service = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ?
+                            context.startForegroundService(serviceStartIntent) :
+                            context.startService(serviceStartIntent);
+                    Log.i(Const.LOG_TAG, "Starting Push service from BootReceiver");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (pushOptions.equals(ServerConfig.PUSH_OPTIONS_POLLING)) {
+                try {
+                    Intent serviceStartIntent = new Intent(context, PushLongPollingService.class);
+                    serviceStartIntent.putExtra(Const.EXTRA_ENABLED, true);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(serviceStartIntent);
+                    } else {
                         context.startService(serviceStartIntent);
-                Log.i(Const.LOG_TAG, "Starting Push service from BootReceiver");
-            } catch (Exception e) {
-                e.printStackTrace();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -204,7 +218,7 @@ public class Initializer {
             public void onAllAppInstallComplete() {
             }
         };
-        ConfigUpdater.forceConfigUpdate(context, uiNotifier);
+        ConfigUpdater.forceConfigUpdate(context, uiNotifier, false);
     }
 
     // Used by InitialSetupActivity
