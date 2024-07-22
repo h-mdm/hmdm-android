@@ -82,7 +82,12 @@ public class PushNotificationProcessor {
             // Reboot a device
             AsyncTask.execute(() -> reboot(context));
             return;
-        }
+        } else if (message.getMessageType().equals(PushMessage.TYPE_EXIT_KIOSK)) {
+            // Temporarily exit kiosk mode
+            LocalBroadcastManager.getInstance(context).
+                sendBroadcast(new Intent(Const.ACTION_EXIT_KIOSK));
+        return;
+    }
 
         // Send broadcast to all plugins
         Intent intent = new Intent(Const.INTENT_PUSH_NOTIFICATION_PREFIX + message.getMessageType());

@@ -30,6 +30,7 @@ public class Const {
     public static final String ACTION_ENABLE_SETTINGS = "ENABLE_SETTINGS";
     public static final String ACTION_PERMISSIVE_MODE = "PERMISSIVE_MODE";          // Temporary action
     public static final String ACTION_TOGGLE_PERMISSIVE = "TOGGLE_PERMISSIVE";      // Permanent action
+    public static final String ACTION_EXIT_KIOSK = "EXIT_KIOSK";
     public static final String ACTION_STOP_CONTROL = "STOP_CONTROL";
     public static final String ACTION_EXIT = "EXIT";
     public static final String ACTION_HIDE_SCREEN = "HIDE_SCREEN";

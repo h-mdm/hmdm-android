@@ -38,6 +38,7 @@ public class PushMessage {
     public static final String TYPE_PERMISSIVE_MODE = "permissiveMode";
     public static final String TYPE_RUN_COMMAND = "runCommand";
     public static final String TYPE_REBOOT = "reboot";
+    public static final String TYPE_EXIT_KIOSK = "exitKiosk";
 
     public String getMessageType() {
         return messageType;

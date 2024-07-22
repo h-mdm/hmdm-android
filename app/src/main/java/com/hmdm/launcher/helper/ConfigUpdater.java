@@ -601,7 +601,27 @@ public class ConfigUpdater {
 
             }.execute(remoteFile);
         } else {
-            Log.i(Const.LOG_TAG, "loadAndInstallFiles(): Proceed to application update");
+            Log.i(Const.LOG_TAG, "loadAndInstallFiles(): Proceed to certificate installation");
+            installCertificates();
+        }
+    }
+
+    private void installCertificates() {
+        final String certPaths = settingsHelper.getAppPreference(context.getPackageName(), "certificates");
+        if (certPaths != null) {
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    CertInstaller.installCertificatesFromFiles(context, certPaths.trim());
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void v) {
+                    checkAndUpdateApplications();
+                }
+            }.execute();
+        } else {
             checkAndUpdateApplications();
         }
     }

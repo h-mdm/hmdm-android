@@ -261,6 +261,14 @@ public class MainActivity
                         }
                     }
                     break;
+
+                case Const.ACTION_EXIT_KIOSK:
+                    ServerConfig config = settingsHelper.getConfig();
+                    if (config != null) {
+                        config.setKioskMode(false);
+                        RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Exit kiosk by admin command");
+                        showContent(config);
+                    }
             }
 
         }
@@ -410,6 +418,7 @@ public class MainActivity
         intentFilter.addAction(Const.ACTION_HIDE_SCREEN);
         intentFilter.addAction(Const.ACTION_EXIT);
         intentFilter.addAction(Const.ACTION_POLICY_VIOLATION);
+        intentFilter.addAction(Const.ACTION_EXIT_KIOSK);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilter);
     }
 
