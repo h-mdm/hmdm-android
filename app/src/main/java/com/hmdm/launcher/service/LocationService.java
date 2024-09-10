@@ -20,6 +20,7 @@
 package com.hmdm.launcher.service;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -27,6 +28,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -110,6 +112,7 @@ public class LocationService extends Service {
         locationManager = (LocationManager)this.getSystemService(LOCATION_SERVICE);
     }
 
+    @SuppressLint("WrongConstant")
     private void startAsForeground() {
         NotificationCompat.Builder builder;
 
@@ -127,7 +130,11 @@ public class LocationService extends Service {
                 .setContentText( getString( R.string.location_service_text ) )
                 .setSmallIcon( R.drawable.ic_location_service ).build();
 
-        startForeground(NOTIFICATION_ID, notification );
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
+        } else {
+            startForeground(NOTIFICATION_ID, notification);
+        }
     }
 
     private boolean requestLocationUpdates() {

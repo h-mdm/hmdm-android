@@ -19,6 +19,7 @@
 
 package com.hmdm.launcher.db;
 
+import android.annotation.SuppressLint;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -90,6 +91,7 @@ public class LogTable {
         }
     }
 
+    @SuppressLint("Range")
     public static List<RemoteLogItem> select(SQLiteDatabase db, int limit) {
         Cursor cursor = db.rawQuery( SELECT_LAST_LOGS, new String[] {
             Integer.toString(limit)

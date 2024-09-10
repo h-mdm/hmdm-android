@@ -33,7 +33,7 @@
         tools:context="com.hmdm.launcher.ui.ErrorDetailsActivity">
 
         <EditText
-            android:id="@+id/message"
+            android:id="@+id/editMessage"
             android:layout_width="match_parent"
             android:layout_height="0px"
             android:layout_weight="1"

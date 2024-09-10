@@ -45,6 +45,7 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.provider.Settings;
@@ -66,7 +67,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.app.ActivityCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -81,6 +81,7 @@ import com.hmdm.launcher.databinding.DialogAdministratorModeBinding;
 import com.hmdm.launcher.databinding.DialogEnterPasswordBinding;
 import com.hmdm.launcher.databinding.DialogFileDownloadingFailedBinding;
 import com.hmdm.launcher.databinding.DialogHistorySettingsBinding;
+import com.hmdm.launcher.databinding.DialogManageStorageBinding;
 import com.hmdm.launcher.databinding.DialogMiuiPermissionsBinding;
 import com.hmdm.launcher.databinding.DialogOverlaySettingsBinding;
 import com.hmdm.launcher.databinding.DialogPermissionsBinding;
@@ -149,6 +150,9 @@ public class MainActivity
 
     private Dialog historySettingsDialog;
     private DialogHistorySettingsBinding dialogHistorySettingsBinding;
+
+    private Dialog manageStorageDialog;
+    private DialogManageStorageBinding dialogManageStorageBinding;
 
     private Dialog miuiPermissionsDialog;
     private DialogMiuiPermissionsBinding dialogMiuiPermissionsBinding;
@@ -789,6 +793,20 @@ public class MainActivity
             }
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            int manageStorageMode = preferences.getInt(Const.PREFERENCES_MANAGE_STORAGE, -1);
+            if (manageStorageMode == -1) {
+                if (checkManageStorage()) {
+                    preferences.
+                            edit().
+                            putInt(Const.PREFERENCES_MANAGE_STORAGE, Const.PREFERENCES_ON).
+                            commit();
+                } else {
+                    return;
+                }
+            }
+        }
+
         int accessibilityService = preferences.getInt( Const.PREFERENCES_ACCESSIBILITY_SERVICE, - 1 );
         // Check the same condition as for usage stats here
         // because accessibility is used as a secondary condition when usage stats is not available
@@ -996,7 +1014,24 @@ public class MainActivity
     // Access to usage statistics is required in the Pro-version only
     private boolean checkUsageStatistics() {
         if (!ProUtils.checkUsageStatistics(this)) {
+            if (SystemUtils.autoSetUsageStatsPermission(this, getPackageName())) {
+                // Permission auto granted
+                return true;
+            }
             createAndShowHistorySettingsDialog();
+            return false;
+        }
+        return true;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    private boolean checkManageStorage() {
+        if (!Environment.isExternalStorageManager()) {
+            if (SystemUtils.autoSetStoragePermission(this, getPackageName())) {
+                // Permission auto granted
+                return true;
+            }
+            createAndShowManageStorageDialog();
             return false;
         }
         return true;
@@ -1023,6 +1058,10 @@ public class MainActivity
 
     private boolean checkAlarmWindow() {
         if (ProUtils.isPro() && !Utils.canDrawOverlays(this)) {
+            if (SystemUtils.autoSetOverlayPermission(this, getPackageName())) {
+                // Permission auto granted
+                return true;
+            }
             createAndShowOverlaySettingsDialog();
             return false;
         } else {
@@ -2012,6 +2051,46 @@ public class MainActivity
         startActivity( new Intent( Settings.ACTION_USAGE_ACCESS_SETTINGS ) );
     }
 
+    private void createAndShowManageStorageDialog() {
+        dismissDialog(manageStorageDialog);
+        manageStorageDialog = new Dialog( this );
+        dialogManageStorageBinding = DataBindingUtil.inflate(
+                LayoutInflater.from( this ),
+                R.layout.dialog_manage_storage,
+                null,
+                false );
+        manageStorageDialog.setCancelable( false );
+        manageStorageDialog.requestWindowFeature( Window.FEATURE_NO_TITLE );
+
+        manageStorageDialog.setContentView( dialogManageStorageBinding.getRoot() );
+        manageStorageDialog.show();
+    }
+
+    public void storageWithoutPermission(View view) {
+        dismissDialog(manageStorageDialog);
+
+        preferences.
+                edit().
+                putInt( Const.PREFERENCES_MANAGE_STORAGE, Const.PREFERENCES_OFF ).
+                commit();
+        checkAndStartLauncher();
+    }
+
+    public void continueStorage(View view) {
+        dismissDialog(manageStorageDialog);
+        try {
+            Intent intent = new Intent();
+            intent.setAction(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+            Uri uri = Uri.fromParts("package", this.getPackageName(), null);
+            intent.setData(uri);
+            startActivity(intent);
+        }catch (Exception e){
+            Intent intent = new Intent();
+            intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+            startActivity(intent);
+        }
+    }
+
     private void createAndShowOverlaySettingsDialog() {
         dismissDialog(overlaySettingsDialog);
         overlaySettingsDialog = new Dialog( this );
@@ -2161,16 +2240,22 @@ public class MainActivity
         }
 
         if (preferences.getInt(Const.PREFERENCES_DISABLE_LOCATION, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
-            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                    checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+            if ((Build.VERSION.SDK_INT < Build.VERSION_CODES.R && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) ||
+                (Build.VERSION.SDK_INT < Build.VERSION_CODES.R && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) ||
                     checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
 
                 if (startSettings) {
-                    requestPermissions(new String[]{
-                            Manifest.permission.READ_EXTERNAL_STORAGE,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                            Manifest.permission.READ_PHONE_STATE
-                    }, PERMISSIONS_REQUEST);
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                        requestPermissions(new String[]{
+                                Manifest.permission.READ_EXTERNAL_STORAGE,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                Manifest.permission.READ_PHONE_STATE
+                        }, PERMISSIONS_REQUEST);
+                    } else {
+                        requestPermissions(new String[]{
+                                Manifest.permission.READ_PHONE_STATE
+                        }, PERMISSIONS_REQUEST);
+                    }
                 }
                 return false;
             } else {
@@ -2185,8 +2270,8 @@ public class MainActivity
     // So it's implemented in a separate method
     @RequiresApi(api = Build.VERSION_CODES.M)
     private boolean checkLocationPermissions(boolean startSettings) {
-        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+        if ((Build.VERSION.SDK_INT < Build.VERSION_CODES.R && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) ||
+                (Build.VERSION.SDK_INT < Build.VERSION_CODES.R && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) ||
                 checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
                 (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) ||
                 checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
@@ -2196,8 +2281,8 @@ public class MainActivity
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     try {
                         activeModeLocation = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                                checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                                !ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION);
+                                checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED /* &&
+                                !ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)*/;
                     } catch (Exception e) {
                         // On some older models:
                         // java.lang.IllegalArgumentException
@@ -2234,13 +2319,23 @@ public class MainActivity
                         e.printStackTrace();
                     }
                 } else {
-                    requestPermissions(new String[]{
-                            Manifest.permission.READ_EXTERNAL_STORAGE,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_BACKGROUND_LOCATION,
-                            Manifest.permission.READ_PHONE_STATE
-                    }, PERMISSIONS_REQUEST);
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                        requestPermissions(new String[]{
+                                Manifest.permission.READ_EXTERNAL_STORAGE,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+                                Manifest.permission.READ_PHONE_STATE
+                        }, PERMISSIONS_REQUEST);
+                    } else {
+                        requestPermissions(new String[]{
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+// This location can't be requested here: the dialog fails to show when we use SDK 30+
+// https://developer.android.com/develop/sensors-and-location/location/permissions#request-location-access-runtime
+//                                Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+                                Manifest.permission.READ_PHONE_STATE
+                        }, PERMISSIONS_REQUEST);
+                    }
                 }
             }
             return false;

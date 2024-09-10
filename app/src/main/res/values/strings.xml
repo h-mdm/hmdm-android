@@ -51,6 +51,7 @@
     <string name="main_activity_update_config">Requesting configuration file from server</string>
     <string name="main_activity_applications_update">Updating applications</string>
     <string name="dialog_overlay_settings_title">Please allow the app to draw over other windows.\n\nThis option aids the blocking of unwanted apps, and enables emergency unlocking of the kiosk mode.\n\nTap \"Continue\" to open the settings. Find the \"%s\" item, grant the permission, then tap \"Back\".</string>
+    <string name="dialog_manage_storage_title">Please allow the app to manage storage.\n\nThis option allows Headwind MDM to manage files on your device.</string>
     <string name="dialog_history_settings_title">Please allow the app to access usage data.\n\nThis option enables control of apps and settings.\n\nThis option may cause faster battery drain. To save battery, skip this option (use accessibility services or kiosk mode instead).\n\nTap \"Continue\" to open the settings. Find the \"%s\" item, grant the permission, then tap \"Back\".</string>
     <string name="dialog_history_settings_continue">Continue</string>
     <string name="dialog_history_settings_skip">Skip</string>

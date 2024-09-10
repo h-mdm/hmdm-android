@@ -555,11 +555,14 @@ public class Utils {
 
         try {
             if (lock == null || !lock) {
+                Log.d(Const.LOG_TAG, "Unlocking volume");
                 devicePolicyManager.clearUserRestriction(adminComponentName, UserManager.DISALLOW_ADJUST_VOLUME);
             } else {
+                Log.d(Const.LOG_TAG, "Locking volume");
                 devicePolicyManager.addUserRestriction(adminComponentName, UserManager.DISALLOW_ADJUST_VOLUME);
             }
         } catch (Exception e) {
+            Log.w(Const.LOG_TAG, "Failed to lock/unlock volume: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -586,6 +589,7 @@ public class Utils {
             }
             return true;
         } catch (Exception e) {
+            Log.w(Const.LOG_TAG, "Failed to set volume: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

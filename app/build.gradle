@@ -30,20 +30,25 @@ repositories {
 }
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 34
     defaultConfig {
         applicationId "com.hmdm.launcher"
         minSdkVersion 16
         // To change to 30, file access should be updated: https://developer.android.com/training/data-storage/manage-all-files
         // To avoid extra step during initial setup, let's keep the target SDK version as 29 as long as possible
         //noinspection ExpiredTargetSdkVersion
-        targetSdkVersion 29
-        versionCode 14280
-        versionName "5.28"
+        targetSdkVersion 34
+        versionCode 15010
+        versionName "6.01"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true
         }
+        buildFeatures {
+            aidl true
+            buildConfig = true
+        }
+        namespace 'com.hmdm.launcher'
         multiDexEnabled true
 
         // Default URL of the web panel (scheme + host!)
@@ -78,7 +83,7 @@ android {
         buildConfigField("Boolean", "ANR_WATCHDOG", "false")
         // If set to true, the server URL will be requested in UI in non-MDM mode even if it is hardcoded in build.gradle
         // See the related "if" statement in MainActivity.java
-        buildConfigField("Boolean", "REQUEST_SERVER_URL", "false")
+        buildConfigField("Boolean", "REQUEST_SERVER_URL", "true")
         // Set to true to debug admin receiver via remote logging
         buildConfigField("Boolean", "DEVICE_ADMIN_DEBUG", "false")
         // Set to true to enable kiosk mode even if the app can't draw over other windows
@@ -163,7 +168,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
 
     // Worker
-    implementation 'androidx.work:work-runtime:2.5.0'
+    implementation 'androidx.work:work-runtime:2.9.1'
 
     implementation('com.journeyapps:zxing-android-embedded:4.1.0') { transitive = false }
     implementation 'com.google.zxing:core:3.3.0'

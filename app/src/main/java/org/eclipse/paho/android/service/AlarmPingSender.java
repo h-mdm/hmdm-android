@@ -115,10 +115,14 @@ class AlarmPingSender implements MqttPingSender {
 			// In SDK 23 and above, dosing will prevent setExact, setExactAndAllowWhileIdle will force
 			// the device to run this task whilst dosing.
 			Log.d(TAG, "Alarm schedule using setExactAndAllowWhileIdle, next: " + delayInMilliseconds);
-			alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, nextAlarmInMilliseconds,
-					pendingIntent);
+			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()) {
+				alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, nextAlarmInMilliseconds,
+						pendingIntent);
+			} else {
+				Log.w(TAG, "Failed to alarm schedule: no permission!");
+			}
 		} else if (Build.VERSION.SDK_INT >= 19) {
-			Log.d(TAG, "Alarm scheule using setExact, delay: " + delayInMilliseconds);
+			Log.d(TAG, "Alarm schedule using setExact, delay: " + delayInMilliseconds);
 			alarmManager.setExact(AlarmManager.RTC_WAKEUP, nextAlarmInMilliseconds,
 					pendingIntent);
 		} else {

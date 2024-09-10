@@ -1,5 +1,6 @@
 package com.hmdm.launcher.service;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -8,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
@@ -158,6 +160,7 @@ public class PushLongPollingService extends Service {
     };
 
 
+    @SuppressLint("WrongConstant")
     private void startAsForeground() {
         NotificationCompat.Builder builder;
 
@@ -175,7 +178,11 @@ public class PushLongPollingService extends Service {
                 .setContentText(getString(R.string.mqtt_service_text))
                 .setSmallIcon(R.drawable.ic_mqtt_service).build();
 
-        startForeground(NOTIFICATION_ID, notification);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+        } else {
+            startForeground(NOTIFICATION_ID, notification);
+        }
     }
 
     @Override

@@ -48,6 +48,7 @@
     <string name="main_activity_update_config">Solicitando archivo de configuracion desde el servidor</string>
     <string name="main_activity_applications_update">Actualizando aplicaciones</string>
     <string name="dialog_overlay_settings_title">Permita que la aplicación se dibuje sobre otras ventanas.\n\nEsta opción ayuda a bloquear mejor las aplicaciones no deseadas y habilita el desbloqueo de emergencia del modo quiosco.\n\nToca \"Continuar\" para abrir una hoja de configuración. Busque el elemento \"%s\", conceda el permiso y toque \"Atrás\".</string>
+    <string name="dialog_manage_storage_title">Permita que la aplicación administre el almacenamiento.\n\nEsta opción permite que Headwind MDM administre archivos en su dispositivo.</string>
     <string name="dialog_history_settings_title">Permita que la aplicación acceda a los datos de uso.\n\nEsta opción habilita el control de aplicaciones y configuraciones.\n\nEsta opción puede hacer que la batería se agote más rápido. Para ahorrar batería, omita esta opción (utilice los servicios de accesibilidad o el modo quiosco).\n\nToca \"Continuar\" para abrir una hoja de configuración. Busque el elemento \"%s\", conceda el permiso y toque \"Atrás\".</string>
     <string name="dialog_history_settings_continue">Continuar</string>
     <string name="dialog_history_settings_skip">Omitir</string>

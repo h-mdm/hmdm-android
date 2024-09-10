@@ -46,6 +46,7 @@
     <string name="main_activity_update_config">طلب ملف الاعدادات من الخادم</string>
     <string name="main_activity_applications_update">تحديث التطبيقات</string>
     <string name="dialog_overlay_settings_title">يرجى السماح للتطبيق بالرسم فوق النوافذ الأخرى.\n\nيساعد هذا الخيار في حظر التطبيقات غير المرغوب فيها بشكل أفضل ، ويتيح فتح وضع الكشك في حالات الطوارئ.\n\nانقر فوق متابعة لفتح ورقة الإعدادات. ابحث عن عنصر %s ، وامنح الإذن ، ثم انقر فوق رجوع.</string>
+    <string name="dialog_manage_storage_title">يرجى السماح للتطبيق بإدارة التخزين.\n\n يسمح هذا الخيار لتطبيق Headwind MDM بإدارة الملفات على جهازك.</string>
     <string name="dialog_history_settings_title">يرجى السماح للتطبيق بالوصول إلى بيانات الاستخدام.\n\n يتيح هذا الخيار التحكم في التطبيقات والإعدادات.\n\nقد يتسبب هذا الخيار في استنزاف أسرع للبطارية. لحفظ البطارية ، تخطي هذا الخيار (استخدم خدمات إمكانية الوصول أو وضع الكشك بدلاً من ذلك).\n\nانقر فوق متابعة لفتح ورقة الإعدادات. ابحث عن عنصر %s ، وامنح الإذن ، ثم انقر فوق رجوع.\n\n</string>
     <string name="dialog_history_settings_continue">استمر</string>
     <string name="dialog_history_settings_skip">تخطى</string>

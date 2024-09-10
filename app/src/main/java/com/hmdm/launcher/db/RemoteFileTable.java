@@ -19,6 +19,7 @@
 
 package com.hmdm.launcher.db;
 
+import android.annotation.SuppressLint;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -70,6 +71,7 @@ public class RemoteFileTable {
         }
     }
 
+    @SuppressLint("Range")
     public static RemoteFile selectByPath(SQLiteDatabase db, String path) {
         Cursor cursor = db.rawQuery(SELECT_FILE_BY_PATH, new String[] { path });
 

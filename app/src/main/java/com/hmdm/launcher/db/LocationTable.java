@@ -19,6 +19,7 @@
 
 package com.hmdm.launcher.db;
 
+import android.annotation.SuppressLint;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -58,6 +59,7 @@ public class LocationTable {
             this.lon = location.getLongitude();
         }
 
+        @SuppressLint("Range")
         public Location(Cursor cursor) {
             _id = cursor.getLong(cursor.getColumnIndex("_id"));
             ts = cursor.getLong(cursor.getColumnIndex("ts"));

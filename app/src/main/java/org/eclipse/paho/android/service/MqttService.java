@@ -24,6 +24,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ServiceInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -720,6 +721,7 @@ public class MqttService extends Service implements MqttTraceHandler {
     return START_STICKY;
   }
 
+    @SuppressLint("WrongConstant")
     private void startAsForeground() {
         NotificationCompat.Builder builder;
 
@@ -737,7 +739,11 @@ public class MqttService extends Service implements MqttTraceHandler {
                 .setContentText(getString(R.string.mqtt_service_text))
                 .setSmallIcon(R.drawable.ic_mqtt_service).build();
 
-        startForeground(NOTIFICATION_ID, notification );
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+        } else {
+            startForeground(NOTIFICATION_ID, notification);
+        }
     }
 
 

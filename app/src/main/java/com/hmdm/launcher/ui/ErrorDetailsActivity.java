@@ -37,7 +37,7 @@ public class ErrorDetailsActivity extends AppCompatActivity {
         binding.resetButton.setVisibility(resetEnabled ? View.VISIBLE : View.GONE);
 
         String message = intent.getStringExtra(MESSAGE);
-        binding.message.setText(message);
+        binding.editMessage.setText(message);
     }
 
     public void resetClicked(View view) {

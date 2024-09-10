@@ -1,5 +1,6 @@
 package com.hmdm.launcher.helper;
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -899,6 +900,7 @@ public class ConfigUpdater {
     }
 
 
+    @SuppressLint("WrongConstant,UnspecifiedRegisterReceiverFlag")
     private void registerAppInstallReceiver(final String appPermissionStrategy) {
         // Here we handle the completion of the silent app installation in the device owner mode
         // These intents are not delivered to LocalBroadcastManager
@@ -940,18 +942,17 @@ public class ConfigUpdater {
                                         pendingInstallations.remove(packageName);
                                         InstallUtils.deleteTempApk(file);
                                     }
-                                    if (Utils.isDeviceOwner(context)) {
+                                    if (BuildConfig.SYSTEM_PRIVILEGES || Utils.isDeviceOwner(context)) {
                                         // Always grant all dangerous rights to the app
-                                        // TODO: in the future, the rights must be configurable on the server
                                         Utils.autoGrantRequestedPermissions(context, packageName,
                                                 appPermissionStrategy, false);
-                                    }
-                                    if (BuildConfig.SYSTEM_PRIVILEGES && packageName.equals(Const.APUPPET_PACKAGE_NAME)) {
-                                        // Automatically grant required permissions to aPuppet if we can
-                                        SystemUtils.autoSetAccessibilityPermission(context,
-                                                Const.APUPPET_PACKAGE_NAME, Const.APUPPET_SERVICE_CLASS_NAME);
-                                        SystemUtils.autoSetOverlayPermission(context,
-                                                Const.APUPPET_PACKAGE_NAME);
+                                        if (packageName.equals(Const.APUPPET_PACKAGE_NAME)) {
+                                            // Automatically grant required permissions to aPuppet if we can
+                                            SystemUtils.autoSetAccessibilityPermission(context,
+                                                    Const.APUPPET_PACKAGE_NAME, Const.APUPPET_SERVICE_CLASS_NAME);
+                                            SystemUtils.autoSetOverlayPermission(context,
+                                                    Const.APUPPET_PACKAGE_NAME);
+                                        }
                                     }
                                     if (uiNotifier != null) {
                                         uiNotifier.onAppInstallComplete(packageName);
@@ -989,7 +990,11 @@ public class ConfigUpdater {
 
         try {
             Log.d(Const.LOG_TAG, "Install completion receiver registered");
-            context.registerReceiver(appInstallReceiver, new IntentFilter(Const.ACTION_INSTALL_COMPLETE));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.registerReceiver(appInstallReceiver, new IntentFilter(Const.ACTION_INSTALL_COMPLETE), Context.RECEIVER_EXPORTED);
+            } else {
+                context.registerReceiver(appInstallReceiver, new IntentFilter(Const.ACTION_INSTALL_COMPLETE));
+            }
         } catch (Exception e) {
             // On earlier Android versions (4, 5):
             // Fatal Exception: android.content.ReceiverCallNotAllowedException

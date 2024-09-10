@@ -48,6 +48,7 @@
     <string name="main_activity_update_config">Żądanie pliku konfiguracyjnego z serwera</string>
     <string name="main_activity_applications_update">Aktualizowanie aplikacji</string>
     <string name="dialog_overlay_settings_title">Zezwól tej aplikacji na wyświetlanie nad innymi aplikacjami.\n\nTo ustawienie pomaga lepiej blokować niechciane aplikacje i włącza awaryjną deaktywację trybu kiosk.\n\nNaciśnij \"Kontynuuj\", aby otworzyć ekran ustawień. Znajdź element \"%s\", udziel uprawnień i naciśnij przycisk \"Wstecz\".</string>
+    <string name="dialog_manage_storage_title">Zezwól aplikacji na zarządzanie pamięcią masową.\n\nTa opcja umożliwia Headwind MDM zarządzanie plikami na Twoim urządzeniu.</string>
     <string name="dialog_history_settings_title">Zezwol tej aplikacji na dostęp do danych o zużyciu.\n\nTo ustawienie włącza kontrolę aplikacji i ustawień.\n\nMoże powodować zwiększone zużycie baterii. Aby ją oszczędzać, pomiń to ustawienie i użyj ułatwień dostępu lub trybu kiosk.\n\nNaciśnij \"Kontynuuj\", aby otworzyć ekran ustawień. Znajdź element \"%s\", udziel uprawnień i naciśnij przycisk \"Wstecz\".</string>
     <string name="dialog_history_settings_continue">Kontynuuj</string>
     <string name="dialog_history_settings_skip">Pomiń</string>

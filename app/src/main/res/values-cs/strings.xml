@@ -48,6 +48,7 @@
     <string name="main_activity_update_config">Získávám konfigurační soubor ze serveru</string>
     <string name="main_activity_applications_update">Aktualizace aplikací</string>
     <string name="dialog_overlay_settings_title">Prosím povolte aplikaci vykreslování přes ostatní okna.\n\nToto nastavení pomáhá lépe blokovat nežádoucí aplikace a umožní nouzové odemykání kiosku.\n\nVyberte \"Pokračovat\" pro otevření nastavení. Vyberte položku \"%s\" a povolte oprávnění, poté se vraťte.</string>
+    <string name="dialog_manage_storage_title">Povolte aplikaci spravovat úložiště.\n\nTato možnost umožňuje Headwind MDM spravovat soubory ve vašem zařízení.</string>
     <string name="dialog_history_settings_title">Prosím povolte aplikaci přístup k diagnostickým datům.\n\nToto nastavení pomáhá k ovládání nastavení a aplikací.\n\nToto nastavení může způsobit rychlejší vybití baterie. Pokud chcete šetřit baterii, toto nastavení přeskočte (použijte kiosk nebo nastavení přístupnosti).\n\nVyberte \"Pokračovat\" pro otevření nastavení. Vyberte položku \"%s\" a povolte oprávnění, poté se vraťte.</string>
     <string name="dialog_history_settings_continue">Pokračovat</string>
     <string name="dialog_history_settings_skip">Přeskočit</string>

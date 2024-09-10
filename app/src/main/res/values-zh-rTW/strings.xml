@@ -48,6 +48,7 @@
 	<string name="main_activity_update_config">從服務器請求配置文件</string>
 	<string name="main_activity_applications_update">更新應用程序</string>
 	<string name="dialog_overlay_settings_title">請允許應用程序在其他窗口上繪製。\n\n此選項有助於更好地阻止不需要的應用程序，並啟用自助服務終端模式的緊急解鎖。\n\n點按“繼續”以打開設置表。 找到\"%s\" 項，授予權限，然後點擊\"返回\"。</string>
+	<string name="dialog_manage_storage_title">請允許應用程式管理儲存。\n\n此選項可讓 Headwind MDM 管理您裝置上的檔案。</string>
 	<string name="dialog_history_settings_title">請允許該應用訪問使用數據。\n\n此選項啟用對應用程序和設置的控制。\n\n此選項可能會導致更快的電池消耗。 要節省電池電量，請跳過此選項（改用無障礙服務或信息亭模式）。\n\n點按“繼續”以打開設置表。 找到\"%s\" 項，授予權限，然後點擊\"返回\"。</string>
 	<string name="dialog_history_settings_continue">繼續</string>
 	<string name="dialog_history_settings_skip">跳下一步</string>

@@ -15,6 +15,7 @@
  */
 package org.eclipse.paho.android.service;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -328,6 +329,7 @@ class DatabaseMessageStore implements MessageStore {
 			}
 
 			@Override
+			@SuppressLint("Range")
 			public StoredMessage next() {
 				String messageId = c.getString(c
 						.getColumnIndex(MqttServiceConstants.MESSAGE_ID));

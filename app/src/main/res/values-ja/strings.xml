@@ -48,6 +48,7 @@
     <string name="main_activity_update_config">サーバーから設定ファイルをリクエストしています</string>
     <string name="main_activity_applications_update">アプリケーションの更新</string>
     <string name="dialog_overlay_settings_title">アプリが他のウィンドウの上に描画できるようにしてください。\n\nこのオプションは、不要なアプリをより効果的にブロックし、キオスクモードの緊急ロック解除を可能にします。\n\n\"続行\" をタップして設定を開きますシート。 \"%s\" アイテムを見つけて許可を与え、\"戻る\" をタップしてください。</string>
+    <string name="dialog_manage_storage_title">アプリにストレージの管理を許可してください。\n\nこのオプションにより、Headwind MDM はデバイス上のファイルを管理できるようになります。</string>
     <string name="dialog_history_settings_title">アプリが使用状況データにアクセスできるようにしてください。\n\nこのオプションにより、アプリと設定の制御が可能になります。\n\nこのオプションにより、バッテリーの消耗が早くなる可能性があります。バッテリーを節約するには、このオプションをスキップしてください (代わりにアクセシビリティサービスまたはキオスクモードを使用してください)。\n\n \"続行\" をタップして設定シートを開きます。 \"%s\" アイテムを見つけて権限を与え、\"戻る\" をタップしてください。</string>
     <string name="dialog_history_settings_continue">続ける</string>
     <string name="dialog_history_settings_skip">スキップ</string>

@@ -1,11 +1,13 @@
 package com.hmdm;
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 
@@ -80,6 +82,7 @@ public class HeadwindMDM {
      * @param eventHandler
      * @return true if Headwind MDM exists, false otherwise
      */
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     public boolean connect(final Context context, final EventHandler eventHandler) {
         mdmService = MDMService.getInstance();
         this.eventHandler = eventHandler;
@@ -94,7 +97,12 @@ public class HeadwindMDM {
         if (!wasConnected) {
             // We register the receiver only once
             // so connect() method can be called multiple times
-            context.registerReceiver(configUpdateReceiver, new IntentFilter(Const.NOTIFICATION_CONFIG_UPDATED));
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.registerReceiver(configUpdateReceiver, new IntentFilter(Const.NOTIFICATION_CONFIG_UPDATED), Context.RECEIVER_EXPORTED);
+            } else {
+                context.registerReceiver(configUpdateReceiver, new IntentFilter(Const.NOTIFICATION_CONFIG_UPDATED));
+            }
         }
 
         mustRun = true;

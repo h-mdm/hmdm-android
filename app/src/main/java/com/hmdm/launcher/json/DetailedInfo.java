@@ -19,6 +19,7 @@
 
 package com.hmdm.launcher.json;
 
+import android.annotation.SuppressLint;
 import android.database.Cursor;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -40,6 +41,7 @@ public class DetailedInfo {
     public DetailedInfo() {
     }
 
+    @SuppressLint("Range")
     public DetailedInfo(Cursor cursor) {
         _id = cursor.getLong(cursor.getColumnIndex("_id"));
         ts = cursor.getLong(cursor.getColumnIndex("ts"));

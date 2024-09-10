@@ -151,8 +151,28 @@ public class SystemUtils {
                 Settings.Secure.ACCESSIBILITY_ENABLED, "1");
     }
 
+    static final int OP_WRITE_SETTINGS = 23;
+    static final int OP_SYSTEM_ALERT_WINDOW = 24;
+    static final int APP_OP_GET_USAGE_STATS = 43;
+    static final int OP_MANAGE_EXTERNAL_STORAGE = 92;
+
     @TargetApi(Build.VERSION_CODES.KITKAT)
-    public static void autoSetOverlayPermission(Context context, String packageName) {
+    public static boolean autoSetOverlayPermission(Context context, String packageName) {
+        return autoSetPermission(context, packageName, OP_SYSTEM_ALERT_WINDOW, "Overlay");
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    public static boolean autoSetUsageStatsPermission(Context context, String packageName) {
+        return autoSetPermission(context, packageName, APP_OP_GET_USAGE_STATS, "Usage history");
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    public static boolean autoSetStoragePermission(Context context, String packageName) {
+        return autoSetPermission(context, packageName, OP_MANAGE_EXTERNAL_STORAGE, "Manage storage");
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    public static boolean autoSetPermission(Context context, String packageName, int permission, String permText) {
         PackageManager packageManager = context.getPackageManager();
         int uid = 0;
         try {
@@ -160,21 +180,22 @@ public class SystemUtils {
             uid = applicationInfo.uid;
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
-            return;
+            return false;
         }
 
         AppOpsManager appOpsManager = (AppOpsManager)context.getSystemService(Context.APP_OPS_SERVICE);
-        final int OP_SYSTEM_ALERT_WINDOW = 24;
 
         // src/com/android/settings/applications/DrawOverlayDetails.java
         // See method: void setCanDrawOverlay(boolean newState)
         try {
             Class clazz = AppOpsManager.class;
             Method method = clazz.getDeclaredMethod("setMode", int.class, int.class, String.class, int.class);
-            method.invoke(appOpsManager, OP_SYSTEM_ALERT_WINDOW, uid, packageName, AppOpsManager.MODE_ALLOWED);
-            Log.d(Const.LOG_TAG, "Overlay permission granted to " + packageName);
+            method.invoke(appOpsManager, permission, uid, packageName, AppOpsManager.MODE_ALLOWED);
+            Log.d(Const.LOG_TAG, permText + " permission granted to " + packageName);
+            return true;
         } catch (Exception e) {
             Log.e(Const.LOG_TAG, Log.getStackTraceString(e));
+            return false;
         }
     }
 }
