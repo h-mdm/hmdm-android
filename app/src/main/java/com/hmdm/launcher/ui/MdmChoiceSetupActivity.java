@@ -1,5 +1,7 @@
 package com.hmdm.launcher.ui;
 
+import static android.app.admin.DevicePolicyManager.EXTRA_PROVISIONING_MODE;
+
 import android.app.Dialog;
 import android.app.admin.DevicePolicyManager;
 import android.content.Intent;
@@ -24,12 +26,9 @@ import com.hmdm.launcher.R;
 import com.hmdm.launcher.databinding.ActivityMdmChoiceBinding;
 import com.hmdm.launcher.databinding.DialogEnterDeviceIdBinding;
 import com.hmdm.launcher.helper.SettingsHelper;
-import com.hmdm.launcher.util.DeviceInfoProvider;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static android.app.admin.DevicePolicyManager.EXTRA_PROVISIONING_MODE;
 
 public class MdmChoiceSetupActivity extends AppCompatActivity {
     private ActivityMdmChoiceBinding binding;
@@ -71,7 +70,8 @@ public class MdmChoiceSetupActivity extends AppCompatActivity {
             } else if (BuildConfig.DEVICE_ID_CHOICE.equals("serial") || "serial".equals(deviceIdUse)) {
                 deviceId = intent.getStringExtra(DevicePolicyManager.EXTRA_PROVISIONING_SERIAL_NUMBER);
             } else {
-                displayEnterDeviceIdDialog();
+                displayEnterDeviceIdDialog(intent.getStringExtra(DevicePolicyManager.EXTRA_PROVISIONING_IMEI),
+                        intent.getStringExtra(DevicePolicyManager.EXTRA_PROVISIONING_SERIAL_NUMBER));
                 return;
             }
             settingsHelper.setDeviceId(deviceId);
@@ -91,7 +91,7 @@ public class MdmChoiceSetupActivity extends AppCompatActivity {
         finish();
     }
 
-    protected void displayEnterDeviceIdDialog() {
+    protected void displayEnterDeviceIdDialog(String imei, String serial) {
         enterDeviceIdDialog = new Dialog(this);
         enterDeviceIdDialogBinding = DataBindingUtil.inflate(
                 LayoutInflater.from( this ),
@@ -112,11 +112,9 @@ public class MdmChoiceSetupActivity extends AppCompatActivity {
 
         // Suggest variants to choose the device ID: IMEI or serial
         List<String> variantsList = new ArrayList<>();
-        String imei = DeviceInfoProvider.getImei(this);
         if (imei != null) {
             variantsList.add(imei);
         }
-        String serial = DeviceInfoProvider.getSerialNumber();
         if (serial != null && !serial.equals(Build.UNKNOWN)) {
             variantsList.add(serial);
         }

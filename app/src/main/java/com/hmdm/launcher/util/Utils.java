@@ -77,6 +77,35 @@ public class Utils {
         return BuildConfig.FLAVOR == null || BuildConfig.FLAVOR.equals("") ? "opensource" : BuildConfig.FLAVOR;
     }
 
+    // Automatically grant permission to get phone state (for IMEI and serial)
+    @TargetApi(Build.VERSION_CODES.M)
+    public static boolean autoGrantPhonePermission(Context context) {
+        try {
+            DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(
+                    Context.DEVICE_POLICY_SERVICE);
+            ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+
+            if (devicePolicyManager.getPermissionGrantState(adminComponentName,
+                    context.getPackageName(), Manifest.permission.READ_PHONE_STATE) != DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED) {
+                boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
+                        context.getPackageName(), Manifest.permission.READ_PHONE_STATE, DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
+                if (!success) {
+                    return false;
+                }
+            }
+        } catch (NoSuchMethodError e) {
+            // This exception is raised on Android 5.1
+            e.printStackTrace();
+            return false;
+        } catch (/* SecurityException */ Exception e) {
+            // No active admin ComponentInfo (not sure why could that happen)
+            e.printStackTrace();
+            return false;
+        }
+        Log.i(Const.LOG_TAG, "READ_PHONE_STATE automatically granted");
+        return true;
+    }
+
     // Automatically get dangerous permissions
     // Notice: default (null) app permission strategy is "Grant all"
     @TargetApi(Build.VERSION_CODES.M)

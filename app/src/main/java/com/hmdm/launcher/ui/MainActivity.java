@@ -962,6 +962,7 @@ public class MainActivity
             createAndShowServerDialog(false, settingsHelper.getBaseUrl(), settingsHelper.getServerProject());
         } else if ( settingsHelper.getDeviceId().length() == 0 ) {
             Log.d(Const.LOG_TAG, "Device ID is empty");
+            Utils.autoGrantPhonePermission(this);
             if (!SystemUtils.autoSetDeviceId(this)) {
                 createAndShowEnterDeviceIdDialog(false, null);
             } else {

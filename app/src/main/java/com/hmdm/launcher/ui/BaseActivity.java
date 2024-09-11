@@ -114,6 +114,7 @@ public class BaseActivity extends AppCompatActivity {
         // if it's bound to IMEI, it becomes difficult to replace the device
         List<String> variantsList = new ArrayList<>();
         if (!BuildConfig.DEVICE_ID_CHOICE.equals("user")) {
+            Utils.autoGrantPhonePermission(this);
             String imei = DeviceInfoProvider.getImei(this);
             if (imei != null) {
                 variantsList.add(imei);
