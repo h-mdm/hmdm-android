@@ -356,7 +356,11 @@ public class Utils {
     public static boolean factoryReset(Context context) {
         try {
             DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
-            dpm.wipeData(0);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                dpm.wipeData(0);
+            } else {
+                dpm.wipeDevice(0);
+            }
             return true;
         } catch (Exception e) {
             return false;
