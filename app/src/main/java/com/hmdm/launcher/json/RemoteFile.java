@@ -27,11 +27,11 @@ public class RemoteFile {
     @JsonIgnore
     private long _id;
 
-    private long lastUpdate;
     private String url;
+    private String path;
+    private long lastUpdate;
     private String checksum;
     private boolean remove;
-    private String path;
     private String description;
     private boolean varContent;
 

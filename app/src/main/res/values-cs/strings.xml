@@ -20,6 +20,7 @@
 <resources>
     <string name="admin_title">Administrátor</string>
     <string name="install_error">Chyba instalace</string>
+    <string name="file_create_error">Chyba při vytváření souboru</string>
     <string name="dialog_enter_device_id_error">ID není registrováno na %s. Získejte ID ze záložky \"Zařízení\" admin panelu.</string>
     <string name="dialog_enter_device_id_qrcode">QR kód</string>
     <string name="dialog_enter_device_id_variants">Varianty</string>

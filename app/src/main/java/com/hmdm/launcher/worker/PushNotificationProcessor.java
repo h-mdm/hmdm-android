@@ -21,6 +21,7 @@ package com.hmdm.launcher.worker;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
@@ -28,7 +29,10 @@ import android.util.Log;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.hmdm.launcher.Const;
+import com.hmdm.launcher.db.DatabaseHelper;
+import com.hmdm.launcher.db.DownloadTable;
 import com.hmdm.launcher.helper.ConfigUpdater;
+import com.hmdm.launcher.json.Download;
 import com.hmdm.launcher.json.PushMessage;
 import com.hmdm.launcher.util.InstallUtils;
 import com.hmdm.launcher.util.RemoteLogger;
@@ -39,6 +43,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.List;
 
 public class PushNotificationProcessor {
     public static void process(PushMessage message, Context context) {
@@ -86,8 +91,12 @@ public class PushNotificationProcessor {
             // Temporarily exit kiosk mode
             LocalBroadcastManager.getInstance(context).
                 sendBroadcast(new Intent(Const.ACTION_EXIT_KIOSK));
-        return;
-    }
+            return;
+        } else if (message.getMessageType().equals(PushMessage.TYPE_CLEAR_DOWNLOADS)) {
+            // Clear download history
+            AsyncTask.execute(() -> clearDownloads(context));
+            return;
+        }
 
         // Send broadcast to all plugins
         Intent intent = new Intent(Const.INTENT_PUSH_NOTIFICATION_PREFIX + message.getMessageType());
@@ -270,5 +279,21 @@ public class PushNotificationProcessor {
         } else {
             RemoteLogger.log(context, Const.LOG_WARN, "Reboot failed: no permissions");
         }
+    }
+
+    private static void clearDownloads(Context context) {
+        RemoteLogger.log(context, Const.LOG_WARN, "Clear download history by a Push message");
+        DatabaseHelper dbHelper = DatabaseHelper.instance(context);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        List<Download> downloads = DownloadTable.selectAll(db);
+        for (Download d: downloads) {
+            File file = new File(d.getPath());
+            try {
+                file.delete();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        DownloadTable.deleteAll(db);
     }
 }

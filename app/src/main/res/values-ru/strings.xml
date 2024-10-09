@@ -20,6 +20,7 @@
 <resources>
     <string name="admin_title">Администратор</string>
     <string name="install_error">Ошибка установки</string>
+    <string name="file_create_error">Ошибка создания файла</string>
     <string name="dialog_enter_device_id_error">Этот ID не зарегистрирован на сервере %s, найдите ID на сервере в разделе \"Устройства\".</string>
     <string name="dialog_enter_device_id_qrcode">QR код</string>
     <string name="dialog_enter_device_id_variants">Варианты</string>

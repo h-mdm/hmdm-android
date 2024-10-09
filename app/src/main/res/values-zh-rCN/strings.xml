@@ -20,6 +20,7 @@
 <resources>
 	<string name="admin_title">管理员</string>
 	<string name="install_error">安装错误</string>
+	<string name="file_create_error">创建文件错误</string>
 	<string name="dialog_enter_device_id_error">该ID未在%s处註册。从控制面板的“设备”标籤中获取ID。</string>
 	<string name="dialog_enter_device_id_qrcode">二维码</string>
 	<string name="dialog_enter_device_id_variants">变体</string>

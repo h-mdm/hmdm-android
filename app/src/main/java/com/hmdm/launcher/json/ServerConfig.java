@@ -52,6 +52,7 @@ public class ServerConfig {
     private String systemUpdateTo;
     private String appUpdateFrom;
     private String appUpdateTo;
+    private String downloadUpdates;
 
     private Boolean factoryReset;
     private Boolean reboot;
@@ -326,6 +327,14 @@ public class ServerConfig {
 
     public void setAppUpdateTo(String appUpdateTo) {
         this.appUpdateTo = appUpdateTo;
+    }
+
+    public String getDownloadUpdates() {
+        return downloadUpdates;
+    }
+
+    public void setDownloadUpdates(String downloadUpdates) {
+        this.downloadUpdates = downloadUpdates;
     }
 
     public Boolean getFactoryReset() {

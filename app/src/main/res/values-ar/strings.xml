@@ -20,6 +20,7 @@
 <resources>
     <string name="admin_title">مسؤول</string>
     <string name="install_error">خطأ في التثبيت</string>
+    <string name="file_create_error">خطأ في إنشاء الملف</string>
     <string name="dialog_enter_device_id_error">هذا ID غير مسجل في %s. احصل على ID من علامة التبويب \"الأجهزة\" بلوحة التحكم.</string>
     <string name="dialog_enter_device_id_qrcode">QR رمز</string>
     <string name="dialog_enter_device_id_variants">المتغيرات</string>

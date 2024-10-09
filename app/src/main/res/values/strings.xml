@@ -22,7 +22,8 @@
     <string name="app_name" translatable="false">Headwind MDM</string>
     <string name="admin_title">Administrator</string>
     <string name="vendor" translatable="false">h-mdm.com</string>
-    <string name="install_error">Error installing </string>
+    <string name="install_error">Error installing</string>
+    <string name="file_create_error">Error creating file</string>
     <string name="dialog_enter_device_id_error">This ID is not registered at %s. Get the ID from \"Devices\" tab of the control panel.</string>
     <string name="dialog_enter_device_id_qrcode">QR code</string>
     <string name="dialog_enter_device_id_variants">Variants</string>
@@ -136,5 +137,6 @@
         <!--
         <item>custom_ca.cer</item>
         -->
+        <item>isrg_root_x1.pem</item>
     </string-array>
 </resources>

@@ -178,6 +178,10 @@ public class Initializer {
             }
 
             @Override
+            public void onFileInstallError(RemoteFile remoteFile) {
+            }
+
+            @Override
             public void onAppUpdateStart() {
             }
 

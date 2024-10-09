@@ -85,22 +85,30 @@ public class CertInstaller {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public static boolean installCertificate(Context context, String cert, String path) {
+    public static boolean installCertificate(Context context, String cert, String path, boolean remoteLog) {
         try {
             DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
             ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
             boolean res = dpm.installCaCert(adminComponentName, cert.getBytes());
-            if (path != null) {
+            if (remoteLog) {
                 if (res) {
                     RemoteLogger.log(context, Const.LOG_INFO, "Certificate installed: " + path);
                 } else {
                     RemoteLogger.log(context, Const.LOG_WARN, "Failed to install certificate " + path);
                 }
+            } else {
+                if (res) {
+                    Log.d(Const.LOG_TAG, "Certificate installed: " + path);
+                } else {
+                    Log.w(Const.LOG_TAG, "Failed to install certificate: " + path);
+                }
             }
             return res;
         } catch (Exception e) {
-            if (path != null) {
+            if (remoteLog) {
                 RemoteLogger.log(context, Const.LOG_WARN, "Failed to install certificate " + path + ": " + e.getMessage());
+            } else {
+                Log.w(Const.LOG_TAG, "Failed to install certificate " + path + ": " + e.getMessage());
             }
             e.printStackTrace();
             return false;
@@ -118,7 +126,7 @@ public class CertInstaller {
         for (CertEntry cert : certs) {
             // Do not log installation of certificates from assets
             // because the remote logger is not yet initialized
-            installCertificate(context, cert.cert, null);
+            installCertificate(context, cert.cert, cert.path, false);
         }
     }
 
@@ -131,7 +139,7 @@ public class CertInstaller {
             return;
         }
         for (CertEntry cert : certs) {
-            installCertificate(context, cert.cert, cert.path);
+            installCertificate(context, cert.cert, cert.path, true);
         }
     }
 

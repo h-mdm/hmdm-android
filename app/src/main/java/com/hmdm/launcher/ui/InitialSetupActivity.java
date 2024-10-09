@@ -203,6 +203,11 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
     }
 
     @Override
+    public void onFileInstallError(RemoteFile remoteFile) {
+        // Not used in early setup
+    }
+
+    @Override
     public void onAppUpdateStart() {
         // Not used in early setup
     }

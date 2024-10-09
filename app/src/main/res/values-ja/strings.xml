@@ -20,6 +20,7 @@
 <resources>
     <string name="admin_title">管理者</string>
     <string name="install_error">インストールエラー</string>
+    <string name="file_create_error">ファイル作成エラー</string>
     <string name="dialog_enter_device_id_error">このIDは %s に登録されていません。コントロールパネルの\"端末\" タブからIDを取得して下さい。</string>
     <string name="dialog_enter_device_id_qrcode">QRコード</string>
     <string name="dialog_enter_device_id_variants">バリアント</string>

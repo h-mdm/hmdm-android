@@ -296,6 +296,11 @@ public class InstallUtils {
         void onDownloadProgress(final int progress, final long total, final long current);
     }
 
+    public static String getAppTempPath(Context context, String strUrl) {
+        File tempFile = new File(context.getExternalFilesDir(null), getFileName(strUrl));
+        return tempFile.getAbsolutePath();
+    }
+
     public static File downloadFile(Context context, String strUrl, DownloadProgress progressHandler ) throws Exception {
         File tempFile = new File(context.getExternalFilesDir(null), getFileName(strUrl));
         if (tempFile.exists()) {
@@ -387,7 +392,7 @@ public class InstallUtils {
     }
 
     public interface InstallErrorHandler {
-        public void onInstallError();
+        public void onInstallError(String msg);
     }
 
     public static void silentInstallApplication(Context context, File file, String packageName, InstallErrorHandler errorHandler) {
@@ -427,7 +432,7 @@ public class InstallUtils {
         } catch (Exception e) {
             Log.w(Const.LOG_TAG, "PackageInstaller error: " + e.getMessage());
             e.printStackTrace();
-            errorHandler.onInstallError();
+            errorHandler.onInstallError(e.getMessage());
         }
     }
 
@@ -440,7 +445,7 @@ public class InstallUtils {
                 context,
                 sessionId,
                 intent,
-                PendingIntent.FLAG_IMMUTABLE);
+                PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT);
         return pendingIntent.getIntentSender();
     }
 

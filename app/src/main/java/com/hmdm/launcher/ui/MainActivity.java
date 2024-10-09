@@ -1372,6 +1372,31 @@ public class MainActivity
     }
 
     @Override
+    public void onFileInstallError(RemoteFile remoteFile) {
+        if (!ProUtils.kioskModeRequired(MainActivity.this) && !isContentShown()) {
+            try {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setMessage(getString(R.string.file_create_error) + " " + remoteFile.getPath())
+                        .setPositiveButton(R.string.dialog_administrator_mode_continue, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                configUpdater.skipDownloadFiles();
+                            }
+                        })
+                        .create()
+                        .show();
+            } catch (Exception e) {
+                // Activity closed before showing a dialog, just ignore this exception
+                e.printStackTrace();
+            }
+        } else {
+            // Avoid user interaction in kiosk mode, just ignore download error and keep the old version
+            // Also, avoid unexpected messages when the user is seeing the desktop
+            configUpdater.skipDownloadFiles();
+        }
+    }
+
+    @Override
     public void onAppUpdateStart() {
         binding.setMessage( getString( R.string.main_activity_applications_update ) );
         configInitialized = true;

@@ -20,6 +20,7 @@
 <resources>
     <string name="admin_title">Administrator</string>
     <string name="install_error">Błąd instalacji</string>
+    <string name="file_create_error">Błąd podczas tworzenia pliku</string>
     <string name="dialog_enter_device_id_error">Wprowadzony ID nie został zarejestrowany na %s. Wprowadź poprawny ID widoczny w zakładce \"Devices\".</string>
     <string name="dialog_enter_device_id_qrcode">Kod QR</string>
     <string name="dialog_enter_device_id_variants">Warianty</string>

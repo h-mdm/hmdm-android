@@ -62,6 +62,8 @@
     <uses-permission android:name="android.permission.REQUEST_PASSWORD_COMPLEXITY" />
     <uses-permission android:name="android.permission.MASTER_CLEAR"
         tools:ignore="ProtectedPermissions"/>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"
+        tools:ignore="ProtectedPermissions"/>
 
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_AIRPLANE_MODE" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_APPS_CONTROL" />
@@ -81,6 +83,7 @@
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_MOBILE_NETWORK" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_MODIFY_USERS" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_NEARBY_COMMUNICATION" />
+    <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_OVERRIDE_APN" />  <!-- for com.hmdm.apn plugin -->
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_PHYSICAL_MEDIA" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_PRINTING" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_RESET_PASSWORD" />
@@ -106,6 +109,7 @@
         android:supportsRtl="true"
         android:requestLegacyExternalStorage="true"
         android:usesCleartextTraffic="true"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/AppTheme"
         android:name=".App"
         android:hardwareAccelerated="true"

@@ -20,6 +20,7 @@
 <resources>
     <string name="admin_title">Administrator</string>
     <string name="install_error">Fehler beim Installieren</string>
+    <string name="file_create_error">Fehler beim Erstellen der Datei</string>
     <string name="dialog_enter_device_id_error">Diese ID ist bei %s nicht registriert. Rufen Sie die ID auf der Registerkarte \"Geräte\" des Bedienfelds ab.</string>
     <string name="dialog_enter_device_id_qrcode">QR-Code</string>
     <string name="dialog_enter_device_id_variants">Varianten</string>

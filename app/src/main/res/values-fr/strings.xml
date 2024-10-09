@@ -20,6 +20,7 @@
 <resources>
     <string name="admin_title">Administrateur</string>
     <string name="install_error">Erreur lors de l\'installation</string>
+    <string name="file_create_error">Erreur lors de la création du fichier</string>
     <string name="dialog_enter_device_id_error">Ce ID n\'est pas enregistrée au %s. Obtenez ID dans \'onglet \"Appareils\" du panneau de contrôle.</string>
     <string name="dialog_enter_device_id_qrcode">Code QR</string>
     <string name="dialog_enter_device_id_variants">Variantes</string>

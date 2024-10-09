@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInstaller;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -20,10 +22,12 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.db.DatabaseHelper;
+import com.hmdm.launcher.db.DownloadTable;
 import com.hmdm.launcher.db.RemoteFileTable;
 import com.hmdm.launcher.json.Action;
 import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.DeviceInfo;
+import com.hmdm.launcher.json.Download;
 import com.hmdm.launcher.json.PushMessage;
 import com.hmdm.launcher.json.RemoteFile;
 import com.hmdm.launcher.json.ServerConfig;
@@ -66,6 +70,7 @@ public class ConfigUpdater {
         void onFileDownloading(final RemoteFile remoteFile);
         void onDownloadProgress(final int progress, final long total, final long current);
         void onFileDownloadError(final RemoteFile remoteFile);
+        void onFileInstallError(final RemoteFile remoteFile);
         void onAppUpdateStart();
         void onAppRemoving(final Application application);
         void onAppDownloading(final Application application);
@@ -477,11 +482,16 @@ public class ConfigUpdater {
 
     public static class RemoteFileStatus {
         public RemoteFile remoteFile;
+        public boolean downloaded;
         public boolean installed;
     }
 
     private void loadAndInstallFiles() {
-        if ( filesForInstall.size() > 0 ) {
+        boolean isGoodNetworkForUpdate = userInteraction || checkUpdateNetworkRestriction(settingsHelper.getConfig(), context);
+        if (filesForInstall.size() > 0 && !isGoodNetworkForUpdate) {
+            RemoteLogger.log(context, Const.LOG_DEBUG, "Updating files not enabled: waiting for WiFi connection");
+        }
+        if (filesForInstall.size() > 0 && isGoodNetworkForUpdate) {
             RemoteFile remoteFile = filesForInstall.remove(0);
 
             new AsyncTask<RemoteFile, Void, RemoteFileStatus>() {
@@ -495,7 +505,9 @@ public class ConfigUpdater {
                         RemoteLogger.log(context, Const.LOG_DEBUG, "Removing file: " + remoteFile.getPath());
                         File file = new File(Environment.getExternalStorageDirectory(), remoteFile.getPath());
                         try {
-                            file.delete();
+                            if (file.exists()) {
+                                file.delete();
+                            }
                             RemoteFileTable.deleteByPath(DatabaseHelper.instance(context).getWritableDatabase(), remoteFile.getPath());
                         } catch (Exception e) {
                             RemoteLogger.log(context, Const.LOG_WARN, "Failed to remove file: " +
@@ -509,6 +521,16 @@ public class ConfigUpdater {
                         }
                         // onFileDownloading() method contents
                         // updateMessageForFileDownloading(remoteFile.getPath());
+
+                        remoteFileStatus = new RemoteFileStatus();
+                        remoteFileStatus.remoteFile = remoteFile;
+
+                        DatabaseHelper dbHelper = DatabaseHelper.instance(context);
+                        Download lastDownload = DownloadTable.selectByPath(dbHelper.getReadableDatabase(), remoteFile.getPath());
+                        if (!canDownload(lastDownload, remoteFile.getPath())) {
+                            // Do not make further attempts to download if there were earlier download or installation errors
+                            return remoteFileStatus;
+                        }
 
                         File file = null;
                         try {
@@ -537,11 +559,12 @@ public class ConfigUpdater {
                             RemoteLogger.log(context, Const.LOG_WARN,
                                     "Failed to download file " + remoteFile.getPath() + ": " + e.getMessage());
                             e.printStackTrace();
+                            // Save the download attempt in the database
+                            saveFailedAttempt(context, lastDownload, remoteFile.getUrl(), remoteFile.getPath(), false, false);
                         }
 
-                        remoteFileStatus = new RemoteFileStatus();
-                        remoteFileStatus.remoteFile = remoteFile;
                         if (file != null) {
+                            remoteFileStatus.downloaded = true;
                             File finalFile = new File(Environment.getExternalStorageDirectory(), remoteFile.getPath());
                             try {
                                 if (finalFile.exists()) {
@@ -556,15 +579,29 @@ public class ConfigUpdater {
                                     }
                                     createFileFromTemplate(file, finalFile, settingsHelper.getDeviceId(), imei, settingsHelper.getConfig());
                                 }
-                                RemoteFileTable.insert(DatabaseHelper.instance(context).getWritableDatabase(), remoteFile);
+                                RemoteFileTable.insert(dbHelper.getWritableDatabase(), remoteFile);
                                 remoteFileStatus.installed = true;
+                                if (lastDownload != null) {
+                                    DownloadTable.deleteByPath(dbHelper.getWritableDatabase(), lastDownload.getPath());
+                                }
                             } catch (Exception e) {
                                 RemoteLogger.log(context, Const.LOG_WARN,
                                         "Failed to create file " + remoteFile.getPath() + ": " + e.getMessage());
                                 e.printStackTrace();
+                                // Remove initial file because we don't want to install this file any more
+                                try {
+                                    if (file.exists()) {
+                                        file.delete();
+                                    }
+                                } catch (Exception e1) {
+                                    e1.printStackTrace();
+                                }
                                 remoteFileStatus.installed = false;
+                                // Save the install attempt in the database
+                                saveFailedAttempt(context, lastDownload, remoteFile.getUrl(), remoteFile.getPath(), true, false);
                             }
                         } else {
+                            remoteFileStatus.downloaded = false;
                             remoteFileStatus.installed = false;
                         }
                     }
@@ -578,7 +615,11 @@ public class ConfigUpdater {
                         if (!fileStatus.installed) {
                             filesForInstall.add( 0, fileStatus.remoteFile );
                             if (uiNotifier != null) {
-                                uiNotifier.onFileDownloadError(fileStatus.remoteFile);
+                                if (!fileStatus.downloaded) {
+                                    uiNotifier.onFileDownloadError(fileStatus.remoteFile);
+                                } else {
+                                    uiNotifier.onFileInstallError(fileStatus.remoteFile);
+                                }
                             }
                             // onFileDownloadError() method contents
                             /*
@@ -605,6 +646,53 @@ public class ConfigUpdater {
             Log.i(Const.LOG_TAG, "loadAndInstallFiles(): Proceed to certificate installation");
             installCertificates();
         }
+    }
+
+    // Save failed attempt to download or install a file or an app in the database to avoid infinite loops
+    private void saveFailedAttempt(Context context, Download lastDownload, String url, String path, boolean downloaded, boolean installed) {
+        if (lastDownload == null) {
+            lastDownload = new Download();
+            lastDownload.setUrl(url);
+            lastDownload.setPath(path);
+            lastDownload.setAttempts(0);
+        }
+        if (!downloaded) {
+            lastDownload.setAttempts(lastDownload.getAttempts() + 1);
+            lastDownload.setLastAttemptTime(System.currentTimeMillis());
+        }
+        lastDownload.setDownloaded(downloaded);
+        lastDownload.setInstalled(installed);
+        DatabaseHelper dbHelper = DatabaseHelper.instance(context);
+        DownloadTable.insert(dbHelper.getWritableDatabase(), lastDownload);
+    }
+
+    // In background mode, we do not attempt to download files or apps in two cases:
+    // 1. Installation failed
+    // 2. Downloading in a mobile network is limited
+    private boolean canDownload(Download lastDownload, String objectId) {
+        if (userInteraction || lastDownload == null) {
+            return true;
+        }
+        if (lastDownload.isDownloaded() && !lastDownload.isInstalled()) {
+            RemoteLogger.log(context, Const.LOG_INFO, "Skip download due to previous install failure: " + objectId);
+            return false;
+        }
+        ServerConfig config = SettingsHelper.getInstance(context).getConfig();
+        if ("limited".equals(config.getDownloadUpdates())) {
+            ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+            if (activeNetwork == null) {
+                RemoteLogger.log(context, Const.LOG_INFO, "Skip downloading " + objectId + ": no active network");
+                return false;
+            }
+            Log.d(Const.LOG_TAG, "Active network; " + activeNetwork.getTypeName() + ", download attempts: " + lastDownload.getAttempts());
+            if (activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE &&
+            !lastDownload.isDownloaded() && lastDownload.getAttempts() > 3) {
+                RemoteLogger.log(context, Const.LOG_INFO, "Skip download due to previous download failures: " + objectId);
+                return false;
+            }
+        }
+        return true;
     }
 
     private void installCertificates() {
@@ -659,7 +747,11 @@ public class ConfigUpdater {
         if (applicationsForInstall.size() > 0 && !isGoodTimeForAppUpdate) {
             RemoteLogger.log(context, Const.LOG_DEBUG, "Application update not enabled. Scheduled time: " + settingsHelper.getConfig().getAppUpdateFrom());
         }
-        if (applicationsForInstall.size() > 0 && isGoodTimeForAppUpdate) {
+        boolean isGoodNetworkForUpdate = userInteraction || checkUpdateNetworkRestriction(settingsHelper.getConfig(), context);
+        if (applicationsForInstall.size() > 0 && !isGoodNetworkForUpdate) {
+            RemoteLogger.log(context, Const.LOG_DEBUG, "Application update not enabled: waiting for WiFi connection");
+        }
+        if (applicationsForInstall.size() > 0 && isGoodTimeForAppUpdate && isGoodNetworkForUpdate) {
             Application application = applicationsForInstall.remove(0);
 
             new AsyncTask<Application, Void, ApplicationStatus>() {
@@ -727,6 +819,18 @@ public class ConfigUpdater {
                         // onAppDownloading() method contents
                         //updateMessageForApplicationDownloading(application.getName());
 
+                        applicationStatus = new ApplicationStatus();
+                        applicationStatus.application = application;
+
+                        DatabaseHelper dbHelper = DatabaseHelper.instance(context);
+                        String tempPath = InstallUtils.getAppTempPath(context, application.getUrl());
+                        Download lastDownload = DownloadTable.selectByPath(dbHelper.getReadableDatabase(), tempPath);
+                        if (!canDownload(lastDownload, application.getPkg())) {
+                            // Do not make further attempts to download if there were earlier download or installation errors
+                            applicationStatus.installed = false;
+                            return applicationStatus;
+                        }
+
                         File file = null;
                         try {
                             RemoteLogger.log(context, Const.LOG_DEBUG, "Downloading app: " + application.getPkg());
@@ -754,10 +858,10 @@ public class ConfigUpdater {
                         } catch (Exception e) {
                             RemoteLogger.log(context, Const.LOG_WARN, "Failed to download app " + application.getPkg() + ": " + e.getMessage());
                             e.printStackTrace();
+                            // Save the download attempt in the database
+                            saveFailedAttempt(context, lastDownload, application.getUrl(), tempPath, false, false);
                         }
 
-                        applicationStatus = new ApplicationStatus();
-                        applicationStatus.application = application;
                         if (file != null) {
                             if (uiNotifier != null) {
                                 uiNotifier.onAppInstalling(application);
@@ -766,6 +870,11 @@ public class ConfigUpdater {
                             //updateMessageForApplicationInstalling(application.getName());
                             installApplication(file, application.getPkg(), application.getVersion());
                             applicationStatus.installed = true;
+                            // Here we remove app from pending downloads
+                            // If it fails to install, we'll remember it and do not download any more
+                            if (lastDownload != null) {
+                                DownloadTable.deleteByPath(dbHelper.getWritableDatabase(), lastDownload.getPath());
+                            }
                         } else {
                             applicationStatus.installed = false;
                         }
@@ -946,12 +1055,17 @@ public class ConfigUpdater {
                                         // Always grant all dangerous rights to the app
                                         Utils.autoGrantRequestedPermissions(context, packageName,
                                                 appPermissionStrategy, false);
-                                        if (packageName.equals(Const.APUPPET_PACKAGE_NAME)) {
+                                        if (BuildConfig.SYSTEM_PRIVILEGES && packageName.equals(Const.APUPPET_PACKAGE_NAME)) {
                                             // Automatically grant required permissions to aPuppet if we can
-                                            SystemUtils.autoSetAccessibilityPermission(context,
-                                                    Const.APUPPET_PACKAGE_NAME, Const.APUPPET_SERVICE_CLASS_NAME);
-                                            SystemUtils.autoSetOverlayPermission(context,
-                                                    Const.APUPPET_PACKAGE_NAME);
+                                            // Note: device owner can only grant permissions to self, not to other apps!
+                                            try {
+                                                SystemUtils.autoSetAccessibilityPermission(context,
+                                                        Const.APUPPET_PACKAGE_NAME, Const.APUPPET_SERVICE_CLASS_NAME);
+                                                SystemUtils.autoSetOverlayPermission(context,
+                                                        Const.APUPPET_PACKAGE_NAME);
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
                                         }
                                     }
                                     if (uiNotifier != null) {
@@ -974,6 +1088,8 @@ public class ConfigUpdater {
                                     if (file != null) {
                                         pendingInstallations.remove(packageName);
                                         InstallUtils.deleteTempApk(file);
+                                        // Save failed install attempt to prevent next downloads
+                                        saveFailedAttempt(context, null, "", file.getAbsolutePath(), true, false);
                                     }
                                 }
 
@@ -1040,7 +1156,7 @@ public class ConfigUpdater {
             RemoteLogger.log(context, Const.LOG_INFO, "Silently installing app " + packageName + versionData);
             InstallUtils.silentInstallApplication(context, file, packageName, new InstallUtils.InstallErrorHandler() {
                 @Override
-                public void onInstallError() {
+                public void onInstallError(String msg) {
                     Log.i(Const.LOG_TAG, "installApplication(): error installing app " + packageName);
                     pendingInstallations.remove(packageName);
                     if (file.exists()) {
@@ -1049,6 +1165,11 @@ public class ConfigUpdater {
                     if (uiNotifier != null) {
                         uiNotifier.onAppInstallError(packageName);
                     }
+                    if (msg != null) {
+                        RemoteLogger.log(context, Const.LOG_WARN, "Failed to install app " + packageName + ": " + msg);
+                    }
+                    // Save failed install attempt to prevent next downloads
+                    saveFailedAttempt(context, null, "", file.getAbsolutePath(), true, false);
                     /*
                     handler.post(new Runnable() {
                         @Override
@@ -1072,11 +1193,16 @@ public class ConfigUpdater {
             RemoteLogger.log(context, Const.LOG_INFO, "Asking user to install app " + packageName + versionData);
             InstallUtils.requestInstallApplication(context, file, new InstallUtils.InstallErrorHandler() {
                 @Override
-                public void onInstallError() {
+                public void onInstallError(String msg) {
                     pendingInstallations.remove(packageName);
                     if (file.exists()) {
                         file.delete();
                     }
+                    if (msg != null) {
+                        RemoteLogger.log(context, Const.LOG_WARN, "Failed to install app " + packageName + ": " + msg);
+                    }
+                    // Save failed install attempt to prevent next downloads
+                    saveFailedAttempt(context, null, "", file.getAbsolutePath(), true, false);
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
@@ -1160,6 +1286,15 @@ public class ConfigUpdater {
             settingsHelper.removeApplicationUrl(application);
         }
         loadAndInstallApplications();
+    }
+
+    public static boolean checkUpdateNetworkRestriction(ServerConfig config, Context context) {
+        if (!"wifi".equals(config.getDownloadUpdates())) {
+            return true;
+        }
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.getType() != ConnectivityManager.TYPE_MOBILE;
     }
 
     public static boolean checkAppUpdateTimeRestriction(ServerConfig config) {

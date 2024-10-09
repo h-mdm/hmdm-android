@@ -88,7 +88,7 @@ public class XapkUtils {
         if (files == null) {
             RemoteLogger.log(context, Const.LOG_WARN, "Failed to unpack XAPK for " + packageName + " - ignoring installation");
             if (errorHandler != null) {
-                errorHandler.onInstallError();
+                errorHandler.onInstallError(null);
             }
             return;
         }
@@ -119,7 +119,7 @@ public class XapkUtils {
 
         } catch (Exception e) {
             if (errorHandler != null) {
-                errorHandler.onInstallError();
+                errorHandler.onInstallError(e.getMessage());
             }
         }
     }
