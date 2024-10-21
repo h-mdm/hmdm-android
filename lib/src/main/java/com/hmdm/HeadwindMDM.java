@@ -62,6 +62,7 @@ public class HeadwindMDM {
     private String serial;
     private int version;
     private String apiKey;
+    private int mdmAgentError = 0;
 
     private BroadcastReceiver configUpdateReceiver = new BroadcastReceiver() {
         @Override
@@ -87,6 +88,7 @@ public class HeadwindMDM {
         mdmService = MDMService.getInstance();
         this.eventHandler = eventHandler;
         this.context = context;
+        this.mdmAgentError = 0;
 
         boolean wasConnected = mdmConnected;
         if (!mdmService.connect(context, resultHandler)) {
@@ -198,11 +200,17 @@ public class HeadwindMDM {
         return version;
     }
 
+    public int getMdmAgentError() {
+        return mdmAgentError;
+    }
+
     public void forceConfigUpdate() {
         if (mdmConnected) {
+            mdmAgentError = 0;
             try {
                 mdmService.forceConfigUpdate();
             } catch (MDMException e) {
+                mdmAgentError = e.mdmError.code;
                 e.printStackTrace();
             }
         }
@@ -213,8 +221,10 @@ public class HeadwindMDM {
             return false;
         }
         try {
+            mdmAgentError = 0;
             mdmService.setCustom(number, value);
         } catch (MDMException e) {
+            mdmAgentError = e.mdmError.code;
             e.printStackTrace();
             return false;
         }
@@ -266,6 +276,7 @@ public class HeadwindMDM {
         @Override
         public void onMDMConnected() {
             mdmConnected = true;
+            mdmAgentError = 0;
 
             Bundle data = null;
             try {
@@ -274,6 +285,10 @@ public class HeadwindMDM {
                     data = mdmService.queryConfig(apiKey);
                 } else {
                     data = mdmService.queryConfig();
+                }
+
+                if (data == null) {
+                    throw new MDMException(MDMError.ERROR_NOT_CONFIGURED);
                 }
 
                 // NPE can be here! queryConfig() may return null if Headwind MDM
@@ -291,6 +306,7 @@ public class HeadwindMDM {
                 imei = data.getString(MDMService.KEY_IMEI);
                 serial = data.getString(MDMService.KEY_SERIAL);
             } catch (MDMException e) {
+                mdmAgentError = e.mdmError.code;
                 e.printStackTrace();
             }
 

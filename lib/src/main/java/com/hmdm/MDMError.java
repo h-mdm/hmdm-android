@@ -42,6 +42,12 @@ public class MDMError {
                 return "MDM service not connected";
             case ERROR_INVALID_PARAMETER:
                 return "Invalid parameter";
+            case ERROR_VERSION:
+                return "Please update Headwind MDM launcher";
+            case ERROR_KEY_NOT_MATCH:
+                return "API key is not correct";
+            case ERROR_NOT_CONFIGURED:
+                return "Mobile agent is not configured";
             default:
                 return "Unknown error";
         }
@@ -59,4 +65,5 @@ public class MDMError {
     public static final int ERROR_INVALID_PARAMETER = 5;
     public static final int ERROR_VERSION = 6;          // Launcher needs to update
     public static final int ERROR_KEY_NOT_MATCH = 7;    // API key does not match
+    public static final int ERROR_NOT_CONFIGURED = 8;  // Headwind MDM is not configured
 }
