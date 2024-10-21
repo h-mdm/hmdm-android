@@ -38,8 +38,8 @@ android {
         // To avoid extra step during initial setup, let's keep the target SDK version as 29 as long as possible
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 34
-        versionCode 15050
-        versionName "6.05"
+        versionCode 15090
+        versionName "6.09"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true

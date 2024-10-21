@@ -78,10 +78,14 @@ public interface ServerService {
     Call<ResponseBody> sendDevice(@Path("project") String project, @Body DeviceInfo deviceInfo);
 
     @GET("{project}/rest/notifications/device/{number}")
-    Call<PushResponse> queryPushNotifications(@Path("project") String project, @Path("number") String number);
+    Call<PushResponse> queryPushNotifications(@Path("project") String project,
+                                              @Path("number") String number,
+                                              @Header(REQUEST_SIGNATURE_HEADER) String signature);
 
     @GET("{project}/rest/notification/polling/{number}")
-    Call<PushResponse> queryPushLongPolling(@Path("project") String project, @Path("number") String number);
+    Call<PushResponse> queryPushLongPolling(@Path("project") String project,
+                                            @Path("number") String number,
+                                            @Header(REQUEST_SIGNATURE_HEADER) String signature);
 
     @GET( "{project}/rest/plugins/devicelog/log/rules/{number}" )
     Call<RemoteLogConfigResponse> getRemoteLogConfig(@Path("project") String project, @Path("number") String number);

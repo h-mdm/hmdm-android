@@ -20,6 +20,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
+import com.hmdm.launcher.helper.CryptoHelper;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.PushMessage;
 import com.hmdm.launcher.json.PushResponse;
@@ -31,6 +32,8 @@ import com.hmdm.launcher.worker.PushNotificationProcessor;
 
 import org.eclipse.paho.android.service.MqttService;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -105,6 +108,19 @@ public class PushLongPollingService extends Service {
             secondaryServerService = ServerServiceKeeper.createServerService(settingsHelper.getSecondaryBaseUrl(), Const.LONG_POLLING_READ_TIMEOUT);
         }
 
+        // Calculate request signature
+        String encodedDeviceId = settingsHelper.getDeviceId();
+        try {
+            encodedDeviceId = URLEncoder.encode(encodedDeviceId, "utf8");
+        } catch (UnsupportedEncodingException e) {
+        }
+        String path = settingsHelper.getServerProject() + "/rest/notification/polling/" + encodedDeviceId;
+        String signature = null;
+        try {
+            signature = CryptoHelper.getSHA1String(BuildConfig.REQUEST_SIGNATURE + path);
+        } catch (Exception e) {
+        }
+
         threadActive = true;
         while (enabled) {
             Response<PushResponse> response = null;
@@ -113,7 +129,7 @@ public class PushLongPollingService extends Service {
             try {
                 // This is the long operation
                 response = serverService.
-                        queryPushLongPolling(settingsHelper.getServerProject(), settingsHelper.getDeviceId()).execute();
+                        queryPushLongPolling(settingsHelper.getServerProject(), settingsHelper.getDeviceId(), signature).execute();
             } catch (Exception e) {
                 RemoteLogger.log(context, Const.LOG_WARN, "Failed to query push notifications from "
                         + settingsHelper.getBaseUrl() + " : " + e.getMessage());
@@ -123,7 +139,7 @@ public class PushLongPollingService extends Service {
             try {
                 if (response == null) {
                     response = secondaryServerService.
-                            queryPushLongPolling(settingsHelper.getServerProject(), settingsHelper.getDeviceId()).execute();
+                            queryPushLongPolling(settingsHelper.getServerProject(), settingsHelper.getDeviceId(), signature).execute();
                 }
 
                 if ( response.isSuccessful() ) {
@@ -139,6 +155,16 @@ public class PushLongPollingService extends Service {
                         for (Map.Entry<String, PushMessage> entry : filteredMessages.entrySet()) {
                             PushNotificationProcessor.process(entry.getValue(), context);
                         }
+                    }
+                } else if (response.code() >= 400 && response.code() < 500) {
+                    // Response code 500 is fine (Timeout), so here we log only 4xx requests (403 Forbidden in particular)
+                    RemoteLogger.log(context, Const.LOG_WARN, "Wrong response while querying push notifications from "
+                            + settingsHelper.getSecondaryBaseUrl() + " : HTTP status " + response.code());
+                    try {
+                        // On exception, we need to wait to avoid looping
+                        Thread.sleep(DELAY_AFTER_EXCEPTION_MS);
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace();
                     }
                 }
                 // Avoid looping by adding some pause

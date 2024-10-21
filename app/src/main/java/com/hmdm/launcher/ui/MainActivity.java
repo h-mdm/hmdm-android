@@ -1016,8 +1016,10 @@ public class MainActivity
     private boolean checkUsageStatistics() {
         if (!ProUtils.checkUsageStatistics(this)) {
             if (SystemUtils.autoSetUsageStatsPermission(this, getPackageName())) {
-                // Permission auto granted
-                return true;
+                // Permission auto granted, but we double check
+                if (ProUtils.checkUsageStatistics(this)) {
+                    return true;
+                }
             }
             createAndShowHistorySettingsDialog();
             return false;
@@ -1029,8 +1031,10 @@ public class MainActivity
     private boolean checkManageStorage() {
         if (!Environment.isExternalStorageManager()) {
             if (SystemUtils.autoSetStoragePermission(this, getPackageName())) {
-                // Permission auto granted
-                return true;
+                // Permission auto granted, but we double check
+                if (Environment.isExternalStorageManager()) {
+                    return true;
+                }
             }
             createAndShowManageStorageDialog();
             return false;
@@ -1060,8 +1064,10 @@ public class MainActivity
     private boolean checkAlarmWindow() {
         if (ProUtils.isPro() && !Utils.canDrawOverlays(this)) {
             if (SystemUtils.autoSetOverlayPermission(this, getPackageName())) {
-                // Permission auto granted
-                return true;
+                // Permission auto granted, but we double check
+                if (Utils.canDrawOverlays(this)) {
+                    return true;
+                }
             }
             createAndShowOverlaySettingsDialog();
             return false;

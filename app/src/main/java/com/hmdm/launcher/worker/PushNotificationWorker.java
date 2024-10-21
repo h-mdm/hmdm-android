@@ -31,6 +31,7 @@ import androidx.work.WorkerParameters;
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.helper.ConfigUpdater;
+import com.hmdm.launcher.helper.CryptoHelper;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.PushMessage;
 import com.hmdm.launcher.json.PushResponse;
@@ -40,7 +41,9 @@ import com.hmdm.launcher.server.ServerServiceKeeper;
 import com.hmdm.launcher.util.PushNotificationMqttWrapper;
 import com.hmdm.launcher.util.RemoteLogger;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -109,10 +112,23 @@ public class PushNotificationWorker extends Worker {
         ServerService secondaryServerService = ServerServiceKeeper.getSecondaryServerServiceInstance(context);
         Response<PushResponse> response = null;
 
+        // Calculate request signature
+        String encodedDeviceId = settingsHelper.getDeviceId();
+        try {
+            encodedDeviceId = URLEncoder.encode(encodedDeviceId, "utf8");
+        } catch (UnsupportedEncodingException e) {
+        }
+        String path = settingsHelper.getServerProject() + "/rest/notifications/device/" + encodedDeviceId;
+        String signature = null;
+        try {
+            signature = CryptoHelper.getSHA1String(BuildConfig.REQUEST_SIGNATURE + path);
+        } catch (Exception e) {
+        }
+
         RemoteLogger.log(context, Const.LOG_DEBUG, "Querying push notifications");
         try {
             response = serverService.
-                    queryPushNotifications(settingsHelper.getServerProject(), settingsHelper.getDeviceId()).execute();
+                    queryPushNotifications(settingsHelper.getServerProject(), settingsHelper.getDeviceId(), signature).execute();
         } catch (Exception e) {
             RemoteLogger.log(context, Const.LOG_WARN, "Failed to query push notifications: " + e.getMessage());
             e.printStackTrace();
@@ -121,7 +137,7 @@ public class PushNotificationWorker extends Worker {
         try {
             if (response == null) {
                 response = secondaryServerService.
-                        queryPushNotifications(settingsHelper.getServerProject(), settingsHelper.getDeviceId()).execute();
+                        queryPushNotifications(settingsHelper.getServerProject(), settingsHelper.getDeviceId(), signature).execute();
             }
 
             if ( response.isSuccessful() ) {

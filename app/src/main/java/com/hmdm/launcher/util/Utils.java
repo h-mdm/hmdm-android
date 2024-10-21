@@ -664,10 +664,10 @@ public class Utils {
             if (passwordMode == null) {
                 devicePolicyManager.setPasswordQuality(adminComponentName, DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED);
             } else if (passwordMode.equals(Const.PASSWORD_QUALITY_PRESENT)) {
-                devicePolicyManager.setPasswordQuality(adminComponentName, DevicePolicyManager.PASSWORD_QUALITY_SOMETHING);
+                devicePolicyManager.setPasswordQuality(adminComponentName, DevicePolicyManager.PASSWORD_QUALITY_NUMERIC);
                 devicePolicyManager.setPasswordMinimumLength(adminComponentName, 1);
             } else if (passwordMode.equals(Const.PASSWORD_QUALITY_EASY)) {
-                devicePolicyManager.setPasswordQuality(adminComponentName, DevicePolicyManager.PASSWORD_QUALITY_SOMETHING);
+                devicePolicyManager.setPasswordQuality(adminComponentName, DevicePolicyManager.PASSWORD_QUALITY_NUMERIC);
                 devicePolicyManager.setPasswordMinimumLength(adminComponentName, 6);
             } else if (passwordMode.equals(Const.PASSWORD_QUALITY_MODERATE)) {
                 devicePolicyManager.setPasswordQuality(adminComponentName, DevicePolicyManager.PASSWORD_QUALITY_ALPHANUMERIC);
