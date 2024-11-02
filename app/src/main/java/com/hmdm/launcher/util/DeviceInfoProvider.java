@@ -259,6 +259,7 @@ public class DeviceInfoProvider {
             }
             return tMgr.getLine1Number();
         } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }
@@ -309,6 +310,7 @@ public class DeviceInfoProvider {
     @SuppressLint( { "MissingPermission" } )
     public static String getPhoneNumber(Context context, int slot) {
         try {
+            Utils.autoGrantPhonePermission(context);
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP_MR1) {
                 if (slot == 0) {
                     return getPhoneNumber(context);

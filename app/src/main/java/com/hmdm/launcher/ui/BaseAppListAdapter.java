@@ -329,6 +329,8 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
                 if (appInfo.intent != null) {
                     try {
                         Intent i = new Intent(appInfo.intent);
+                        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         parentActivity.startActivity(i);
                     } catch (Exception e) {
                         Toast.makeText(parentActivity, parentActivity.getString(R.string.activity_not_found, appInfo.intent), Toast.LENGTH_LONG).show();

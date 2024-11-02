@@ -153,7 +153,7 @@ public class SystemUtils {
 
     static final int OP_WRITE_SETTINGS = 23;
     static final int OP_SYSTEM_ALERT_WINDOW = 24;
-    static final int APP_OP_GET_USAGE_STATS = 43;
+    static final int OP_GET_USAGE_STATS = 43;
     static final int OP_MANAGE_EXTERNAL_STORAGE = 92;
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -163,7 +163,7 @@ public class SystemUtils {
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     public static boolean autoSetUsageStatsPermission(Context context, String packageName) {
-        return autoSetPermission(context, packageName, APP_OP_GET_USAGE_STATS, "Usage history");
+        return autoSetPermission(context, packageName, OP_GET_USAGE_STATS, "Usage history");
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)

@@ -93,6 +93,24 @@ public class Utils {
                     return false;
                 }
             }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (devicePolicyManager.getPermissionGrantState(adminComponentName,
+                        context.getPackageName(), Manifest.permission.READ_PHONE_NUMBERS) != DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED) {
+                    boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
+                            context.getPackageName(), Manifest.permission.READ_PHONE_NUMBERS, DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
+                    if (!success) {
+                        return false;
+                    }
+                }
+                if (devicePolicyManager.getPermissionGrantState(adminComponentName,
+                        context.getPackageName(), Manifest.permission.READ_SMS) != DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED) {
+                    boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
+                            context.getPackageName(), Manifest.permission.READ_SMS, DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
+                    if (!success) {
+                        return false;
+                    }
+                }
+            }
         } catch (NoSuchMethodError e) {
             // This exception is raised on Android 5.1
             e.printStackTrace();
