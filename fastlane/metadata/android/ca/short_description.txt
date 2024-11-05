@@ -1,0 +1,1 @@
+Sistema de gestió de dispositius mòbils (MDM) per Android (agent - llançador)

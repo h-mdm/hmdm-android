@@ -1,0 +1,16 @@
+A Powerful Open Source Platform to Manage your Enterprise Android Devices
+
+* Quick and Easy to Install “Out of the Box”
+* Compatible with Most Android Devices
+* Manages Devices in Closed Private Networks
+* Premium: All Must-Have MDM Features
+
+Scaling of your business requires proper management. The MDM software is a smart manager of your enterprise tablets, smartphones, kiosks, and digital signage systems. It’s particularly useful to manage unattended devices, replacing hours of maintenance work by a few mouse clicks!
+
+* Group-based policy management forces hundreds of devices to work in the same way, thus making business processes clearer and easier.
+
+* Device status control makes it easy to find problems with enterprise devices and take actions to fix them in a timely manner.
+
+* Remote support simplifies the IT manager’s work to resolve issues and correct faults.
+
+Headwind MDM requires registration on a Headwind MDM server.  You can deploy your own (https://h-mdm.com/download/) or try the demo (https://srv.h-mdm.com). See the Headwind MDM documentation for more information.
