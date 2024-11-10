@@ -140,7 +140,9 @@ public class DeviceInfoProvider {
         // Battery
         IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
 
-        Intent batteryStatus = context.registerReceiver(null, ifilter);
+        Intent batteryStatus = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ?
+                context.registerReceiver(null, ifilter, Context.RECEIVER_EXPORTED) :
+                context.registerReceiver(null, ifilter);
         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
         if (status == BatteryManager.BATTERY_STATUS_CHARGING ||
                 status == BatteryManager.BATTERY_STATUS_FULL) {

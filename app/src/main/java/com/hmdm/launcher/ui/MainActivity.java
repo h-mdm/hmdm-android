@@ -382,7 +382,11 @@ public class MainActivity
         intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        registerReceiver(stateChangeReceiver, intentFilter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            registerReceiver(stateChangeReceiver, intentFilter, Context.RECEIVER_EXPORTED);
+        } else {
+            registerReceiver(stateChangeReceiver, intentFilter);
+        }
 
         if (!getIntent().getBooleanExtra(Const.RESTORED_ACTIVITY, false)) {
             startAppsAtBoot();
