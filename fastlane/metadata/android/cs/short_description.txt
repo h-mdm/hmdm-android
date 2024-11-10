@@ -1,0 +1,1 @@
+Systém správy mobilních zařízení (MDM) pro Android (mobilní agent - launcher)
