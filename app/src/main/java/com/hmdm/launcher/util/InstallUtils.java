@@ -388,7 +388,8 @@ public class InstallUtils {
     }
 
     private static String getFileName(String strUrl) {
-        return strUrl.substring(strUrl.lastIndexOf("/"));
+        int slashIndex = strUrl.lastIndexOf("/");
+        return slashIndex >= 0 ? strUrl.substring(slashIndex) : strUrl;
     }
 
     public interface InstallErrorHandler {

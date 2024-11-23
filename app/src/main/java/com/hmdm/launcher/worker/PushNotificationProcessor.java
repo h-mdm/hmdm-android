@@ -22,6 +22,7 @@ package com.hmdm.launcher.worker;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
@@ -96,6 +97,10 @@ public class PushNotificationProcessor {
             // Clear download history
             AsyncTask.execute(() -> clearDownloads(context));
             return;
+        } else if (message.getMessageType().equals(PushMessage.TYPE_SETTINGS)) {
+            // Clear download history
+            AsyncTask.execute(() -> openSettings(context, message.getPayloadJSON()));
+            return;
         }
 
         // Send broadcast to all plugins
@@ -115,10 +120,18 @@ public class PushNotificationProcessor {
             String pkg = payload.getString("pkg");
             String action = payload.optString("action", null);
             JSONObject extras = payload.optJSONObject("extra");
+            String data = payload.optString("data", null);
             Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(pkg);
             if (launchIntent != null) {
                 if (action != null) {
                     launchIntent.setAction(action);
+                }
+                if (data != null) {
+                    try {
+                        launchIntent.setData(Uri.parse(data));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
                 if (extras != null) {
                     Iterator<String> keys = extras.keys();
@@ -295,5 +308,24 @@ public class PushNotificationProcessor {
             }
         }
         DownloadTable.deleteAll(db);
+    }
+
+    private static void openSettings(Context context, JSONObject payload) {
+        if (payload == null) {
+            RemoteLogger.log(context, Const.LOG_WARN, "Open settings failed: no action specified");
+            return;
+        }
+
+        try {
+            String action = payload.getString("action");
+            Log.d(Const.LOG_TAG, "Opening settings sheet: " + action);
+            Intent i = new Intent(action);
+            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(i);
+        } catch (Exception e) {
+            RemoteLogger.log(context, Const.LOG_WARN, "Open settings failed: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

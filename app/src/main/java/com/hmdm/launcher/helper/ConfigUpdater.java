@@ -1042,9 +1042,9 @@ public class ConfigUpdater {
                                 }
                                 break;
                             case PackageInstaller.STATUS_SUCCESS:
-                                RemoteLogger.log(context, Const.LOG_DEBUG, "App installed successfully");
                                 String packageName = intent.getStringExtra(Const.PACKAGE_NAME);
                                 if (packageName != null) {
+                                    RemoteLogger.log(context, Const.LOG_DEBUG, "App " + packageName + " installed successfully");
                                     Log.i(Const.LOG_TAG, "Install complete: " + packageName);
                                     File file = pendingInstallations.get(packageName);
                                     if (file != null) {
@@ -1071,18 +1071,23 @@ public class ConfigUpdater {
                                     if (uiNotifier != null) {
                                         uiNotifier.onAppInstallComplete(packageName);
                                     }
+                                } else {
+                                    RemoteLogger.log(context, Const.LOG_DEBUG, "App installed successfully");
                                 }
                                 break;
                             default:
                                 // Installation failure
                                 String extraMessage = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
                                 String statusMessage = InstallUtils.getPackageInstallerStatusMessage(status);
+                                packageName = intent.getStringExtra(Const.PACKAGE_NAME);
                                 String logRecord = "Install failed: " + statusMessage;
+                                if (packageName != null) {
+                                    logRecord = packageName + " " + logRecord;
+                                }
                                 if (extraMessage != null && extraMessage.length() > 0) {
                                     logRecord += ", extra: " + extraMessage;
                                 }
                                 RemoteLogger.log(context, Const.LOG_ERROR, logRecord);
-                                packageName = intent.getStringExtra(Const.PACKAGE_NAME);
                                 if (packageName != null) {
                                     File file = pendingInstallations.get(packageName);
                                     if (file != null) {
