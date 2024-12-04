@@ -68,8 +68,8 @@ public class PluginApiService extends Service {
 
         @Override
         public int getVersion() {
-            // 1.1.6
-            return 116;
+            // 1.1.7
+            return 117;
         }
 
         @Override

@@ -23,6 +23,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 
 public abstract class MDMPushHandler {
     private BroadcastReceiver receiver;
@@ -55,7 +56,11 @@ public abstract class MDMPushHandler {
             }
         };
 
-        context.registerReceiver(receiver, intentFilter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.registerReceiver(receiver, intentFilter, Context.RECEIVER_EXPORTED);
+        } else {
+            context.registerReceiver(receiver, intentFilter);
+        }
     }
 
     public void unregister(Context context) {
