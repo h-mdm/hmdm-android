@@ -9,7 +9,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
@@ -28,6 +27,7 @@ import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
 import com.hmdm.launcher.util.RemoteLogger;
+import com.hmdm.launcher.util.Utils;
 import com.hmdm.launcher.worker.PushNotificationProcessor;
 
 import org.eclipse.paho.android.service.MqttService;
@@ -204,11 +204,7 @@ public class PushLongPollingService extends Service {
                 .setContentText(getString(R.string.mqtt_service_text))
                 .setSmallIcon(R.drawable.ic_mqtt_service).build();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
-        } else {
-            startForeground(NOTIFICATION_ID, notification);
-        }
+        Utils.startStableForegroundService(this, NOTIFICATION_ID, notification);
     }
 
     @Override

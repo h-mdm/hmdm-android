@@ -24,7 +24,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.ServiceInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -42,6 +41,7 @@ import com.hmdm.launcher.R;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.util.PushNotificationMqttWrapper;
+import com.hmdm.launcher.util.Utils;
 
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -739,11 +739,7 @@ public class MqttService extends Service implements MqttTraceHandler {
                 .setContentText(getString(R.string.mqtt_service_text))
                 .setSmallIcon(R.drawable.ic_mqtt_service).build();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
-        } else {
-            startForeground(NOTIFICATION_ID, notification);
-        }
+        Utils.startStableForegroundService(this, NOTIFICATION_ID, notification);
     }
 
 

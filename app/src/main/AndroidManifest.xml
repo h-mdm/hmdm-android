@@ -58,7 +58,8 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.REQUEST_PASSWORD_COMPLEXITY" />
@@ -253,8 +254,11 @@
         </service>
 
         <service android:name="org.eclipse.paho.android.service.MqttService"
-            android:foregroundServiceType="dataSync"
-            android:exported="false"/>
+            android:foregroundServiceType="specialUse|systemExempted"
+            android:exported="false">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Push notification service"/>
+        </service>
 
         <service android:name=".service.LocationService"
             android:foregroundServiceType="location"
@@ -264,8 +268,11 @@
             android:exported="false"/>
 
         <service android:name=".service.PushLongPollingService"
-            android:foregroundServiceType="dataSync"
-            android:exported="false"/>
+            android:foregroundServiceType="specialUse|systemExempted"
+            android:exported="false">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Push notification service"/>
+        </service>
 
     </application>
 

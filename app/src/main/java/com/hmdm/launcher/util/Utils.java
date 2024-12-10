@@ -24,6 +24,8 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.Notification;
+import android.app.Service;
 import android.app.admin.DevicePolicyManager;
 import android.app.admin.SystemUpdatePolicy;
 import android.content.ComponentName;
@@ -35,6 +37,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PermissionInfo;
 import android.content.pm.ResolveInfo;
+import android.content.pm.ServiceInfo;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
@@ -1077,4 +1080,21 @@ public class Utils {
 
     }
 
+    /**
+     * Starting foreground service of special use
+     */
+    public static void startStableForegroundService(Service service, int notificationId, Notification notification) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            int serviceType = Utils.isDeviceOwner(service) ?
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED :
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE;
+            try {
+                service.startForeground(notificationId, notification, serviceType);
+            } catch (/* ForegroundServiceTypeNotAllowed*/Exception e) {
+                service.startForeground(notificationId, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+            }
+        } else {
+            service.startForeground(notificationId, notification);
+        }
+    }
 }
