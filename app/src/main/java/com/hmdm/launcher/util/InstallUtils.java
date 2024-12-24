@@ -45,7 +45,6 @@ import com.hmdm.launcher.json.RemoteFile;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -254,7 +253,6 @@ public class InstallUtils {
 
     public static void generateFilesForInstallList(Context context, List<RemoteFile> files,
                                                           List<RemoteFile> filesForInstall) {
-        final long TIME_TOLERANCE_MS = 60000;
         for (RemoteFile remoteFile : files) {
             File file = new File(Environment.getExternalStorageDirectory(), remoteFile.getPath());
             if (remoteFile.isRemove()) {
@@ -267,24 +265,17 @@ public class InstallUtils {
                 } else {
                     RemoteFile remoteFileDb = RemoteFileTable.selectByPath(DatabaseHelper.instance(context).getReadableDatabase(),
                             remoteFile.getPath());
-                    if (remoteFileDb != null) {
-                        if (remoteFileDb.getChecksum() == null || !remoteFileDb.getChecksum().equalsIgnoreCase(remoteFile.getChecksum())) {
-                            filesForInstall.add(remoteFile);
-                        }
-                    } else {
-                        // Entry not found in the database, let's check the checksum
-                        try {
-                            String checksum = CryptoUtils.calculateChecksum(new FileInputStream(file));
-                            if (checksum.equalsIgnoreCase(remoteFile.getChecksum())) {
-                                // File is correct, just save the entry in the database
-                                RemoteFileTable.insert(DatabaseHelper.instance(context).getWritableDatabase(), remoteFile);
-                            } else {
-                                filesForInstall.add(remoteFile);
-                            }
-                        } catch (FileNotFoundException e) {
-                            // We should never be here!
-                            filesForInstall.add(remoteFile);
-                        }
+                    if (remoteFileDb == null ||
+                            // Entry not found in the database
+                            // This means, a file was created by a third party
+                            // We overwrite the file (and save the entry in the database after overwriting in ConfigUpdater.loadAndInstallFiles())
+                            remoteFileDb.getLastUpdate() < remoteFile.getLastUpdate()) {
+                        // File has been already downloaded by Headwind MDM,
+                        // let's check lastUpdate (checksum is not reliable because of possible variable content)
+                        // We only overwrite a file if the file on the server is newer than the file on the device
+                        // (on the device, we save the lastUpdate from the server, we don't check the actual file update date)
+                        // Which means, the file may be later changed by a third party app
+                        filesForInstall.add(remoteFile);
                     }
                 }
             }
