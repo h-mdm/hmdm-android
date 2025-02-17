@@ -37,4 +37,5 @@
     <dimen name="device_info_column_width">150dp</dimen>
     <dimen name="title_text_size">16dp</dimen>
     <dimen name="app_icon_size">50dp</dimen>
+    <dimen name="status_bar_side_width">60dp</dimen>
 </resources>

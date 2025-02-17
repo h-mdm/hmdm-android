@@ -102,6 +102,11 @@ public class ProUtils {
         return false;
     }
 
+    // Set/update kiosk mode options (lock tack features)
+    public static void updateKioskOptions(Activity activity) {
+        // Stub
+    }
+
     // Update app list in the kiosk mode
     public static void updateKioskAllowedApps(String kioskApp, Activity activity, boolean enableSettings) {
         // Stub

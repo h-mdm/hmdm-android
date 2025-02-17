@@ -37,6 +37,7 @@ public class ServerConfig {
     private String imei;
     private Integer iconSize;
     private String title;
+    private boolean displayStatus;
 
     private Boolean gps;
     private Boolean bluetooth;
@@ -227,6 +228,14 @@ public class ServerConfig {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public boolean isDisplayStatus() {
+        return displayStatus;
+    }
+
+    public void setDisplayStatus(boolean displayStatus) {
+        this.displayStatus = displayStatus;
     }
 
     public Boolean getGps() {

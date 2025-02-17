@@ -105,6 +105,7 @@ import com.hmdm.launcher.service.PluginApiService;
 import com.hmdm.launcher.service.StatusControlService;
 import com.hmdm.launcher.task.GetServerConfigTask;
 import com.hmdm.launcher.task.SendDeviceInfoTask;
+import com.hmdm.launcher.ui.custom.StatusBarUpdater;
 import com.hmdm.launcher.util.AppInfo;
 import com.hmdm.launcher.util.CrashLoopProtection;
 import com.hmdm.launcher.util.DeviceInfoProvider;
@@ -181,6 +182,7 @@ public class MainActivity
     private MainAppListAdapter mainAppListAdapter;
     private BottomAppListAdapter bottomAppListAdapter;
     private int spanCount;
+    private StatusBarUpdater statusBarUpdater = new StatusBarUpdater();
 
     private static boolean configInitialized = false;
     // This flag is used to exit kiosk to avoid looping in onResume()
@@ -435,6 +437,8 @@ public class MainActivity
         super.onResume();
 
         isBackground = false;
+
+        statusBarUpdater.startUpdating(this, binding.clock, binding.batteryState);
 
         // On some Android firmwares, onResume is called before onCreate, so the fields are not initialized
         // Here we initialize all required fields to avoid crash at startup
@@ -1195,20 +1199,22 @@ public class MainActivity
         }
     }
 
-    private ImageView createManageButton(int imageResource, int imageResourceBlack, int offset) {
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
-        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-
-        boolean dark = true;
+    private boolean isDarkBackground() {
         try {
             ServerConfig config = settingsHelper.getConfig();
             if (config.getBackgroundColor() != null) {
                 int color = Color.parseColor(config.getBackgroundColor());
-                dark = !Utils.isLightColor(color);
+                return !Utils.isLightColor(color);
             }
         } catch (Exception e) {
         }
+        return true;
+    }
+
+    private ImageView createManageButton(int imageResource, int imageResourceBlack, int offset) {
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
+        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
 
         int offsetRight = 0;
         if (settingsHelper != null && settingsHelper.getConfig() != null && settingsHelper.getConfig().getLockStatusBar() != null && settingsHelper.getConfig().getLockStatusBar()) {
@@ -1222,7 +1228,7 @@ public class MainActivity
         view.setLayoutParams(layoutParams);
 
         ImageView manageButton = new ImageView( this );
-        manageButton.setImageResource(dark ? imageResource : imageResourceBlack);
+        manageButton.setImageResource(isDarkBackground() ? imageResource : imageResourceBlack);
         view.addView(manageButton);
 
         try {
@@ -1638,6 +1644,7 @@ public class MainActivity
                 if (kioskApp != null && kioskApp.equals(getPackageName()) && ProUtils.isKioskModeRunning(this)) {
                     // Here we go if the configuration is changed when launcher is in the kiosk mode
                     ProUtils.updateKioskAllowedApps(kioskApp, this, false);
+                    ProUtils.updateKioskOptions(this);
                 } else {
                     Log.e(Const.LOG_TAG, "Kiosk mode disabled: please setup the main app!");
                 }
@@ -1663,6 +1670,8 @@ public class MainActivity
             binding.activityMainContentWrapper.setBackgroundColor( getResources().getColor(R.color.defaultBackground));
         }
         updateTitle(config);
+
+        statusBarUpdater.updateControlsState(config.isDisplayStatus(), isDarkBackground());
 
         if (mainAppListAdapter == null || needRedrawContentAfterReconfigure) {
             needRedrawContentAfterReconfigure = false;
@@ -1961,6 +1970,8 @@ public class MainActivity
         super.onPause();
 
         isBackground = true;
+
+        statusBarUpdater.stopUpdating();
 
         dismissDialog(fileNotDownloadedDialog);
         dismissDialog(enterServerDialog);

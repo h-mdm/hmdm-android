@@ -108,20 +108,39 @@
                 android:scaleType="centerCrop"
                 android:id="@+id/activity_main_background"/>
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/status_header"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/activity_main_title"
-                android:layout_centerHorizontal="true"
-                android:textSize="@dimen/title_text_size"
-                />
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/clock"
+                    android:layout_width="@dimen/status_bar_side_width"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:textSize="@dimen/title_text_size"
+                    />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:id="@+id/activity_main_title"
+                    android:gravity="center"
+                    android:textSize="@dimen/title_text_size"
+                    />
+                <com.hmdm.launcher.ui.custom.BatteryStateView
+                    android:id="@+id/battery_state"
+                    android:layout_width="@dimen/status_bar_side_width"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="5dp"/>
+            </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/activity_main_content"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_above="@+id/activity_bottom_layout"
-                android:layout_below="@+id/activity_main_title" />
+                android:layout_below="@+id/status_header" />
 
             <RelativeLayout
                 android:id="@+id/activity_bottom_layout"
