@@ -1,0 +1,129 @@
+<!--
+  ~ Headwind MDM: Open Source Android MDM Software
+  ~ https://h-mdm.com
+  ~
+  ~ Copyright (C) 2019 Headwind Solutions LLC (http://h-sms.com)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resources>
+    <string name="admin_title">Yönetici</string>
+	<string name="install_error">Yükleme hatası</string>
+	<string name="file_create_error">Dosya oluşturma hatası</string>
+	<string name="dialog_enter_device_id_error">Bu kimlik %s adresinde kayıtlı değil. Kontrol panelinin \"Cihazlar\" sekmesinden kimliği alın.</string>
+	<string name="dialog_enter_device_id_qrcode">QR kodu</string>
+	<string name="dialog_enter_device_id_variants">Varyantlar</string>
+	<string name="dialog_enter_device_id_save">Kaydet</string>
+	<string name="dialog_enter_device_id_exit">Çıkış</string>
+	<string name="dialog_enter_device_id_title">%s adresindeki cihaz kimliğini girin</string>
+	<string name="main_start_preparations">Başlatmaya hazırlanıyor</string>
+	<string name="main_downloading_configuration">Yapılandırma dosyası güncelleniyor</string>
+	<string name="main_downloading_content">Veriler güncelleniyor</string>
+	<string name="main_update_applications">Uygulamalar yükleniyor ve güncelleniyor</string>
+	<string name="dialog_root_message">ROOT erişimine ihtiyacınız var</string>
+	<string name="main_application_start">Uygulama başlatılıyor</string>
+	<string name="main_app_installing">Uygulama yükleniyor</string>
+	<string name="main_app_downloading">Uygulama indiriliyor</string>
+	<string name="main_app_downloading_error">Paket indirilemedi</string>
+	<string name="main_app_removing">Uygulama kaldırılıyor</string>
+	<string name="main_file_downloading">Dosya indiriliyor</string>
+	<string name="main_file_downloading_error">Dosya indirilemedi</string>
+	<string name="main_activity_repeat">Tekrar dene</string>
+	<string name="main_activity_reset">Sıfırla</string>
+	<string name="main_activity_wifi">WiFi</string>
+	<string name="main_activity_cancel">İptal</string>
+	<string name="main_activity_details">Ayrıntılar</string>
+	<string name="select_system_launcher">Varsayılan başlatıcı olarak %s\'yi seçin ve \'Her Zaman\'ı işaretleyin:</string>
+	<string name="dialog_network_error_title">%s\'ye bağlanırken hata oluştu. Lütfen İnternet bağlantısını kontrol edin ve tekrar deneyin.</string>
+	<string name="main_activity_update_config">Sunucudan yapılandırma dosyası isteniyor</string>
+	<string name="main_activity_applications_update">Uygulamalar güncelleniyor</string>
+	<string name="dialog_overlay_settings_title">Lütfen uygulamanın diğer pencerelerin üzerine çizim yapmasına izin verin.\n\nBu seçenek istenmeyen uygulamaların engellenmesine yardımcı olur ve kiosk modunun acil olarak kilidini açmayı sağlar.\n\nAyarları açmak için \"Devam\" öğesine dokunun. \"%s\" öğesini bulun, izni verin ve ardından \"Geri\" öğesine dokunun.</string>
+	<string name="dialog_manage_storage_title">Lütfen uygulamanın depolama alanını yönetmesine izin verin.\n\nBu seçenek Headwind MDM\'nin cihazınızdaki dosyaları yönetmesine olanak tanır.</string>
+	<string name="dialog_history_settings_title">Lütfen uygulamanın kullanım verilerine erişmesine izin verin.\n\nBu seçenek uygulamaların ve ayarların kontrolünü sağlar.\n\nBu seçenek pilin daha hızlı bitmesine neden olabilir. Pil tasarrufu için bu seçeneği atlayın (bunun yerine erişilebilirlik hizmetlerini veya kiosk modunu kullanın).\n\nAyarları açmak için \"Devam\" öğesine dokunun. \"%s\" öğesini bulun, izni verin ve ardından \"Geri\" öğesine dokunun.</string>
+	<string name="dialog_history_settings_continue">Devam</string>
+	<string name="dialog_history_settings_skip">Atla</string>
+	<string name="dialog_unknown_sources_title">Lütfen bilinmeyen kaynaklardan yüklemeye izin verin. Şimdi bir ayarlar sayfası açılacak. \"Bilinmeyen kaynaklar\" öğesini bulun, yüklemeye izin verin ve \"Geri\" öğesine tıklayın.</string>
+	<string name="dialog_unknown_sources_continue">Devam</string>
+	<string name="dialog_miui_permissions_title">MIUI, özel izinlerin manuel olarak ayarlanmasını gerektirir. Uygulama izinleri penceresi şimdi açılacak. \"Diğer izinler\"e dokunun, \"Arka planda çalışırken açılır pencereleri görüntüle\"ye izin verin ve \"Geri\"ye tıklayın.</string>
+	<string name="dialog_miui_developer_title">MIUI cihazınızın manuel kurulumunu gerektirir. Bilgi ekranında, \"DERLEME NUMARASI\"NA 7 KEZ DOKUNUN. Bu, geliştirici ayarlarını etkinleştirecektir.</string>
+	<string name="dialog_miui_optimization_title">MIUI cihazınızın manuel kurulumunu gerektirir. Geliştirici ayarları penceresi şimdi açılacaktır. Ekranı aşağı kaydırın ve \"MIUI optimizasyonu\"nun işaretini kaldırın.</string>
+	<string name="dialog_administrator_mode_message">Lütfen uygulamanın cihaz yöneticisi modunda çalışmasına izin verin. Şimdi bir Ayarlar sayfası açılacaktır. \"Cihaz yöneticileri\"ni seçin, \"%s\" öğesini bulun, yöneticiyi etkinleştirin ve \"Geri\"ye dokunun.</string>
+	<string name="dialog_administrator_mode_continue">Devam</string>
+	<string name="dialog_administrator_mode_skip">Atla</string>
+	<string name="accessibility_service_description">MDM uygulaması tarafından etkin uygulama izleme</string>
+	<string name="dialog_accessibility_service_message">Lütfen uygulamanın erişilebilirlik hizmetlerini kullanmasına izin verin. Şimdi bir Ayarlar sayfası açılacaktır. \"%s\" öğesini bulun, erişilebilirlik hizmetlerini kullanmaya izin verin ve \"Geri\" öğesine dokunun.</string>
+	<string name="dialog_accessibility_service_continue">Devam</string>
+	<string name="dialog_accessibility_service_skip">Atla</string>
+	<string name="access_to_app_denied">Pakete izin verilmiyor:</string>
+	<string name="access_to_app_denied_2">Lütfen yöneticinizden yapılandırmada bu paketi etkinleştirmesini isteyin.\n\nDevam etmek için \'Kapat\' veya Ana Sayfa düğmesine tıklayın.</string>
+	<string name="package_id_copied">Paket kimliği panoya kopyalandı</string>
+	<string name="dialog_app_not_allowed_close">Kapat</string>
+	<string name="dialog_app_not_allowed_admin">Yönetici</string>
+	<string name="device_id">Cihaz Kimlik</string>
+	<string name="imei">IMEI</string>
+	<string name="serial_number">Seri numarası</string>
+	<string name="phone_number">Telefon numarası</string>
+	<string name="launcher_version">Başlatıcı sürümü</string>
+	<string name="close">Kapat</string>
+	<string name="admin_change_device_id">Cihaz kimliğini değiştir</string>
+	<string name="admin_change_server_url">Sunucu URL\'sini değiştir</string>
+	<string name="admin_allow_settings">Ayarları aç</string>
+	<string name="settings_allowed">Ayarları 3 dakika boyunca değiştirmenize izin verilir.</string>
+	<string name="admin_clear_restrictions">Kısıtlamaları temizle</string>
+	<string name="permissive_mode_enabled">Tüm uygulamaları 3 dakika boyunca çalıştırmanıza izin verilir.</string>
+	<string name="admin_refresh">Yapılandırmayı güncelle</string>
+	<string name="admin_exit">Sistem başlatıcısından çık</string>
+	<string name="admin_reset_permissions">İzinleri kontrol et</string>
+	<string name="admin_reset_network">Ağ politikasını sıfırla</string>
+	<string name="admin_reset_network_hint">Ağ politikaları temizlendi. Artık ağı etkinleştirebilir ve yapılandırmayı yeniden yükleyebilirsiniz.</string>
+	<string name="reboot">Cihazı yeniden başlat</string>
+	<string name="reboot_failed">Cihazı yeniden başlatmak için yeterli hak yok.</string>
+	<string name="message_turn_on_gps">Ayarlar ekranı açılacaktır. Lütfen bu ekranda GPS konumunu açın ve Geri\'ye tıklayın.</string>
+	<string name="message_turn_off_gps">Ayarlar ekranı açılacaktır. Lütfen bu ekranda GPS konumunu KAPATIN ve Geri\'ye tıklayın.</string>
+	<string name="message_turn_on_mobile_data">Mobil veri devre dışı! Lütfen durum çubuğunu açın ve mobil veriyi açın.</string>
+	<string name="message_turn_off_mobile_data">Mobil veri etkin. Lütfen durum çubuğunu açın ve mobil veriyi KAPATIN.</string>
+	<string name="message_set_password">Şifrenizin kalitesi yeterince iyi değil. Ayarlar ekranı açılacaktır. Lütfen şifreyi değiştirin ve Geri\'ye tıklayın.</string>
+	<string name="switch_off_blockings">Kısıtlamalar kapatılıyor...</string>
+	<string name="kiosk_mode_requires_overlays">Kiosk modu devre dışı bırakıldı: diğer pencerelerin üzerine çizim yapma izni yok. Lütfen %s\'nin diğer pencerelerin üzerine çizim yapmasına izin verin.</string>
+	<string name="enter_admin_password">Yönetici şifresini girin</string>
+	<string name="wrong_password">Yanlış şifre</string>
+	<string name="dialog_enter_password_login">Giriş yap</string>
+	<string name="dialog_enter_password_cancel">İptal</string>
+	<string name="internal_error">Uygulama dahili bir hatayla karşılaştı. Lütfen cihazı yeniden başlatın ve işlemi tekrar deneyin.</string>
+	<string name="empty_configuration">Yapılandırma ayarlanmadı, sunucudan almaya tekrar çalışılıyor!</string>
+	<string name="permissions_reset_hint">İzinleri kontrol etmek ve talep etmek için yönetici panelini kapatın.</string>
+	<string name="dialog_enter_server_error">Lütfen geçerli bir sunucu URL\'si girin.</string>
+	<string name="dialog_enter_server_ok">Tamam</string>
+	<string name="dialog_enter_server_title">Lütfen sunucu URL\'sini girin</string>
+	<string name="critical_server_failure">Sunucu hatası nedeniyle çıkın! Lütfen sorunu düzeltin ve %s uygulamasını yeniden başlatın veya tamamen kaldırıp yeniden yükleyin.</string>
+	<string name="dialog_permission_title">Uygulamanın çalışması için izinlere ihtiyaç var. Lütfen istenen izinleri verin.</string>
+	<string name="main_activity_exit">Çıkış</string>
+	<string name="browser_not_found">Tarayıcı bulunamadığından web sayfası açılamıyor. Lütfen cihaz yapılandırmasına bir tarayıcı uygulaması ekleyin.</string>
+	<string name="invalid_web_link">Web bağlantısı düzgün biçimlendirilmediği için açılamıyor. Lütfen ayrıntılar için yöneticinizle iletişime geçin.</string>
+	<string name="activity_not_found">Etkinlik bulunamadığından %s eylemi gerçekleştirilemiyor.</string>
+	<string name="location_service_text">Cihaz konumu izleniyor</string>
+	<string name="qrcode_contents_error">Geçersiz QR kodu içerikleri. Lütfen %s web panelinde sağlama QR kodunu oluşturun.</string>
+	<string name="device_locked">Bu cihaz (%s) yönetici tarafından kilitlendi.</string>
+	<string name="fault_loop_detected">Oops, başlatıcıda kurtarılamaz bir hata oluştu! Lütfen sistem yöneticinizle iletişime geçin.</string>
+	<string name="mqtt_service_text">Anında bildirimler etkin</string>
+	<string name="background_location">%s, arka plan konum iznini gerektirir. İzinleri açmak için \'Devam\'a tıklayın, \'Konum\'a tıklayın ve konumun her zaman belirlenmesine izin verin.</string>
+	<string name="location_disable">Konumu devre dışı bırak</string>
+	<string name="background_location_continue">Devam</string>
+	<string name="initializing_mdm">Mobil cihaz yönetim uygulaması başlatılıyor...</string>
+	<string name="dialog_server_error_title">MDM sunucusu %s geçersiz bir yanıt döndürdü. Lütfen yöneticinizle iletişime geçin.</string>
+	<string name="mdm_choice_message">Bu cihaz kuruluşunuz tarafından tamamen yönetilecektir. Verileriniz özel olmayacak ve istediğiniz zaman BT yöneticiniz tarafından silinebilir veya incelenebilir.</string>
+	<string name="work_profile_message">Bu cihaz kuruluşunuza ait yönetilen bir çalışma profili alacaktır. Çalışma profili özel profilinizden ayrılmıştır ve istediğiniz zaman profiller arasında geçiş yapabilirsiniz.</string>
+	<string name="overlays_not_supported">Ne yazık ki cihazınız kaplamaları desteklemiyor.</string>
+	<string name="admin_not_supported">Cihazınızda cihaz yöneticisi seçeneği yok. Devam etmek için Atla\'ya tıklayın.</string>
+</resources>
