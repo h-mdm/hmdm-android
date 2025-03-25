@@ -30,7 +30,7 @@ import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.helper.CryptoHelper;
 import com.hmdm.launcher.helper.SettingsHelper;
-import com.hmdm.launcher.json.DeviceCreateOptions;
+import com.hmdm.launcher.json.DeviceEnrollOptions;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.json.ServerConfigResponse;
 import com.hmdm.launcher.pro.ProUtils;
@@ -71,19 +71,14 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
 
     @Override
     protected Integer doInBackground( Void... voids ) {
-        DeviceCreateOptions createOptions = null;
+        DeviceEnrollOptions enrollOptions = null;
         if (settingsHelper.getConfig() == null) {
             // This is a first start, we need to set up additional options to create a device on demand
-            createOptions = new DeviceCreateOptions();
-            createOptions.setCustomer(settingsHelper.getCreateOptionCustomer());
-            createOptions.setConfiguration(settingsHelper.getCreateOptionConfigName());
-            createOptions.setGroups(settingsHelper.getCreateOptionGroup());
-            if (createOptions.getCustomer() == null &&
-                createOptions.getConfiguration() == null &&
-                createOptions.getGroups() == null) {
-                // No additional options
-                createOptions = null;
-            }
+            // Even if there's no additional options, we call POST method (enroll) rather than GET (getConfig)
+            enrollOptions = new DeviceEnrollOptions();
+            enrollOptions.setCustomer(settingsHelper.getEnrollOptionCustomer());
+            enrollOptions.setConfiguration(settingsHelper.getEnrollOptionConfigName());
+            enrollOptions.setGroups(settingsHelper.getEnrollOptionGroup());
         }
 
         try {
@@ -104,14 +99,14 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         isDeviceNotFound = false;
         try {
             ServerConfig serverConfig = null;
-            if (createOptions == null) {
+            if (enrollOptions == null) {
                 serverConfig = BuildConfig.CHECK_SIGNATURE ?
                         getServerConfigSecure(deviceId, signature) :
                         getServerConfigPlain(deviceId, signature);
             } else {
                 serverConfig = BuildConfig.CHECK_SIGNATURE ?
-                        createAndGetServerConfigSecure(deviceId, createOptions, signature) :
-                        createAndGetServerConfigPlain(deviceId, createOptions, signature);
+                        enrollSecure(deviceId, enrollOptions, signature) :
+                        enrollPlain(deviceId, enrollOptions, signature);
             }
 
             if (serverConfig != null) {
@@ -129,9 +124,9 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
 
                 // Device already created, erase the device creation options
                 settingsHelper.setDeviceIdUse(null);
-                settingsHelper.setCreateOptionCustomer(null);
-                settingsHelper.setCreateOptionConfigName(null);
-                settingsHelper.setCreateOptionGroup(null);
+                settingsHelper.setEnrollOptionCustomer(null);
+                settingsHelper.setEnrollOptionConfigName(null);
+                settingsHelper.setEnrollOptionGroup(null);
 
                 // Prevent from occasional launch in the kiosk mode without any possibility to exit!
                 if (ProUtils.kioskModeRequired(context) &&
@@ -190,7 +185,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
 
         try {
             serverHost = settingsHelper.getBaseUrl();
-            response = serverService.getRawServerConfig(settingsHelper.getServerProject(),
+            response = serverService.getServerConfigRaw(settingsHelper.getServerProject(),
                     deviceId, signature, Build.CPU_ABI).execute();
         } catch (Exception e) {
             e.printStackTrace();
@@ -198,7 +193,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
 
         if (response == null) {
             serverHost = settingsHelper.getSecondaryBaseUrl();
-            response = secondaryServerService.getRawServerConfig(settingsHelper.getServerProject(),
+            response = secondaryServerService.getServerConfigRaw(settingsHelper.getServerProject(),
                     deviceId, signature, Build.CPU_ABI).execute();
         }
 
@@ -258,12 +253,12 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
     }
 
     // Apply extra device creation options (need to be used only at first start when config=null!)
-    private ServerConfig createAndGetServerConfigPlain(String deviceId, DeviceCreateOptions createOptions,
-                                                       String signature) throws Exception {
+    private ServerConfig enrollPlain(String deviceId, DeviceEnrollOptions createOptions,
+                                     String signature) throws Exception {
         Response<ServerConfigResponse> response = null;
         try {
             serverHost = settingsHelper.getBaseUrl();
-            response = serverService.createAndGetServerConfig(settingsHelper.getServerProject(),
+            response = serverService.enrollAndGetServerConfig(settingsHelper.getServerProject(),
                     deviceId, signature, Build.CPU_ABI, createOptions).execute();
         } catch (Exception e) {
             e.printStackTrace();
@@ -271,7 +266,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
 
         if (response == null) {
             serverHost = settingsHelper.getSecondaryBaseUrl();
-            response = secondaryServerService.createAndGetServerConfig(settingsHelper.getServerProject(),
+            response = secondaryServerService.enrollAndGetServerConfig(settingsHelper.getServerProject(),
                     deviceId, signature, Build.CPU_ABI, createOptions).execute();
         }
 
@@ -288,15 +283,15 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
     // Check server signature before accepting server response
     // This is an additional protection against Man-In-The-Middle attacks
     // Apply extra device creation options (need to be used only at first start when config=null!)
-    private ServerConfig createAndGetServerConfigSecure(String deviceId,
-                                                        DeviceCreateOptions createOptions,
-                                                        String signature) throws Exception {
+    private ServerConfig enrollSecure(String deviceId,
+                                      DeviceEnrollOptions createOptions,
+                                      String signature) throws Exception {
         Response<ResponseBody> response = null;
 
         try {
             serverHost = settingsHelper.getBaseUrl();
             response = serverService.
-                    createAndGetRawServerConfig(settingsHelper.getServerProject(),
+                    enrollAndGetServerConfigRaw(settingsHelper.getServerProject(),
                             deviceId, signature, Build.CPU_ABI, createOptions).execute();
         } catch (Exception e) {
             e.printStackTrace();
@@ -305,7 +300,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         if (response == null) {
             serverHost = settingsHelper.getSecondaryBaseUrl();
             response = secondaryServerService.
-                    createAndGetRawServerConfig(settingsHelper.getServerProject(),
+                    enrollAndGetServerConfigRaw(settingsHelper.getServerProject(),
                             deviceId, signature, Build.CPU_ABI, createOptions).execute();
         }
 

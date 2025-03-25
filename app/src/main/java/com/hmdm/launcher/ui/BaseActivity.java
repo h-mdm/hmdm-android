@@ -47,7 +47,7 @@ import com.hmdm.launcher.databinding.DialogEnterDeviceIdBinding;
 import com.hmdm.launcher.databinding.DialogEnterServerBinding;
 import com.hmdm.launcher.databinding.DialogNetworkErrorBinding;
 import com.hmdm.launcher.helper.SettingsHelper;
-import com.hmdm.launcher.json.DeviceCreateOptions;
+import com.hmdm.launcher.json.DeviceEnrollOptions;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.server.ServerUrl;
 import com.hmdm.launcher.util.DeviceInfoProvider;
@@ -216,20 +216,20 @@ public class BaseActivity extends AppCompatActivity {
                 settingsHelper.setServerProject(serverProject);
             }
 
-            DeviceCreateOptions createOptions = new DeviceCreateOptions();
+            DeviceEnrollOptions createOptions = new DeviceEnrollOptions();
             createOptions.setCustomer(extras.optString(Const.QR_CUSTOMER_ATTR, null));
             createOptions.setConfiguration(extras.optString(Const.QR_CONFIG_ATTR, null));
             createOptions.setGroups(extras.optString(Const.QR_GROUP_ATTR, null));
             if (createOptions.getCustomer() != createOptions.getCustomer()) {
                 Log.d(Const.LOG_TAG, "Customer: " + serverProject);
-                settingsHelper.setCreateOptionCustomer(createOptions.getCustomer());
+                settingsHelper.setEnrollOptionCustomer(createOptions.getCustomer());
             }
             if (createOptions.getConfiguration() != null) {
                 Log.d(Const.LOG_TAG, "Configuration: " + createOptions.getConfiguration());
-                settingsHelper.setCreateOptionConfigName(createOptions.getConfiguration());
+                settingsHelper.setEnrollOptionConfigName(createOptions.getConfiguration());
             }
             if (createOptions.getGroups() != null) {
-                settingsHelper.setCreateOptionGroup(createOptions.getGroupSet());
+                settingsHelper.setEnrollOptionGroup(createOptions.getGroupSet());
             }
 
         } catch (Exception e) {

@@ -32,7 +32,7 @@ import android.os.PersistableBundle;
 import androidx.annotation.RequiresApi;
 
 import com.hmdm.launcher.helper.SettingsHelper;
-import com.hmdm.launcher.json.DeviceCreateOptions;
+import com.hmdm.launcher.json.DeviceEnrollOptions;
 import com.hmdm.launcher.util.PreferenceLogger;
 
 /**
@@ -95,7 +95,7 @@ public class AdminReceiver extends DeviceAdminReceiver {
             String baseUrl = null;
             String secondaryBaseUrl = null;
             String serverProject = null;
-            DeviceCreateOptions createOptions = new DeviceCreateOptions();
+            DeviceEnrollOptions createOptions = new DeviceEnrollOptions();
             if (bundle != null) {
                 baseUrl = bundle.getString(Const.QR_BASE_URL_ATTR, null);
                 secondaryBaseUrl = bundle.getString(Const.QR_SECONDARY_BASE_URL_ATTR, null);
@@ -121,15 +121,15 @@ public class AdminReceiver extends DeviceAdminReceiver {
                 }
                 if (createOptions.getCustomer() != null) {
                     PreferenceLogger.log(preferences, "Customer: " + createOptions.getCustomer());
-                    settingsHelper.setCreateOptionCustomer(createOptions.getCustomer());
+                    settingsHelper.setEnrollOptionCustomer(createOptions.getCustomer());
                 }
                 if (createOptions.getConfiguration() != null) {
                     PreferenceLogger.log(preferences, "Configuration: " + createOptions.getConfiguration());
-                    settingsHelper.setCreateOptionConfigName(createOptions.getConfiguration());
+                    settingsHelper.setEnrollOptionConfigName(createOptions.getConfiguration());
                 }
                 if (createOptions.getGroups() != null) {
                     PreferenceLogger.log(preferences, "Groups: " + bundle.getString(Const.QR_GROUP_ATTR));
-                    settingsHelper.setCreateOptionGroup(createOptions.getGroupSet());
+                    settingsHelper.setEnrollOptionGroup(createOptions.getGroupSet());
                 }
                 settingsHelper.setQrProvisioning(true);
             }

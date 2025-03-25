@@ -29,18 +29,23 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
+import android.location.GnssStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
+import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.util.RemoteLogger;
 
@@ -106,10 +111,28 @@ public class LocationService extends Service {
         }
     };
 
+    private Handler handler = new Handler();
+    private GnssStatus.Callback gnssStatusCallback = null;
+
     @Override
     public void onCreate() {
         super.onCreate();
         locationManager = (LocationManager)this.getSystemService(LOCATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            gnssStatusCallback = new GnssStatus.Callback() {
+                @Override
+                public void onSatelliteStatusChanged(@NonNull GnssStatus status) {
+                    super.onSatelliteStatusChanged(status);
+                    try {
+                        Log.d(Const.LOG_TAG, "Satellite status changed, count: " + status.getSatelliteCount());
+                        SettingsHelper.getInstance(LocationService.this.getApplicationContext()).setSatelliteCount(status.getSatelliteCount());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+        }
     }
 
     @SuppressLint("WrongConstant")
@@ -160,6 +183,9 @@ public class LocationService extends Service {
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, LOCATION_UPDATE_INTERVAL, 0, networkLocationListener);
             if (updateViaGps) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_UPDATE_INTERVAL, 0, gpsLocationListener);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    locationManager.registerGnssStatusCallback(gnssStatusCallback, handler);
+                }
             }
         } catch (Exception e) {
             // Provider may not exist, so process it friendly
@@ -175,6 +201,9 @@ public class LocationService extends Service {
     public void onDestroy() {
         locationManager.removeUpdates(networkLocationListener);
         locationManager.removeUpdates(gpsLocationListener);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            locationManager.unregisterGnssStatusCallback(gnssStatusCallback);
+        }
         started = false;
 
         super.onDestroy();

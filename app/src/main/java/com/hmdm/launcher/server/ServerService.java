@@ -23,7 +23,7 @@ package com.hmdm.launcher.server;
 import com.hmdm.launcher.db.LocationTable;
 import com.hmdm.launcher.json.DetailedInfo;
 import com.hmdm.launcher.json.DetailedInfoConfigResponse;
-import com.hmdm.launcher.json.DeviceCreateOptions;
+import com.hmdm.launcher.json.DeviceEnrollOptions;
 import com.hmdm.launcher.json.DeviceInfo;
 import com.hmdm.launcher.json.PushResponse;
 import com.hmdm.launcher.json.RemoteLogConfigResponse;
@@ -48,24 +48,24 @@ public interface ServerService {
     static final String CPU_ARCH_HEADER = "X-CPU-Arch";
 
     @POST("{project}/rest/public/sync/configuration/{number}")
-    Call<ResponseBody> createAndGetRawServerConfig(@Path("project") String project,
+    Call<ResponseBody> enrollAndGetServerConfigRaw(@Path("project") String project,
                                                    @Path("number") String number,
                                                    @Header(REQUEST_SIGNATURE_HEADER) String signature,
                                                    @Header(CPU_ARCH_HEADER) String cpuArch,
-                                                   @Body DeviceCreateOptions createOptions);
+                                                   @Body DeviceEnrollOptions createOptions);
 
     @GET("{project}/rest/public/sync/configuration/{number}")
-    Call<ResponseBody> getRawServerConfig(@Path("project") String project,
+    Call<ResponseBody> getServerConfigRaw(@Path("project") String project,
                                           @Path("number") String number,
                                           @Header(REQUEST_SIGNATURE_HEADER) String signature,
                                           @Header(CPU_ARCH_HEADER) String cpuArch);
 
     @POST("{project}/rest/public/sync/configuration/{number}")
-    Call<ServerConfigResponse> createAndGetServerConfig(@Path("project") String project,
+    Call<ServerConfigResponse> enrollAndGetServerConfig(@Path("project") String project,
                                                         @Path("number") String number,
                                                         @Header(REQUEST_SIGNATURE_HEADER) String signature,
                                                         @Header(CPU_ARCH_HEADER) String cpuArch,
-                                                        @Body DeviceCreateOptions createOptions);
+                                                        @Body DeviceEnrollOptions createOptions);
 
     @GET("{project}/rest/public/sync/configuration/{number}")
     Call<ServerConfigResponse> getServerConfig(@Path("project") String project,

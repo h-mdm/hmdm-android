@@ -56,6 +56,7 @@ public class SettingsHelper {
     private static final String PREF_KEY_INTEGRATED_PROVISIONING_FLOW = ".helpers.INTEGRATED_PROVISIONING_FLOW";
     private static final String PREF_KEY_LAST_APP_UPDATE_STATE = ".helpers.LAST_APP_UPDATE_STATE";
     private static final String PREF_KEY_APP_START_TIME = ".helpers.APP_START_TIME";
+    private static final String PREF_KEY_SATELLITE_COUNT = ".helpers.APP_SATELLITE_COUNT";
     // This prefix is for the compatibility with a legacy package name
     private static String PACKAGE_NAME;
 
@@ -191,7 +192,7 @@ public class SettingsHelper {
         return sharedPreferences.edit().putLong(PACKAGE_NAME + PREF_CFG_UPDATE_TIMESTAMP, timestamp).commit();
     }
 
-    public boolean setCreateOptionCustomer(String customer) {
+    public boolean setEnrollOptionCustomer(String customer) {
         if (customer == null) {
             return sharedPreferences.edit().remove(PACKAGE_NAME + PREF_KEY_CUSTOMER).commit();
         } else {
@@ -199,7 +200,7 @@ public class SettingsHelper {
         }
     }
 
-    public String getCreateOptionCustomer() {
+    public String getEnrollOptionCustomer() {
         return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_CUSTOMER, null);
     }
 
@@ -231,7 +232,16 @@ public class SettingsHelper {
         return sharedPreferences.getLong(PACKAGE_NAME + PREF_KEY_APP_START_TIME, 0);
     }
 
-    public boolean setCreateOptionConfigName(String configName) {
+
+    public boolean setSatelliteCount(int count) {
+        return sharedPreferences.edit().putInt(PACKAGE_NAME + PREF_KEY_SATELLITE_COUNT, count).commit();
+    }
+
+    public int getSatelliteCount() {
+        return sharedPreferences.getInt(PACKAGE_NAME + PREF_KEY_SATELLITE_COUNT, 0);
+    }
+
+    public boolean setEnrollOptionConfigName(String configName) {
         if (configName == null) {
             return sharedPreferences.edit().remove(PACKAGE_NAME + PREF_KEY_CONFIG_NAME).commit();
         } else {
@@ -239,11 +249,11 @@ public class SettingsHelper {
         }
     }
 
-    public String getCreateOptionConfigName() {
+    public String getEnrollOptionConfigName() {
         return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_CONFIG_NAME, null);
     }
 
-    public boolean setCreateOptionGroup(Set<String> group) {
+    public boolean setEnrollOptionGroup(Set<String> group) {
         if (group == null) {
             return sharedPreferences.edit().remove(PACKAGE_NAME + PREF_KEY_GROUP).commit();
         } else {
@@ -251,7 +261,7 @@ public class SettingsHelper {
         }
     }
 
-    public Set<String> getCreateOptionGroup() {
+    public Set<String> getEnrollOptionGroup() {
         return sharedPreferences.getStringSet(PACKAGE_NAME + PREF_KEY_GROUP, null);
     }
 
