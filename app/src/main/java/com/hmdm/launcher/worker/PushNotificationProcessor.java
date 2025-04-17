@@ -29,21 +29,27 @@ import android.util.Log;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.db.DatabaseHelper;
 import com.hmdm.launcher.db.DownloadTable;
 import com.hmdm.launcher.helper.ConfigUpdater;
+import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.Download;
 import com.hmdm.launcher.json.PushMessage;
+import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.util.InstallUtils;
 import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.SystemUtils;
 import com.hmdm.launcher.util.Utils;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 public class PushNotificationProcessor {
@@ -100,6 +106,10 @@ public class PushNotificationProcessor {
         } else if (message.getMessageType().equals(PushMessage.TYPE_SETTINGS)) {
             // Clear download history
             AsyncTask.execute(() -> openSettings(context, message.getPayloadJSON()));
+            return;
+        } else if (message.getMessageType().equals(PushMessage.TYPE_GRANT_PERMISSIONS)) {
+            // Grant permissions to apps
+            AsyncTask.execute(() -> grantPermissions(context, message.getPayloadJSON()));
             return;
         }
 
@@ -326,6 +336,49 @@ public class PushNotificationProcessor {
         } catch (Exception e) {
             RemoteLogger.log(context, Const.LOG_WARN, "Open settings failed: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private static void grantPermissions(Context context, JSONObject payload) {
+        if (!Utils.isDeviceOwner(context) && !BuildConfig.SYSTEM_PRIVILEGES) {
+            RemoteLogger.log(context, Const.LOG_WARN, "Can't auto grant permissions: no device owner");
+        }
+
+        ServerConfig config = SettingsHelper.getInstance(context).getConfig();
+        List<String> apps = null;
+
+        if (payload != null) {
+            apps = new LinkedList<>();
+            String pkg;
+            JSONArray pkgs = payload.optJSONArray("pkg");
+            if (pkgs != null) {
+                for (int i = 0; i < pkgs.length(); i++) {
+                    pkg = pkgs.optString(i);
+                    if (pkg != null) {
+                        apps.add(pkg);
+                    }
+                }
+            } else {
+                pkg = payload.optString("pkg");
+                if (pkg != null) {
+                    apps.add(pkg);
+                }
+            }
+        } else {
+            // By default, grant permissions to all packagee having an URL
+            apps = new LinkedList<>();
+            List<Application> configApps = config.getApplications();
+            for (Application app: configApps) {
+                if (Application.TYPE_APP.equals(app.getType()) &&
+                    app.getUrl() != null && app.getPkg() != null) {
+                    apps.add(app.getPkg());
+                }
+            }
+        }
+
+        for (String app: apps) {
+            Utils.autoGrantRequestedPermissions(context, app,
+                    config.getAppPermissions(), false);
         }
     }
 }

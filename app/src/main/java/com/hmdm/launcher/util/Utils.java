@@ -185,7 +185,10 @@ public class Utils {
                     boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
                             packageName, permission, permissionState);
                     if (!success) {
+                        Log.w(Const.LOG_TAG, "Failed to grant permission " + permission);
                         return false;
+                    } else {
+                        Log.d(Const.LOG_TAG, "Permission " + permission + " granted to package " + packageName);
                     }
                 }
             }
