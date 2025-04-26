@@ -397,7 +397,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
     }
 
     private String queryTag(String message) {
-        if (message.contains("Trust anchor")) {
+        if (message != null && message.contains("Trust anchor")) {
             return "trust_anchor";
         }
         return null;

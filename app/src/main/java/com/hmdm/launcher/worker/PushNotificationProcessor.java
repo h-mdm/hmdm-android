@@ -103,9 +103,9 @@ public class PushNotificationProcessor {
             // Clear download history
             AsyncTask.execute(() -> clearDownloads(context));
             return;
-        } else if (message.getMessageType().equals(PushMessage.TYPE_SETTINGS)) {
-            // Clear download history
-            AsyncTask.execute(() -> openSettings(context, message.getPayloadJSON()));
+        } else if (message.getMessageType().equals(PushMessage.TYPE_INTENT)) {
+            // Run a system intent (like settings or ACTION_VIEW)
+            AsyncTask.execute(() -> callIntent(context, message.getPayloadJSON()));
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_GRANT_PERMISSIONS)) {
             // Grant permissions to apps
@@ -320,21 +320,47 @@ public class PushNotificationProcessor {
         DownloadTable.deleteAll(db);
     }
 
-    private static void openSettings(Context context, JSONObject payload) {
+    private static void callIntent(Context context, JSONObject payload) {
         if (payload == null) {
-            RemoteLogger.log(context, Const.LOG_WARN, "Open settings failed: no action specified");
+            RemoteLogger.log(context, Const.LOG_WARN, "Calling intent failed: no parameters specified");
             return;
         }
 
         try {
             String action = payload.getString("action");
-            Log.d(Const.LOG_TAG, "Opening settings sheet: " + action);
+            Log.d(Const.LOG_TAG, "Calling intent: " + action);
+            JSONObject extras = payload.optJSONObject("extra");
+            String data = payload.optString("data", null);
             Intent i = new Intent(action);
+            if (data != null) {
+                try {
+                    i.setData(Uri.parse(data));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            if (extras != null) {
+                Iterator<String> keys = extras.keys();
+                String key;
+                while (keys.hasNext()) {
+                    key = keys.next();
+                    Object value = extras.get(key);
+                    if (value instanceof String) {
+                        i.putExtra(key, (String) value);
+                    } else if (value instanceof Integer) {
+                        i.putExtra(key, ((Integer) value).intValue());
+                    } else if (value instanceof Float) {
+                        i.putExtra(key, ((Float) value).floatValue());
+                    } else if (value instanceof Boolean) {
+                        i.putExtra(key, ((Boolean) value).booleanValue());
+                    }
+                }
+            }
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(i);
         } catch (Exception e) {
-            RemoteLogger.log(context, Const.LOG_WARN, "Open settings failed: " + e.getMessage());
+            RemoteLogger.log(context, Const.LOG_WARN, "Calling intent failed: " + e.getMessage());
             e.printStackTrace();
         }
     }
