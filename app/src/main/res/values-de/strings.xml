@@ -25,7 +25,7 @@
     <string name="dialog_enter_device_id_qrcode">QR-Code</string>
     <string name="dialog_enter_device_id_variants">Varianten</string>
     <string name="dialog_enter_device_id_save">Speichern</string>
-    <string name="dialog_enter_device_id_exit">Beendene</string>
+    <string name="dialog_enter_device_id_exit">Beenden</string>
     <string name="dialog_enter_device_id_title">Geben Sie die Geräte-ID unter %s ein</string>
     <string name="main_start_preparations">Vorbereiten des Starts</string>
     <string name="main_downloading_configuration">Aktualisieren der Konfigurationsdatei</string>
