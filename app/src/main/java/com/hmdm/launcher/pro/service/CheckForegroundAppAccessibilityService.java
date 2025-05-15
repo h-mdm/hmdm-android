@@ -19,21 +19,18 @@
 
 package com.hmdm.launcher.pro.service;
 
-import android.accessibilityservice.AccessibilityService;
-import android.view.accessibility.AccessibilityEvent;
+import android.app.Service;
+import android.content.Intent;
+import android.os.IBinder;
 
 /**
  * In open-source version, the service checking foreground apps is just a stub;
  * this option is available in Pro-version only
  */
-public class CheckForegroundAppAccessibilityService extends AccessibilityService {
+public class CheckForegroundAppAccessibilityService extends Service {
     @Override
-    public void onAccessibilityEvent(AccessibilityEvent event) {
+    public IBinder onBind(Intent intent) {
         // Stub
-    }
-
-    @Override
-    public void onInterrupt() {
-        // Stub
+        return null;
     }
 }

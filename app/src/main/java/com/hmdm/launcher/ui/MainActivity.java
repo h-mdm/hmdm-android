@@ -592,7 +592,8 @@ public class MainActivity
         if (preferences.getInt(Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
             startService(new Intent(MainActivity.this, CheckForegroundApplicationService.class));
         }
-        if (preferences.getInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
+        if (BuildConfig.USE_ACCESSIBILITY &&
+            preferences.getInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
             startService(new Intent(MainActivity.this, CheckForegroundAppAccessibilityService.class));
         }
         startService(new Intent(MainActivity.this, StatusControlService.class));
@@ -818,7 +819,7 @@ public class MainActivity
         int accessibilityService = preferences.getInt( Const.PREFERENCES_ACCESSIBILITY_SERVICE, - 1 );
         // Check the same condition as for usage stats here
         // because accessibility is used as a secondary condition when usage stats is not available
-        if (ProUtils.isPro() && accessibilityService == -1 && needRequestUsageStats()) {
+        if (ProUtils.isPro() && BuildConfig.USE_ACCESSIBILITY && accessibilityService == -1 && needRequestUsageStats()) {
             if ( checkAccessibilityService() ) {
                 preferences.
                         edit().

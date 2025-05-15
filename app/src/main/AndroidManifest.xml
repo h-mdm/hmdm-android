@@ -30,7 +30,10 @@
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-    <uses-permission android:name="android.permission.READ_SMS"/>
+<!-- This permission is dangerous and causes blocking by Play Protect in some countries.
+     In fact, this permission is currently never used by Headwind MDM.
+ -->
+<!--    <uses-permission android:name="android.permission.READ_SMS"/>-->
     <uses-permission android:name="android.permission.READ_PHONE_NUMBERS"/>
     <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
         tools:ignore="ProtectedPermissions"/>
@@ -240,18 +243,9 @@
             </intent-filter>
         </service>
 
+        <!-- Stub -->
         <service android:name=".pro.service.CheckForegroundAppAccessibilityService"
-                 android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-                 android:exported="false"
-                 android:label="@string/white_app_name">
-            <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.accessibilityservice"
-                android:resource="@xml/accessibility_service_config" />
-        </service>
+                 android:exported="false"/>
 
         <service android:name="org.eclipse.paho.android.service.MqttService"
             android:foregroundServiceType="specialUse|systemExempted"

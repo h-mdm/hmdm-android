@@ -105,14 +105,16 @@ public class Utils {
                         return false;
                     }
                 }
-                if (devicePolicyManager.getPermissionGrantState(adminComponentName,
-                        context.getPackageName(), Manifest.permission.READ_SMS) != DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED) {
-                    boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
-                            context.getPackageName(), Manifest.permission.READ_SMS, DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
-                    if (!success) {
-                        return false;
-                    }
-                }
+                // This permission is dangerous and causes blocking by Play Protect in some countries.
+                //     In fact, this permission is currently never used by Headwind MDM.
+//                if (devicePolicyManager.getPermissionGrantState(adminComponentName,
+//                        context.getPackageName(), Manifest.permission.READ_SMS) != DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED) {
+//                    boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
+//                            context.getPackageName(), Manifest.permission.READ_SMS, DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
+//                    if (!success) {
+//                        return false;
+//                    }
+//                }
             }
         } catch (NoSuchMethodError e) {
             // This exception is raised on Android 5.1

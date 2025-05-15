@@ -128,7 +128,8 @@ public class Initializer {
                 e.printStackTrace();
             }
         }
-        if (preferences.getInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
+        if (BuildConfig.USE_ACCESSIBILITY &&
+            preferences.getInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
             try {
                 context.startService(new Intent(context, CheckForegroundAppAccessibilityService.class));
             } catch (Exception e) {

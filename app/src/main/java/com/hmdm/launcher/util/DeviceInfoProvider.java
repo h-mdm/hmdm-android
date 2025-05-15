@@ -35,6 +35,7 @@ import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.db.DatabaseHelper;
 import com.hmdm.launcher.db.RemoteFileTable;
@@ -64,7 +65,7 @@ public class DeviceInfoProvider {
             permissions.add(Utils.checkAdminMode(context) ? 1 : 0);
             permissions.add(Utils.canDrawOverlays(context) ? 1 : 0);
             permissions.add(ProUtils.checkUsageStatistics(context) ? 1 : 0);
-            permissions.add(ProUtils.checkAccessibilityService(context) ? 1 : 0);
+            permissions.add(!BuildConfig.USE_ACCESSIBILITY || !ProUtils.checkAccessibilityService(context) ? 0 : 1);
         }
 
         SettingsHelper config = SettingsHelper.getInstance(context);

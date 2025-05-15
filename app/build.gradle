@@ -35,8 +35,8 @@ android {
         applicationId "com.hmdm.launcher"
         minSdkVersion 16
         targetSdkVersion 34
-        versionCode 15200
-        versionName "6.20"
+        versionCode 15210
+        versionName "6.21"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true
@@ -97,6 +97,9 @@ android {
         buildConfigField("Boolean", "DISABLE_ORIENTATION_LOCK", "false")
         // API key for the authorization of privileged library requests
         buildConfigField("String", "LIBRARY_API_KEY", "\"changeme-8gzk321W\"")
+        // Use accessibility services to control unwanted apps
+        // (this option is banned by Play Protect in some countries!)
+        buildConfigField("Boolean", "USE_ACCESSIBILITY", "false")
     }
     buildTypes {
         release {
