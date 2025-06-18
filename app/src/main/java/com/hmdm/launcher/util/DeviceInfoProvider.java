@@ -183,6 +183,10 @@ public class DeviceInfoProvider {
         deviceInfo.setLauncherPackage(launcherPackage != null ? launcherPackage : "");
         deviceInfo.setDefaultLauncher(context.getPackageName().equals(launcherPackage));
 
+        deviceInfo.setCustom1(config.getUserCustom1());
+        deviceInfo.setCustom2(config.getUserCustom2());
+        deviceInfo.setCustom3(config.getUserCustom3());
+
         return deviceInfo;
     }
 

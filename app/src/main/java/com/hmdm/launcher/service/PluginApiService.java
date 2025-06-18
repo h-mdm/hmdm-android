@@ -165,12 +165,15 @@ public class PluginApiService extends Service {
             switch (number) {
                 case 1:
                     settingsHelper.getConfig().setCustom1(value);
+                    settingsHelper.setUserCustom1(value);
                     break;
                 case 2:
                     settingsHelper.getConfig().setCustom2(value);
+                    settingsHelper.setUserCustom2(value);
                     break;
                 case 3:
                     settingsHelper.getConfig().setCustom3(value);
+                    settingsHelper.setUserCustom3(value);
                     break;
             }
         }

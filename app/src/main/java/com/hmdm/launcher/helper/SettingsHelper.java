@@ -57,6 +57,9 @@ public class SettingsHelper {
     private static final String PREF_KEY_LAST_APP_UPDATE_STATE = ".helpers.LAST_APP_UPDATE_STATE";
     private static final String PREF_KEY_APP_START_TIME = ".helpers.APP_START_TIME";
     private static final String PREF_KEY_SATELLITE_COUNT = ".helpers.APP_SATELLITE_COUNT";
+    private static final String PREF_KEY_USER_CUSTOM_1 = ".helpers.USER_CUSTOM_1";
+    private static final String PREF_KEY_USER_CUSTOM_2 = ".helpers.USER_CUSTOM_2";
+    private static final String PREF_KEY_USER_CUSTOM_3 = ".helpers.USER_CUSTOM_3";
     // This prefix is for the compatibility with a legacy package name
     private static String PACKAGE_NAME;
 
@@ -263,6 +266,30 @@ public class SettingsHelper {
 
     public Set<String> getEnrollOptionGroup() {
         return sharedPreferences.getStringSet(PACKAGE_NAME + PREF_KEY_GROUP, null);
+    }
+
+    public boolean setUserCustom1(String userCustom) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_USER_CUSTOM_1, userCustom).commit();
+    }
+
+    public String getUserCustom1() {
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_USER_CUSTOM_1, null);
+    }
+
+    public boolean setUserCustom2(String userCustom) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_USER_CUSTOM_2, userCustom).commit();
+    }
+
+    public String getUserCustom2() {
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_USER_CUSTOM_2, null);
+    }
+
+    public boolean setUserCustom3(String userCustom) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_USER_CUSTOM_3, userCustom).commit();
+    }
+
+    public String getUserCustom3() {
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_USER_CUSTOM_3, null);
     }
 
     public void updateConfig( ServerConfig config ) {
