@@ -126,4 +126,5 @@
     <string name="work_profile_message">Cet appareil recevra un profil professionnel géré appartenant à votre organisation. Le profil professionnel est séparé de votre profil privé et vous pouvez basculer entre les profils à tout moment.</string>
     <string name="overlays_not_supported">Malheureusement, les superpositions ne sont pas prises en charge par votre appareil.</string>
     <string name="admin_not_supported">Votre appareil n\'a pas d\'option d\'administrateur d\'appareil. Cliquez sur Ignorer pour continuer.</string>
+    <string name="manage_storage_not_supported">Votre appareil n\'a aucune option pour gérer le stockage externe.</string>
 </resources>

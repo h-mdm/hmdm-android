@@ -125,5 +125,6 @@
     <string name="mdm_choice_message">Este dispositivo será completamente administrado por su organización. Sus datos no serán privados y su administrador de TI puede borrarlos o revisarlos en cualquier momento.</string>
     <string name="work_profile_message">Este dispositivo obtendrá un perfil de trabajo administrado que pertenece a su organización. El perfil de trabajo está separado de su perfil privado y puede cambiar de perfil en cualquier momento.</string>
     <string name="overlays_not_supported">Lamentablemente, las superposiciones no son compatibles con su dispositivo.</string>
-    <string name="admin_not_supported">YSu dispositivo no tiene ninguna opción de administrador de dispositivos. Haga clic en Omitir para continuar.</string>
+    <string name="admin_not_supported">Su dispositivo no tiene ninguna opción de administrador de dispositivos. Haga clic en Omitir para continuar.</string>
+    <string name="manage_storage_not_supported">Su dispositivo no tiene ninguna opción para administrar el almacenamiento externo.</string>
 </resources>

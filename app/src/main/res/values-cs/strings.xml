@@ -126,4 +126,5 @@
     <string name="work_profile_message">Na tomto zařízení se vytvoří pracovní profil, který patří vaší organizaci. Pracovní profil je oddělen od vašeho soukromého a lze mezi nimi kdykoliv přepínat.</string>
     <string name="overlays_not_supported">Překreslování obrazovku bohužel není podporováno na vašem zařízení.</string>
     <string name="admin_not_supported">Vaše zařízení nemá možnost vytvoření administrátora zařízení. Vyberte přeskočit pro pokračování.</string>
+    <string name="manage_storage_not_supported">Vaše zařízení nemá možnost spravovat externí úložiště.</string>
 </resources>

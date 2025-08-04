@@ -54,6 +54,7 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
     protected RecyclerView.LayoutManager layoutManager;
     protected GradientDrawable selectedItemBorder;
     protected boolean focused = true;
+    protected boolean dpadUsed = false;
 
     protected Picasso picasso = null;
 
@@ -173,7 +174,9 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
                 }
             }
 
-            holder.itemView.setBackground(position == selectedItem ? selectedItemBorder : null);
+            holder.itemView.setOnFocusChangeListener((v, hasFocus) -> {
+                holder.itemView.setBackground(holder.itemView.hasFocus() && dpadUsed ? selectedItemBorder : null);
+            });
 
         } catch (Exception e) {
             // Here we handle PackageManager.NameNotFoundException as well as
@@ -345,7 +348,22 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
     }
 
     public boolean onKey(final int keyCode) {
-        AppInfo shortcutAppInfo = shortcuts.get(new Integer(keyCode));
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+            case KeyEvent.KEYCODE_DPAD_UP:
+            case KeyEvent.KEYCODE_DPAD_CENTER:
+            dpadUsed = true;
+        }
+        return false;
+
+        // This code (manual browsing of icons) follows by focusing just 1st item
+        // (the workaround is provided by BuildConfig.SELECTED_ITEM_BY_CLICK but it won't work well
+        // if an item is selected and another is tapped. Also, (info) and (reload) items become
+        // unavailable. So just turn on displaying border by focus here (flag dpadUsed).
+
+/*        AppInfo shortcutAppInfo = shortcuts.get(new Integer(keyCode));
         if (shortcutAppInfo != null) {
             chooseApp(shortcutAppInfo);
             return true;
@@ -393,7 +411,7 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
             setFocused(false);
         }
 
-        return false;
+        return false; */
     }
 
     private boolean tryMoveSelection(RecyclerView.LayoutManager lm, int offset) {

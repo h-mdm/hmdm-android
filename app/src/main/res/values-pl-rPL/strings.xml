@@ -80,6 +80,7 @@
     <string name="admin_change_server_url">Zmień URL serwera</string>
     <string name="admin_allow_settings">Otwórz ustawienia</string>
     <string name="settings_allowed">Możesz modyfikować ustawienia przez 3 minuty.</string>
+    <string name="admin_clear_restrictions">Wyłącz ograniczenia</string>
     <string name="permissive_mode_enabled">Możesz uruchamiać wszystkie aplikacje przez 3 minuty.</string>
     <string name="admin_refresh">Aktualizuj konfigurację</string>
     <string name="admin_exit">Wyjdź do systemowego launchera</string>
@@ -87,6 +88,7 @@
     <string name="admin_reset_network">Resetuj polityki sieciowe</string>
     <string name="admin_reset_network_hint">Polityki sieciowe zostały zresetowane. Możesz włączyć sieć i przeładować konfigurację.</string>
     <string name="reboot">Uruchom ponownie urządzenie</string>
+    <string name="reboot_failed">Niewystarczające uprawnienia do ponownego uruchomienia urządzenia.</string>
     <string name="message_turn_on_gps">Otworzy się ekran ustawień. Włącz lokalizację i naciśnij przycisk \"Wstecz\".</string>
     <string name="message_turn_off_gps">Otworzy się ekran ustawień. WYŁĄCZ lokalizację i naciśnij przycisk \"Wstecz\".</string>
     <string name="message_turn_on_mobile_data">Dane komórkowe są wyłączone. Otwórz pasek statusu i włącz dane komórkowe.</string>
@@ -99,6 +101,7 @@
     <string name="dialog_enter_password_login">Zaloguj</string>
     <string name="dialog_enter_password_cancel">Anuluj</string>
     <string name="internal_error">Aplikacja napotkała błąd wewnętrzny. Uruchom ponownie urządzenie i spróbuj ponownie wykonać tą operację.</string>
+    <string name="empty_configuration">Konfiguracja nie jest ustawiona, ponawianie próby pobrania jej z serwera!</string>
     <string name="permissions_reset_hint">Zamknij panel administracyjny, aby sprawdzić i poprosić o uprawnienia.</string>
     <string name="dialog_enter_server_error">Wprowadź poprawny adres serwera.</string>
     <string name="dialog_enter_server_ok">OK</string>
@@ -123,7 +126,5 @@
     <string name="work_profile_message">To urządzenie otrzyma zarządzany profil służbowy należący do Twojej organizacji. Profil do pracy jest oddzielony od profilu prywatnego i możesz przełączać się między profilami w dowolnym momencie.</string>
     <string name="overlays_not_supported">Niestety twoje urządzenie nie obsługuje nakładek.</string>
     <string name="admin_not_supported">Twoje urządzenie nie wspiera administracji urządzeniem. Kliknij \"Pomiń\", aby kontynuować.</string>
-    <string name="admin_clear_restrictions">Wyłącz ograniczenia</string>
-    <string name="reboot_failed">Niewystarczające uprawnienia do ponownego uruchomienia urządzenia.</string>
-    <string name="empty_configuration">Konfiguracja nie jest ustawiona, ponawianie próby pobrania jej z serwera!</string>
+    <string name="manage_storage_not_supported">Twoje urządzenie nie ma możliwości zarządzania pamięcią zewnętrzną.</string>
 </resources>

@@ -61,6 +61,10 @@ public class RemoteLogWorker extends Worker {
     private Context context;
     private SettingsHelper settingsHelper;
 
+    public static void resetState() {
+        uploadScheduled = false;
+    }
+
     public static void scheduleUpload(Context context) {
         scheduleUpload(context, 0);
     }

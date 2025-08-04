@@ -117,8 +117,9 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
                 // so watchdog services are not being started at this point.
                 // Perhaps we need to request these permissions at this step?
                 Log.d(Const.LOG_TAG, "Working in background, starting services and installing apps");
-                Initializer.init(InitialSetupActivity.this);
-                Initializer.startServicesAndLoadConfig(InitialSetupActivity.this);
+                Initializer.init(InitialSetupActivity.this, () -> {
+                    Initializer.startServicesAndLoadConfig(InitialSetupActivity.this);
+                });
             }
         }
         completeConfig(settingsHelper);

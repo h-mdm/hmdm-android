@@ -42,6 +42,7 @@ public class PushMessage {
     public static final String TYPE_CLEAR_DOWNLOADS = "clearDownloadHistory";
     public static final String TYPE_INTENT = "intent";
     public static final String TYPE_GRANT_PERMISSIONS = "grantPermissions";
+    public static final String TYPE_ADMIN_PANEL = "adminPanel";
 
     public String getMessageType() {
         return messageType;

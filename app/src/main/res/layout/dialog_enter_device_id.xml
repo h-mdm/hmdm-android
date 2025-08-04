@@ -65,6 +65,9 @@
             android:text="@string/dialog_enter_device_id_title"/>
 
         <AutoCompleteTextView
+            android:focusable="true"
+            android:inputType="text"
+            android:imeOptions="actionDone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/device_id"

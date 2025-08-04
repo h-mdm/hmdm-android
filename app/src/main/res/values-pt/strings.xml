@@ -126,4 +126,5 @@
     <string name="work_profile_message">Este dispositivo receberá um perfil de trabalho gerenciado pertencente à sua organização. O perfil de trabalho é separado do seu perfil privado e você pode alternar entre os perfis a qualquer momento.</string>
     <string name="overlays_not_supported">Infelizmente, as sobreposições não são suportadas pelo seu dispositivo.</string>
     <string name="admin_not_supported">Seu dispositivo não tem opção de administrador do dispositivo. Clique em Pular para continuar.</string>
+    <string name="manage_storage_not_supported">O seu dispositivo não tem opção para gerir o armazenamento externo.</string>
 </resources>

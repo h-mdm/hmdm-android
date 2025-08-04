@@ -31,18 +31,18 @@ public class BootReceiver extends BroadcastReceiver {
             return;
         }
 
-        Initializer.init(context);
-        Initializer.startServicesAndLoadConfig(context);
+        Initializer.init(context, () -> {
+            Initializer.startServicesAndLoadConfig(context);
 
-        SettingsHelper.getInstance(context).setMainActivityRunning(false);
-        if (ProUtils.kioskModeRequired(context)) {
-            Log.i(Const.LOG_TAG, "Kiosk mode required, forcing Headwind MDM to run in the foreground");
-            // If kiosk mode is required, then we just simulate clicking Home and starting MainActivity
-            Intent homeIntent = new Intent(Intent.ACTION_MAIN);
-            homeIntent.addCategory(Intent.CATEGORY_HOME);
-            homeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(homeIntent);
-            return;
-        }
+            SettingsHelper.getInstance(context).setMainActivityRunning(false);
+            if (ProUtils.kioskModeRequired(context)) {
+                Log.i(Const.LOG_TAG, "Kiosk mode required, forcing Headwind MDM to run in the foreground");
+                // If kiosk mode is required, then we just simulate clicking Home and starting MainActivity
+                Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+                homeIntent.addCategory(Intent.CATEGORY_HOME);
+                homeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(homeIntent);
+            }
+        });
     }
 }

@@ -99,6 +99,10 @@ public class PushNotificationProcessor {
             LocalBroadcastManager.getInstance(context).
                 sendBroadcast(new Intent(Const.ACTION_EXIT_KIOSK));
             return;
+        } else if (message.getMessageType().equals(PushMessage.TYPE_ADMIN_PANEL)) {
+            LocalBroadcastManager.getInstance(context).
+                    sendBroadcast(new Intent(Const.ACTION_ADMIN_PANEL));
+            return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_CLEAR_DOWNLOADS)) {
             // Clear download history
             AsyncTask.execute(() -> clearDownloads(context));

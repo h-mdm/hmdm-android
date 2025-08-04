@@ -126,4 +126,5 @@
 	<string name="work_profile_message">Bu cihaz kuruluşunuza ait yönetilen bir çalışma profili alacaktır. Çalışma profili özel profilinizden ayrılmıştır ve istediğiniz zaman profiller arasında geçiş yapabilirsiniz.</string>
 	<string name="overlays_not_supported">Ne yazık ki cihazınız kaplamaları desteklemiyor.</string>
 	<string name="admin_not_supported">Cihazınızda cihaz yöneticisi seçeneği yok. Devam etmek için Atla\'ya tıklayın.</string>
+	<string name="manage_storage_not_supported">Cihazınızda harici depolamayı yönetme seçeneği bulunmuyor.</string>
 </resources>

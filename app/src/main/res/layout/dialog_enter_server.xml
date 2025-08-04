@@ -54,6 +54,9 @@
             android:text="@string/dialog_enter_server_title"/>
 
         <EditText
+            android:focusable="true"
+            android:inputType="text"
+            android:imeOptions="actionDone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/server_url"

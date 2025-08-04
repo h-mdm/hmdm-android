@@ -126,4 +126,5 @@
 	<string name="work_profile_message">此設備將獲得屬於您的組織的受管理工作配置文件。 工作資料與您的私人資料分開，您可以隨時在資料之間切換。</string>
 	<string name="overlays_not_supported">不幸的是，您的設備不支持覆蓋。</string>
 	<string name="admin_not_supported">您的設備沒有設備管理員選項。 單擊跳過以繼續。</string>
+	<string name="manage_storage_not_supported">您的裝置沒有管理外部儲存的選項。</string>
 </resources>

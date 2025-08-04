@@ -130,6 +130,7 @@
     <string name="work_profile_message">This device will get a managed work profile belonging to your organization. The work profile is separated from your private profile and you may switch between profiles at any time.</string>
     <string name="overlays_not_supported">Unfortunately overlays are not supported by your device.</string>
     <string name="admin_not_supported">Your device has no device administrator option. Click Skip to continue.</string>
+    <string name="manage_storage_not_supported">Your device has no option to manage the external storage.</string>
 
     <string-array name="certificates" translatable="false">
         <!-- If you want to install custom SSL certificates, place them in assets folder

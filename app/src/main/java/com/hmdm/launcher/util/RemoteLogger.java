@@ -89,6 +89,10 @@ public class RemoteLogger {
         }
     }
 
+    public static void resetState() {
+        RemoteLogWorker.resetState();
+    }
+
     public static void sendLogsToServer(Context context) {
         RemoteLogWorker.scheduleUpload(context);
     }
