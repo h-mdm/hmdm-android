@@ -1304,6 +1304,7 @@ public class MainActivity
         updateView = createManageButton(R.drawable.ic_system_update_opaque_24dp, R.drawable.ic_system_update_black_24dp,
                 (int)(2.05f * getResources().getDimensionPixelOffset(R.dimen.info_icon_margin)));
         updateView.setOnClickListener(this);
+        updateView.requestFocus();
     }
 
     // The userInteraction flag denotes whether the config has been updated from the UI or in the background
