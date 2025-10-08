@@ -274,10 +274,7 @@ public class Initializer {
 
         // Null value is processed here, it means unlock brightness
         Utils.setBrightnessPolicy(config.getAutoBrightness(), config.getBrightness(), context);
-
-        if (config.getManageTimeout() != null) {
-            Utils.setScreenTimeoutPolicy(config.getManageTimeout(), config.getTimeout(), context);
-        }
+        Utils.setScreenTimeoutPolicy(config.getManageTimeout(), config.getTimeout(), context);
 
         if (config.getManageVolume() != null && config.getManageVolume() && config.getVolume() != null) {
             Utils.lockVolume(false, context);

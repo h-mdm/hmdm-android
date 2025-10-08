@@ -251,10 +251,23 @@ public class InstallUtils {
         return 0;
     }
 
+    public static File getFileByPath(String path) {
+        // If the path starts with // we  use a root device directory instead of /storage/emulated/0
+        if (path.startsWith("//")) {
+            return new File(path.substring(1));
+        } else {
+            return new File(Environment.getExternalStorageDirectory(), path);
+        }
+    }
+
     public static void generateFilesForInstallList(Context context, List<RemoteFile> files,
                                                           List<RemoteFile> filesForInstall) {
         for (RemoteFile remoteFile : files) {
-            File file = new File(Environment.getExternalStorageDirectory(), remoteFile.getPath());
+            if (remoteFile.getPath() == null) {
+                // Ignoring files with no path
+                continue;
+            }
+            File file = getFileByPath(remoteFile.getPath());
             if (remoteFile.isRemove()) {
                 if (file.exists()) {
                     filesForInstall.add(remoteFile);
@@ -587,7 +600,8 @@ public class InstallUtils {
         try {
             File filesDir = context.getExternalFilesDir(null);
             for (File child : filesDir.listFiles()) {
-                if (child.getName().equalsIgnoreCase("MqttConnection")) {
+                if (child.getName().equalsIgnoreCase("MqttConnection") ||
+                    child.getName().equals("init.json")) {
                     // These are names which should be kept here
                     continue;
                 }

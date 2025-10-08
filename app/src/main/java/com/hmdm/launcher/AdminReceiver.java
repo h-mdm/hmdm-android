@@ -34,6 +34,12 @@ import androidx.annotation.RequiresApi;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.DeviceEnrollOptions;
 import com.hmdm.launcher.util.PreferenceLogger;
+import com.hmdm.launcher.util.Utils;
+
+import org.json.JSONObject;
+
+import java.io.File;
+import java.util.Iterator;
 
 /**
  * Created by Ivan Lozenko on 21.02.2017.
@@ -61,6 +67,33 @@ public class AdminReceiver extends DeviceAdminReceiver {
 
         PersistableBundle bundle = intent.getParcelableExtra(EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
         updateSettings(context, bundle);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public static void updateSettingsFromFile(Context context) {
+        try {
+            File file = new File(context.getExternalFilesDir(null), "init.json");
+            if (!file.exists()) {
+                return;
+            }
+            String contents = Utils.loadFileAsString(file.getAbsolutePath());
+            PersistableBundle bundle = new PersistableBundle();
+            JSONObject obj = new JSONObject(contents);
+            // We assume that obj has a linear structure and all items are strings
+            // If things change in the future, this must be reflected here
+            Iterator<String> keys = obj.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                Object value = obj.opt(key);
+                if (value instanceof String) {
+                    bundle.putString(key, (String)value);
+                }
+            }
+            updateSettings(context, bundle);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)

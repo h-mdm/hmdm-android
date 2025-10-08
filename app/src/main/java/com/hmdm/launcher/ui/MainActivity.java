@@ -73,6 +73,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.github.anrwatchdog.ANRWatchDog;
+import com.hmdm.launcher.AdminReceiver;
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
@@ -99,6 +100,7 @@ import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.pro.service.CheckForegroundAppAccessibilityService;
 import com.hmdm.launcher.pro.service.CheckForegroundApplicationService;
+import com.hmdm.launcher.receiver.ScreenOffReceiver;
 import com.hmdm.launcher.server.ServerServiceKeeper;
 import com.hmdm.launcher.server.UnsafeOkHttpClient;
 import com.hmdm.launcher.service.LocationService;
@@ -291,6 +293,8 @@ public class MainActivity
         }
     };
 
+    private final BroadcastReceiver screenOffReceiver = new ScreenOffReceiver();
+
     private final BroadcastReceiver stateChangeReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -386,6 +390,10 @@ public class MainActivity
         settingsHelper = SettingsHelper.getInstance(this);
         preferences = getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE);
 
+        if ("".equals(settingsHelper.getDeviceId()) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            AdminReceiver.updateSettingsFromFile(this);
+        }
+
         settingsHelper.setAppStartTime(System.currentTimeMillis());
 
         Initializer.init(this, () -> {
@@ -403,6 +411,14 @@ public class MainActivity
                 registerReceiver(stateChangeReceiver, intentFilter, Context.RECEIVER_EXPORTED);
             } else {
                 registerReceiver(stateChangeReceiver, intentFilter);
+            }
+
+            intentFilter = new IntentFilter();
+            intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                registerReceiver(screenOffReceiver, intentFilter, Context.RECEIVER_EXPORTED);
+            } else {
+                registerReceiver(screenOffReceiver, intentFilter);
             }
 
             if (!getIntent().getBooleanExtra(Const.RESTORED_ACTIVITY, false)) {
@@ -2002,6 +2018,7 @@ public class MainActivity
         try {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
             unregisterReceiver(stateChangeReceiver);
+            unregisterReceiver(screenOffReceiver);
         } catch (Exception e) {
             e.printStackTrace();
         }

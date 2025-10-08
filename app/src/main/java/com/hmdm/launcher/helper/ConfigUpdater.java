@@ -12,7 +12,6 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -503,7 +502,7 @@ public class ConfigUpdater {
 
                     if (remoteFile.isRemove()) {
                         RemoteLogger.log(context, Const.LOG_DEBUG, "Removing file: " + remoteFile.getPath());
-                        File file = new File(Environment.getExternalStorageDirectory(), remoteFile.getPath());
+                        File file = InstallUtils.getFileByPath(remoteFile.getPath());
                         try {
                             if (file.exists()) {
                                 file.delete();
@@ -565,7 +564,7 @@ public class ConfigUpdater {
 
                         if (file != null) {
                             remoteFileStatus.downloaded = true;
-                            File finalFile = new File(Environment.getExternalStorageDirectory(), remoteFile.getPath());
+                            File finalFile = InstallUtils.getFileByPath(remoteFile.getPath());
                             try {
                                 if (finalFile.exists()) {
                                     finalFile.delete();

@@ -35,8 +35,8 @@ android {
         applicationId "com.hmdm.launcher"
         minSdkVersion 16
         targetSdkVersion 34
-        versionCode 15250
-        versionName "6.25"
+        versionCode 15260
+        versionName "6.26"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true
