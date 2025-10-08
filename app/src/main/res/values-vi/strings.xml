@@ -1,0 +1,130 @@
+<!--
+  ~ Headwind MDM: Open Source Android MDM Software
+  ~ https://h-mdm.com
+  ~
+  ~ Copyright (C) 2019 Headwind Solutions LLC (http://h-sms.com)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resources>
+    <string name="admin_title">Quản trị viên</string>
+    <string name="install_error">Lỗi cài đặt</string>
+    <string name="file_create_error">Lỗi tạo file</string>
+    <string name="dialog_enter_device_id_error">ID này chưa được đăng ký tại %s. Lấy ID từ tab \"Thiết bị\" trong bảng điều khiển.</string>
+    <string name="dialog_enter_device_id_qrcode">Mã QR</string>
+    <string name="dialog_enter_device_id_variants">Biến thể</string>
+    <string name="dialog_enter_device_id_save">Lưu</string>
+    <string name="dialog_enter_device_id_exit">Thoát</string>
+    <string name="dialog_enter_device_id_title">Nhập ID thiết bị tại %s</string>
+    <string name="main_start_preparations">Chuẩn bị khởi động</string>
+    <string name="main_downloading_configuration">Cập nhật file cấu hình</string>
+    <string name="main_downloading_content">Cập nhật dữ liệu</string>
+    <string name="main_update_applications">Cài đặt và cập nhật ứng dụng</string>
+    <string name="dialog_root_message">Bạn cần quyền truy cập ROOT</string>
+    <string name="main_application_start">Khởi động ứng dụng</string>
+    <string name="main_app_installing">Đang cài đặt ứng dụng</string>
+    <string name="main_app_downloading">Đang tải xuống ứng dụng</string>
+    <string name="main_app_downloading_error">Không thể tải xuống gói cài đặt</string>
+    <string name="main_app_removing">Gỡ cài đặt ứng dụng</string>
+    <string name="main_file_downloading">Đang tải xuống file</string>
+    <string name="main_file_downloading_error">Không thể tải xuống file</string>
+    <string name="main_activity_repeat">Thử lại</string>
+    <string name="main_activity_reset">Đặt lại</string>
+    <string name="main_activity_wifi">WiFi</string>
+    <string name="main_activity_cancel">Hủy</string>
+    <string name="main_activity_details">Chi tiết</string>
+    <string name="select_system_launcher">Chọn %s làm launcher mặc định và tích \'Luôn luôn\':</string>
+    <string name="dialog_network_error_title">Lỗi kết nối đến %s. Vui lòng kiểm tra kết nối Internet và thử lại.</string>
+    <string name="main_activity_update_config">Yêu cầu file cấu hình từ máy chủ</string>
+    <string name="main_activity_applications_update">Cập nhật ứng dụng</string>
+    <string name="dialog_overlay_settings_title">Vui lòng cho phép ứng dụng vẽ trên các cửa sổ khác.\n\nTùy chọn này giúp chặn các ứng dụng không mong muốn và cho phép mở khóa khẩn cấp chế độ kiosk.\n\nNhấn \"Tiếp tục\" để mở cài đặt. Tìm mục \"%s\", cấp quyền, sau đó nhấn \"Quay lại\".</string>
+    <string name="dialog_manage_storage_title">Vui lòng cho phép ứng dụng quản lý bộ nhớ.\n\nTùy chọn này cho phép Headwind MDM quản lý file trên thiết bị của bạn.</string>
+    <string name="dialog_history_settings_title">Vui lòng cho phép ứng dụng truy cập dữ liệu sử dụng.\n\nTùy chọn này cho phép kiểm soát ứng dụng và cài đặt.\n\nTùy chọn này có thể gây hao pin nhanh hơn. Để tiết kiệm pin, bỏ qua tùy chọn này (sử dụng dịch vụ trợ năng hoặc chế độ kiosk thay thế).\n\nNhấn \"Tiếp tục\" để mở cài đặt. Tìm mục \"%s\", cấp quyền, sau đó nhấn \"Quay lại\".</string>
+    <string name="dialog_history_settings_continue">Tiếp tục</string>
+    <string name="dialog_history_settings_skip">Bỏ qua</string>
+    <string name="dialog_unknown_sources_title">Vui lòng cho phép cài đặt từ nguồn không xác định. Bảng cài đặt sẽ mở. Tìm \"Nguồn không xác định\", cho phép cài đặt và nhấn \"Quay lại\".</string>
+    <string name="dialog_unknown_sources_continue">Tiếp tục</string>
+    <string name="dialog_miui_permissions_title">MIUI yêu cầu thiết lập thủ công các quyền tùy chỉnh. Cửa sổ quyền ứng dụng sẽ mở. Nhấn \"Quyền khác\", cho phép \"Hiển thị cửa sổ bật lên khi chạy trong nền\" và nhấn \"Quay lại\".</string>
+    <string name="dialog_miui_developer_title">MIUI yêu cầu thiết lập thủ công thiết bị của bạn. Trên màn hình thông tin, NHẤN 7 LẦN VÀO \"SỐ BẢN DỰNG\". Điều này sẽ kích hoạt cài đặt nhà phát triển.</string>
+    <string name="dialog_miui_optimization_title">MIUI yêu cầu thiết lập thủ công thiết bị của bạn. Cửa sổ cài đặt nhà phát triển sẽ mở. Cuộn màn hình xuống và bỏ tích \"Tối ưu hóa MIUI\".</string>
+    <string name="dialog_administrator_mode_message">Vui lòng cho phép ứng dụng hoạt động ở chế độ quản trị viên thiết bị. Bảng cài đặt sẽ mở. Chọn \"Quản trị viên thiết bị\", tìm mục \"%s\", kích hoạt quản trị viên, và nhấn \"Quay lại\".</string>
+    <string name="dialog_administrator_mode_continue">Tiếp tục</string>
+    <string name="dialog_administrator_mode_skip">Bỏ qua</string>
+    <string name="accessibility_service_description">Giám sát ứng dụng hoạt động bởi ứng dụng MDM</string>
+    <string name="dialog_accessibility_service_message">Vui lòng cho phép ứng dụng sử dụng dịch vụ trợ năng. Bảng cài đặt sẽ mở. Tìm mục \"%s\", cho phép sử dụng dịch vụ trợ năng, và nhấn \"Quay lại\".</string>
+    <string name="dialog_accessibility_service_continue">Tiếp tục</string>
+    <string name="dialog_accessibility_service_skip">Bỏ qua</string>
+    <string name="access_to_app_denied">Gói không được phép:</string>
+    <string name="access_to_app_denied_2">Vui lòng yêu cầu quản trị viên của bạn kích hoạt gói này trong cấu hình.\n\nNhấn \'Đóng\' hoặc nút Home để tiếp tục.</string>
+    <string name="package_id_copied">ID gói đã được sao chép vào clipboard</string>
+    <string name="dialog_app_not_allowed_close">Đóng</string>
+    <string name="dialog_app_not_allowed_admin">Quản trị viên</string>
+    <string name="device_id">ID thiết bị</string>
+    <string name="imei">IMEI</string>
+    <string name="serial_number">Số seri</string>
+    <string name="phone_number">Số điện thoại</string>
+    <string name="launcher_version">Phiên bản launcher</string>
+    <string name="close">Đóng</string>
+    <string name="admin_change_device_id">Thay đổi ID thiết bị</string>
+    <string name="admin_change_server_url">Thay đổi URL máy chủ</string>
+    <string name="admin_allow_settings">Mở cài đặt</string>
+    <string name="settings_allowed">Bạn được phép thay đổi cài đặt trong 3 phút.</string>
+    <string name="admin_clear_restrictions">Xóa hạn chế</string>
+    <string name="permissive_mode_enabled">Bạn được phép chạy tất cả ứng dụng trong 3 phút.</string>
+    <string name="admin_refresh">Cập nhật cấu hình</string>
+    <string name="admin_exit">Thoát về launcher hệ thống</string>
+    <string name="admin_reset_permissions">Kiểm tra quyền</string>
+    <string name="admin_reset_network">Đặt lại chính sách mạng</string>
+    <string name="admin_reset_network_hint">Chính sách mạng đã được xóa. Bây giờ bạn có thể bật mạng và tải lại cấu hình.</string>
+    <string name="reboot">Khởi động lại thiết bị</string>
+    <string name="reboot_failed">Không đủ quyền để khởi động lại thiết bị.</string>
+    <string name="message_turn_on_gps">Màn hình cài đặt sẽ mở. Vui lòng bật định vị GPS trên màn hình này và nhấn Quay lại.</string>
+    <string name="message_turn_off_gps">Màn hình cài đặt sẽ mở. Vui lòng TẮT định vị GPS trên màn hình này và nhấn Quay lại.</string>
+    <string name="message_turn_on_mobile_data">Dữ liệu di động bị tắt! Vui lòng mở thanh trạng thái và bật dữ liệu di động.</string>
+    <string name="message_turn_off_mobile_data">Dữ liệu di động đã bật. Vui lòng mở thanh trạng thái và TẮT dữ liệu di động.</string>
+    <string name="message_set_password">Chất lượng mật khẩu của bạn không đủ tốt. Màn hình cài đặt sẽ mở. Vui lòng thay đổi mật khẩu và nhấn Quay lại.</string>
+    <string name="switch_off_blockings">Đang tắt hạn chế...</string>
+    <string name="kiosk_mode_requires_overlays">Chế độ kiosk bị tắt: không có quyền vẽ trên các cửa sổ khác. Vui lòng cho phép %s vẽ trên các cửa sổ khác.</string>
+    <string name="enter_admin_password">Nhập mật khẩu quản trị viên</string>
+    <string name="wrong_password">Mật khẩu sai</string>
+    <string name="dialog_enter_password_login">Đăng nhập</string>
+    <string name="dialog_enter_password_cancel">Hủy</string>
+    <string name="internal_error">Ứng dụng gặp lỗi nội bộ. Vui lòng khởi động lại thiết bị và thử lại hành động.</string>
+    <string name="empty_configuration">Cấu hình chưa được thiết lập, đang thử lấy từ máy chủ!</string>
+    <string name="permissions_reset_hint">Đóng bảng quản trị để kiểm tra và yêu cầu quyền.</string>
+    <string name="dialog_enter_server_error">Vui lòng nhập URL máy chủ hợp lệ.</string>
+    <string name="dialog_enter_server_ok">OK</string>
+    <string name="dialog_enter_server_title">Vui lòng nhập URL máy chủ</string>
+    <string name="critical_server_failure">Thoát do lỗi máy chủ! Vui lòng sửa lỗi và khởi động lại %s, hoặc gỡ cài đặt hoàn toàn và cài đặt lại.</string>
+    <string name="dialog_permission_title">Ứng dụng cần quyền để chạy. Vui lòng cấp các quyền được yêu cầu.</string>
+    <string name="main_activity_exit">Thoát</string>
+    <string name="browser_not_found">Không thể mở trang web vì không tìm thấy trình duyệt. Vui lòng thêm ứng dụng trình duyệt vào cấu hình thiết bị.</string>
+    <string name="invalid_web_link">Không thể mở liên kết web vì nó không được định dạng đúng. Vui lòng liên hệ quản trị viên của bạn để biết chi tiết.</string>
+    <string name="activity_not_found">Không thể thực hiện hành động %s vì không tìm thấy hoạt động.</string>
+    <string name="location_service_text">Vị trí thiết bị được giám sát</string>
+    <string name="qrcode_contents_error">Nội dung mã QR không hợp lệ. Vui lòng tạo mã QR cung cấp trong bảng điều khiển web %s.</string>
+    <string name="device_locked">Thiết bị này (%s) đã bị khóa bởi quản trị viên.</string>
+    <string name="fault_loop_detected">Ôi không, launcher gặp lỗi không thể khôi phục! Vui lòng liên hệ quản trị viên hệ thống của bạn.</string>
+    <string name="mqtt_service_text">Thông báo đẩy đang hoạt động</string>
+    <string name="background_location">%s yêu cầu quyền định vị nền. Nhấn \'Tiếp tục\' để mở quyền, nhấn \'Vị trí\' và cho phép xác định vị trí luôn.</string>
+    <string name="location_disable">Tắt định vị</string>
+    <string name="background_location_continue">Tiếp tục</string>
+    <string name="initializing_mdm">Đang khởi tạo ứng dụng quản lý thiết bị di động...</string>
+    <string name="dialog_server_error_title">Máy chủ MDM %s trả về phản hồi không hợp lệ. Vui lòng liên hệ quản trị viên của bạn.</string>
+    <string name="mdm_choice_message">Thiết bị này sẽ được quản lý hoàn toàn bởi tổ chức của bạn. Dữ liệu của bạn sẽ không riêng tư và có thể bị xóa hoặc xem xét bởi quản trị viên IT bất cứ lúc nào.</string>
+    <string name="work_profile_message">Thiết bị này sẽ nhận được hồ sơ công việc được quản lý thuộc về tổ chức của bạn. Hồ sơ công việc được tách biệt với hồ sơ riêng tư của bạn và bạn có thể chuyển đổi giữa các hồ sơ bất cứ lúc nào.</string>
+    <string name="overlays_not_supported">Rất tiếc, lớp phủ không được hỗ trợ bởi thiết bị của bạn.</string>
+    <string name="admin_not_supported">Thiết bị của bạn không có tùy chọn quản trị viên thiết bị. Nhấn Bỏ qua để tiếp tục.</string>
+    <string name="manage_storage_not_supported">Thiết bị của bạn không có tùy chọn quản lý bộ nhớ ngoài.</string>
+</resources>

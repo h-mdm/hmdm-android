@@ -73,6 +73,7 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/imei_layout"
             android:layout_width="@dimen/device_info_width"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -95,6 +96,7 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/serial_layout"
             android:layout_width="@dimen/device_info_width"
             android:layout_height="wrap_content"
             android:orientation="horizontal"

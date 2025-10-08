@@ -146,6 +146,7 @@ public class AdminActivity extends BaseActivity {
             restrictions = "," + settingsHelper.getConfig().getRestrictions();
         }
         Utils.unlockUserRestrictions(this, restrictions);
+        Utils.disableScreenshots(false, this);
         LocalBroadcastManager.getInstance( this ).sendBroadcast( new Intent( Const.ACTION_PERMISSIVE_MODE ) );
         LocalBroadcastManager.getInstance( this ).sendBroadcast( new Intent( Const.ACTION_STOP_CONTROL ) );
         Toast.makeText(this, R.string.permissive_mode_enabled, Toast.LENGTH_LONG).show();
