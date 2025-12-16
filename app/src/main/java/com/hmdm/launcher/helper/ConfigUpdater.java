@@ -495,6 +495,7 @@ public class ConfigUpdater {
 
             new AsyncTask<RemoteFile, Void, RemoteFileStatus>() {
 
+                @SuppressLint("StaticFieldLeak")
                 @Override
                 protected RemoteFileStatus doInBackground(RemoteFile... remoteFiles) {
                     final RemoteFile remoteFile = remoteFiles[0];
@@ -568,6 +569,10 @@ public class ConfigUpdater {
                             try {
                                 if (finalFile.exists()) {
                                     finalFile.delete();
+                                }
+                                File parent = finalFile.getParentFile();
+                                if (!parent.exists()) {
+                                    parent.mkdirs(); // create missing directories
                                 }
                                 if (!remoteFile.isVarContent()) {
                                     FileUtils.moveFile(file, finalFile);

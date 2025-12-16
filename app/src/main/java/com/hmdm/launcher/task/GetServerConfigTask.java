@@ -36,8 +36,10 @@ import com.hmdm.launcher.json.ServerConfigResponse;
 import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
+import com.hmdm.launcher.util.AppRestrictionUpdater;
 import com.hmdm.launcher.util.PushNotificationMqttWrapper;
 import com.hmdm.launcher.util.RemoteLogger;
+import com.hmdm.launcher.util.Utils;
 
 import okhttp3.ResponseBody;
 import retrofit2.Response;
@@ -121,6 +123,9 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
                 }
 
                 settingsHelper.updateConfig(serverConfig);
+                if (Utils.isDeviceOwner(context)) {
+                    AppRestrictionUpdater.updateAppRestrictions(context, serverConfig.getApplicationSettings());
+                }
 
                 // Device already created, erase the device creation options
                 settingsHelper.setDeviceIdUse(null);
@@ -128,9 +133,15 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
                 settingsHelper.setEnrollOptionConfigName(null);
                 settingsHelper.setEnrollOptionGroup(null);
 
+                // User-friendly error report if a content app in kiosk mode is not set
+                if (ProUtils.kioskModeRequired(context) &&
+                        (settingsHelper.getConfig().getMainApp() == null || settingsHelper.getConfig().getMainApp().trim().equals(""))) {
+                    throw new Exception("Content app in kiosk mode is not set");
+                }
+
                 // Prevent from occasional launch in the kiosk mode without any possibility to exit!
                 if (ProUtils.kioskModeRequired(context) &&
-                        !settingsHelper.getConfig().getMainApp().equals(context.getPackageName()) &&
+                        !context.getPackageName().equals(settingsHelper.getConfig().getMainApp()) &&
                         Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                         !Settings.canDrawOverlays(context) && !BuildConfig.ENABLE_KIOSK_WITHOUT_OVERLAYS) {
                         RemoteLogger.log(context, Const.LOG_WARN, "Kiosk mode disabled: no permission to draw over other windows.");
@@ -382,8 +393,12 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
     }
 
     private void buildNetworkErrorText(String message) {
+        String serverProject = settingsHelper.getServerProject();
+        if (serverProject.length() > 0) {
+            serverProject = "/" + serverProject;
+        }
         String url = serverHost + urlTemplate
-                .replace("{project}", settingsHelper.getServerProject())
+                .replace("{project}", serverProject)
                 .replace("{number}", settingsHelper.getDeviceId());
 
         errorText = url + "\n\n" +

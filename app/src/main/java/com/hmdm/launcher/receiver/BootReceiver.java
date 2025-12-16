@@ -9,11 +9,13 @@ import com.hmdm.launcher.Const;
 import com.hmdm.launcher.helper.Initializer;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.pro.ProUtils;
+import com.hmdm.launcher.util.RemoteLogger;
 
 public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.i(Const.LOG_TAG, "Got the BOOT_RECEIVER broadcast");
+        RemoteLogger.log(context, Const.LOG_DEBUG, "Got the BOOT_RECEIVER broadcast");
 
         SettingsHelper settingsHelper = SettingsHelper.getInstance(context.getApplicationContext());
         if (!settingsHelper.isBaseUrlSet()) {

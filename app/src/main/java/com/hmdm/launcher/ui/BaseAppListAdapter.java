@@ -348,6 +348,11 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
     }
 
     public boolean onKey(final int keyCode) {
+        AppInfo shortcutAppInfo = shortcuts.get(new Integer(keyCode));
+        if (shortcutAppInfo != null) {
+            chooseApp(shortcutAppInfo);
+            return true;
+        }
         switch (keyCode) {
             case KeyEvent.KEYCODE_DPAD_LEFT:
             case KeyEvent.KEYCODE_DPAD_RIGHT:
@@ -363,12 +368,7 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
         // if an item is selected and another is tapped. Also, (info) and (reload) items become
         // unavailable. So just turn on displaying border by focus here (flag dpadUsed).
 
-/*        AppInfo shortcutAppInfo = shortcuts.get(new Integer(keyCode));
-        if (shortcutAppInfo != null) {
-            chooseApp(shortcutAppInfo);
-            return true;
-        }
-        if (!focused) {
+/*        if (!focused) {
             return false;
         }
 

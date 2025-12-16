@@ -227,12 +227,15 @@ public class MainActivity
                     updateConfig(false);
                     break;
                 case Const.ACTION_HIDE_SCREEN:
+                    RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Received ACTION_HIDE_SCREEN for package: " + intent.getStringExtra(Const.PACKAGE_NAME));
                     ServerConfig serverConfig = SettingsHelper.getInstance(MainActivity.this).getConfig();
                     if (serverConfig.getLock() != null && serverConfig.getLock()) {
                         // Device is locked by the server administrator!
+                        RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Showing lock screen due to server lock");
                         showLockScreen();
                     } else if ( applicationNotAllowed != null &&
                             (!ProUtils.kioskModeRequired(MainActivity.this) || !ProUtils.isKioskAppInstalled(MainActivity.this)) ) {
+                        RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Showing 'package not allowed' overlay for " + intent.getStringExtra(Const.PACKAGE_NAME));
                         TextView textView = ( TextView ) applicationNotAllowed.findViewById( R.id.package_id );
                         textView.setText(intent.getStringExtra(Const.PACKAGE_NAME));
 
