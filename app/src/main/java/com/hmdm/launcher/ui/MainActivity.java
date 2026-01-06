@@ -91,6 +91,7 @@ import com.hmdm.launcher.databinding.DialogSystemSettingsBinding;
 import com.hmdm.launcher.databinding.DialogUnknownSourcesBinding;
 import com.hmdm.launcher.helper.ConfigUpdater;
 import com.hmdm.launcher.helper.CryptoHelper;
+import com.hmdm.launcher.helper.ExternalProvisioningLoader;
 import com.hmdm.launcher.helper.Initializer;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.Application;
@@ -1003,6 +1004,8 @@ public class MainActivity
         } else if ( !checkPermissions(true)) {
             // Permissions are requested inside checkPermissions, so do nothing here
             Log.i(Const.LOG_TAG, "startLauncher: requesting permissions");
+        } else if (tryExternalProvisioning()) {
+            return;
         } else if (!settingsHelper.isBaseUrlSet() && BuildConfig.REQUEST_SERVER_URL) {
             // For common public version, here's an option to change the server
             createAndShowServerDialog(false, settingsHelper.getBaseUrl(), settingsHelper.getServerProject());
@@ -1035,6 +1038,22 @@ public class MainActivity
         } else {
             showContent(settingsHelper.getConfig());
         }
+    }
+
+    private boolean tryExternalProvisioning() {
+        if (settingsHelper.isExternalProvisioningAttempted()) {
+            return false;
+        }
+        boolean hasDeviceId = settingsHelper.getDeviceId().length() > 0;
+        if (hasDeviceId) {
+            return false;
+        }
+        settingsHelper.setExternalProvisioningAttempted(true);
+        new Thread(() -> {
+            new ExternalProvisioningLoader(MainActivity.this).applyIfPresent(settingsHelper);
+            handler.post(this::startLauncher);
+        }).start();
+        return true;
     }
 
     private boolean checkAdminMode() {

@@ -57,6 +57,7 @@ public class SettingsHelper {
     private static final String PREF_KEY_LAST_APP_UPDATE_STATE = ".helpers.LAST_APP_UPDATE_STATE";
     private static final String PREF_KEY_APP_START_TIME = ".helpers.APP_START_TIME";
     private static final String PREF_KEY_SATELLITE_COUNT = ".helpers.APP_SATELLITE_COUNT";
+    private static final String PREF_KEY_EXTERNAL_PROVISIONING_ATTEMPTED = ".helpers.EXTERNAL_PROVISIONING_ATTEMPTED";
     private static final String PREF_KEY_USER_CUSTOM_1 = ".helpers.USER_CUSTOM_1";
     private static final String PREF_KEY_USER_CUSTOM_2 = ".helpers.USER_CUSTOM_2";
     private static final String PREF_KEY_USER_CUSTOM_3 = ".helpers.USER_CUSTOM_3";
@@ -122,6 +123,14 @@ public class SettingsHelper {
 
     public boolean setIntegratedProvisioningFlow(boolean value) {
         return sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_KEY_INTEGRATED_PROVISIONING_FLOW, value).commit();
+    }
+
+    public boolean isExternalProvisioningAttempted() {
+        return sharedPreferences.getBoolean(PACKAGE_NAME + PREF_KEY_EXTERNAL_PROVISIONING_ATTEMPTED, false);
+    }
+
+    public boolean setExternalProvisioningAttempted(boolean value) {
+        return sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_KEY_EXTERNAL_PROVISIONING_ATTEMPTED, value).commit();
     }
 
     public boolean isBaseUrlSet() {
