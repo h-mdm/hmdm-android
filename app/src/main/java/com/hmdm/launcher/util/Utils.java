@@ -1102,4 +1102,28 @@ public class Utils {
             service.startForeground(notificationId, notification);
         }
     }
+
+    /**
+     * Lock or unlock packages
+     */
+    public static void lockPackages(Context context, String packages, boolean lock) {
+        if (packages != null &&
+                Utils.isDeviceOwner(context) &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ComponentName deviceAdmin = LegacyUtils.getAdminComponentName(context);
+            DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            packages.replace(" ", "");
+            String[] pkgs = packages.split(",");
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    devicePolicyManager.setPackagesSuspended(deviceAdmin, pkgs, lock);
+                }
+                for (String pkg : pkgs) {
+                    devicePolicyManager.setApplicationHidden(deviceAdmin, pkg, lock);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

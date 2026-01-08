@@ -65,6 +65,10 @@ public class PushNotificationProcessor {
             runApplication(context, message.getPayloadJSON());
             // Do not broadcast this message to other apps
             return;
+        } else if (message.getMessageType().equals(PushMessage.TYPE_BROADCAST)) {
+            // Send broadcast
+            sendBroadcast(context, message.getPayloadJSON());
+            return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_UNINSTALL_APP)) {
             // Uninstall application
             AsyncTask.execute(() -> uninstallApplication(context, message.getPayloadJSON()));
@@ -171,6 +175,53 @@ public class PushNotificationProcessor {
                         Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
                 context.startActivity(launchIntent);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void sendBroadcast(Context context, JSONObject payload) {
+        if (payload == null) {
+            return;
+        }
+        try {
+            String pkg = payload.optString("pkg", null);
+            String action = payload.optString("action", null);
+            JSONObject extras = payload.optJSONObject("extra");
+            String data = payload.optString("data", null);
+            Intent intent = new Intent();
+            if (pkg != null) {
+                intent.setPackage(pkg);
+            }
+            if (action != null) {
+                intent.setAction(action);
+            }
+            if (data != null) {
+                try {
+                    intent.setData(Uri.parse(data));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            if (extras != null) {
+                Iterator<String> keys = extras.keys();
+                String key;
+                while (keys.hasNext()) {
+                    key = keys.next();
+                    Object value = extras.get(key);
+                    if (value instanceof String) {
+                        intent.putExtra(key, (String) value);
+                    } else if (value instanceof Integer) {
+                        intent.putExtra(key, ((Integer) value).intValue());
+                    } else if (value instanceof Float) {
+                        intent.putExtra(key, ((Float) value).floatValue());
+                    } else if (value instanceof Boolean) {
+                        intent.putExtra(key, ((Boolean) value).booleanValue());
+                    }
+                }
+            }
+            context.sendBroadcast(intent);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
