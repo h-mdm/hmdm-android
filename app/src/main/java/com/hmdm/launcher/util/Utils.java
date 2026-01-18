@@ -387,8 +387,13 @@ public class Utils {
             } else {
                 dpm.wipeDevice(0);
             }
+            Log.e("LockedBoot","factoryReset Success");
+
             return true;
         } catch (Exception e) {
+            Log.e("LockedBoot","factoryReset fail");
+            Log.e("LockedBoot",e.toString());
+
             return false;
         }
     }
@@ -398,11 +403,14 @@ public class Utils {
             return false;
         }
         try {
+            Log.e("LockedBoot","Reboot Success");
             DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
             ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
             dpm.reboot(adminComponentName);
             return true;
         } catch (Exception e) {
+            Log.e("LockedBoot","RebootFail");
+
             return false;
         }
     }

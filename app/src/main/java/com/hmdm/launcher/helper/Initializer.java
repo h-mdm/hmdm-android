@@ -11,6 +11,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
+
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.json.Application;
@@ -79,6 +81,7 @@ public class Initializer {
         });
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     public static void startServicesAndLoadConfig(Context context) {
         // Start Push service
         String pushOptions = null;
@@ -133,7 +136,8 @@ public class Initializer {
         // java.lang.IllegalStateException
         // Not allowed to start service Intent { cmp=com.hmdm.launcher/.service.StatusControlService }: app is in background
         // Let's just ignore these exceptions for now
-        SharedPreferences preferences = context.getApplicationContext().getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE);
+        SharedPreferences preferences = context.createDeviceProtectedStorageContext()
+                .getSharedPreferences(Const.PREFERENCES, Context.MODE_PRIVATE);
         // Foreground apps checks are not available in a free version: services are the stubs
         if (preferences.getInt(Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
             try {
@@ -157,8 +161,15 @@ public class Initializer {
         }
 
         // Send pending logs to server
-        RemoteLogger.sendLogsToServer(context);
+        boolean lockedBootReceiverFired = settingsHelper.isLockedBootReceiverFired();
+        if(!lockedBootReceiverFired) {
+            Log.e("BootLocked", "boot receiver not fired ");
+            RemoteLogger.sendLogsToServer(context);
 
+        }else {
+            Log.e("BootLocked", "boot receiver fired");
+
+        }
         final ConfigUpdater.UINotifier uiNotifier = new ConfigUpdater.UINotifier() {
             @Override
             public void onConfigUpdateStart() {
@@ -226,11 +237,20 @@ public class Initializer {
 
             @Override
             public void onConfigUpdateComplete() {
-                // In background mode, we need to send the information to the server once update is complete
+                boolean lockedBootReceiverFired = settingsHelper.isLockedBootReceiverFired();
+                if(!lockedBootReceiverFired) {
+                    Log.e("BootLocked", "boot receiver not fired config update ");
+                    // In background mode, we need to send the information to the server once update is complete
                 SendDeviceInfoTask sendDeviceInfoTask = new SendDeviceInfoTask(context);
                 DeviceInfo deviceInfo = DeviceInfoProvider.getDeviceInfo(context, true, true);
                 sendDeviceInfoTask.execute(deviceInfo);
                 SendDeviceInfoWorker.scheduleDeviceInfoSending(context);
+
+                }else {
+                    Log.e("BootLocked", "boot receiver fired config update ");
+
+                }
+
             }
 
             @Override

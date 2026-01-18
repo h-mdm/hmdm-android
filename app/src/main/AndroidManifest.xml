@@ -123,7 +123,8 @@
         android:theme="@style/AppTheme"
         android:name=".App"
         android:hardwareAccelerated="true"
-        tools:ignore="GoogleAppIndexingWarning">
+        tools:ignore="GoogleAppIndexingWarning"
+        android:directBootAware="true">
 
         <activity
             android:name=".ui.MainActivity"
@@ -198,7 +199,16 @@
                 <action android:name="android.app.action.PROFILE_PROVISIONING_COMPLETE" />
             </intent-filter>
         </receiver>
-
+        <receiver
+            android:name="com.hmdm.launcher.receiver.LockedBootReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:directBootAware="true">
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
         <receiver android:name="com.hmdm.launcher.receiver.SimChangedReceiver"
             android:exported="true">
             <intent-filter>
@@ -267,7 +277,8 @@
 
         <service android:name=".service.PushLongPollingService"
             android:foregroundServiceType="specialUse|systemExempted"
-            android:exported="false">
+            android:exported="false"
+            android:directBootAware="true">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Push notification service"/>
         </service>

@@ -21,6 +21,7 @@ package com.hmdm.launcher.helper;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hmdm.launcher.BuildConfig;
@@ -60,6 +61,8 @@ public class SettingsHelper {
     private static final String PREF_KEY_USER_CUSTOM_1 = ".helpers.USER_CUSTOM_1";
     private static final String PREF_KEY_USER_CUSTOM_2 = ".helpers.USER_CUSTOM_2";
     private static final String PREF_KEY_USER_CUSTOM_3 = ".helpers.USER_CUSTOM_3";
+    private static final String PREF_KEY_IS_LOCKED_BOOT_RECEIVER_FIRED= ".helpers.ACTIVITY_LOCKED_BOOT";
+
     // This prefix is for the compatibility with a legacy package name
     private static String PACKAGE_NAME;
 
@@ -72,8 +75,13 @@ public class SettingsHelper {
     private static SettingsHelper instance;
 
     public static SettingsHelper getInstance(Context context) {
+        Context deviceContext = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            deviceContext = context.createDeviceProtectedStorageContext();
+        }
+
         if (instance == null) {
-            instance = new SettingsHelper(context);
+            instance = new SettingsHelper(deviceContext);
         }
 
         return instance;
@@ -114,6 +122,15 @@ public class SettingsHelper {
 
     public boolean setQrProvisioning(boolean value) {
         return sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_QR_PROVISIONING, value).commit();
+    }
+    public boolean setLockedBootReceiverFired(boolean value){
+        return sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_KEY_IS_LOCKED_BOOT_RECEIVER_FIRED, value).commit();
+
+
+    }
+    public boolean isLockedBootReceiverFired(){
+        return sharedPreferences.getBoolean(PACKAGE_NAME + PREF_KEY_IS_LOCKED_BOOT_RECEIVER_FIRED, false);
+
     }
 
     public boolean isIntegratedProvisioningFlow() {

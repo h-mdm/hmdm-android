@@ -25,6 +25,8 @@ import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
@@ -71,6 +73,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         return errorText;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected Integer doInBackground( Void... voids ) {
         DeviceEnrollOptions enrollOptions = null;

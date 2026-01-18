@@ -22,8 +22,12 @@ package com.hmdm.launcher.pro;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
+import android.os.Build;
 import android.view.View;
+
+import androidx.annotation.RequiresApi;
 
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.json.ServerConfig;
@@ -36,8 +40,12 @@ import java.util.Calendar;
  */
 public class ProUtils {
 
+    private static final String PRO_PREFERENCES_ID = ".helpers.PRO";
+    private static final String PREF_KEY_APP_NAME = ".helpers.APP_NAME";
+    private static final String PREF_KEY_VENDOR = ".helpers.VENDOR";
+
     public static boolean isPro() {
-        return false;
+        return true;
     }
 
     public static boolean kioskModeRequired(Context context) {
@@ -116,8 +124,27 @@ public class ProUtils {
         // Stub
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     public static void processConfig(Context context, ServerConfig config) {
-        // Stub
+        Context deviceContext = context.createDeviceProtectedStorageContext();
+
+        SharedPreferences.Editor editor = getProPreferences(deviceContext).edit();
+        if (config.getAppName() != null) {
+            editor.putString(PREF_KEY_APP_NAME, config.getAppName());
+        }
+        if (config.getVendor() != null) {
+            editor.putString(PREF_KEY_VENDOR, config.getVendor());
+        }
+        editor.apply();
+    }
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private static SharedPreferences getProPreferences(Context context) {
+        Context deviceContext = context.createDeviceProtectedStorageContext();
+        String PACKAGE_NAME = context.getPackageName();
+        return deviceContext.getSharedPreferences(
+                PACKAGE_NAME + PRO_PREFERENCES_ID,
+                Context.MODE_PRIVATE
+        );
     }
 
     public static void processLocation(Context context, Location location, String provider) {

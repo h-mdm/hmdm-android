@@ -27,9 +27,13 @@ import com.hmdm.launcher.Const;
 import com.hmdm.launcher.db.DatabaseHelper;
 import com.hmdm.launcher.db.LogConfigTable;
 import com.hmdm.launcher.db.LogTable;
+import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.json.DeviceInfo;
 import com.hmdm.launcher.json.RemoteLogConfig;
 import com.hmdm.launcher.json.RemoteLogItem;
+import com.hmdm.launcher.task.SendDeviceInfoTask;
 import com.hmdm.launcher.worker.RemoteLogWorker;
+import com.hmdm.launcher.worker.SendDeviceInfoWorker;
 
 import java.util.List;
 
@@ -72,21 +76,31 @@ public class RemoteLogger {
     }
 
     public static void postLog(Context context, RemoteLogItem item) {
-        DatabaseHelper dbHelper = DatabaseHelper.instance(context);
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        if (LogConfigTable.match(db, item)) {
-            db = dbHelper.getWritableDatabase();
-            LogTable.insert(db, item);
-            sendLogsToServer(context);
+        boolean lockedBootReceiverFired = SettingsHelper.getInstance(context).isLockedBootReceiverFired();
+        if(!lockedBootReceiverFired) {
+            Log.e("BootLocked", "boot receiver not fired postLog ");
+
+            DatabaseHelper dbHelper = DatabaseHelper.instance(context);
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
+            if (LogConfigTable.match(db, item)) {
+                db = dbHelper.getWritableDatabase();
+                LogTable.insert(db, item);
+                sendLogsToServer(context);
+            }
+
+            // Remove old logs once per hour
+            long now = System.currentTimeMillis();
+            if (now > lastLogRemoval + 3600000L) {
+                db = dbHelper.getWritableDatabase();
+                LogTable.deleteOldItems(db);
+                lastLogRemoval = now;
+            }
+
+        }else {
+            Log.e("BootLocked", "boot receiver fired postLog ");
+
         }
 
-        // Remove old logs once per hour
-        long now = System.currentTimeMillis();
-        if (now > lastLogRemoval + 3600000L) {
-            db = dbHelper.getWritableDatabase();
-            LogTable.deleteOldItems(db);
-            lastLogRemoval = now;
-        }
     }
 
     public static void resetState() {

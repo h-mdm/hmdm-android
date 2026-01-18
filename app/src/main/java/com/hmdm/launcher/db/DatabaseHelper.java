@@ -22,6 +22,7 @@ package com.hmdm.launcher.db;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Build;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     // Next version should be 10 and versions must be increased by 10
@@ -36,8 +37,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public static synchronized DatabaseHelper instance(Context context) {
+        Context deviceContext = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            deviceContext = context.createDeviceProtectedStorageContext();
+        }
+
         if (sInstance == null) {
-            sInstance = new DatabaseHelper(context.getApplicationContext());
+            sInstance = new DatabaseHelper(deviceContext);
         }
         return sInstance;
     }
