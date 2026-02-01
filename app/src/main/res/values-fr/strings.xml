@@ -127,4 +127,5 @@
     <string name="overlays_not_supported">Malheureusement, les superpositions ne sont pas prises en charge par votre appareil.</string>
     <string name="admin_not_supported">Votre appareil n\'a pas d\'option d\'administrateur d\'appareil. Cliquez sur Ignorer pour continuer.</string>
     <string name="manage_storage_not_supported">Votre appareil n\'a aucune option pour gérer le stockage externe.</string>
+    <string name="certificate_install_failed">Échec de l\'installation du certificat %1$s: %2$s</string>
 </resources>

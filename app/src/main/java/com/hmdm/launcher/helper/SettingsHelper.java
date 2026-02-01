@@ -47,6 +47,7 @@ public class SettingsHelper {
     private static final String PREF_KEY_CONFIG_NAME = ".helpers.CONFIG_NAME";
     private static final String PREF_KEY_GROUP = ".helpers.GROUP";
     private static final String PREF_KEY_DEVICE_ID_USE = ".helpers.DEVICE_ID_USE";
+    private static final String PREF_KEY_CERT_URLS = ".helpers.CERT_URLS";
     private static final String PREF_KEY_CONFIG = ".helpers.CONFIG";
     private static final String PREF_KEY_IP_ADDRESS = ".helpers.IP_ADDRESS";
     private static final String PREF_QR_PROVISIONING = ".helpers.QR_PROVISIONING";
@@ -150,6 +151,14 @@ public class SettingsHelper {
 
     public boolean setServerProject( String serverProject ) {
         return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_SERVER_PROJECT, serverProject ).commit();
+    }
+
+    public String getCertUrls() {
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_CERT_URLS, null );
+    }
+
+    public boolean setCertUrls( String certUrls ) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_CERT_URLS, certUrls ).commit();
     }
 
     public String getDeviceId() {

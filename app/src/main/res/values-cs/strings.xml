@@ -127,4 +127,5 @@
     <string name="overlays_not_supported">Překreslování obrazovku bohužel není podporováno na vašem zařízení.</string>
     <string name="admin_not_supported">Vaše zařízení nemá možnost vytvoření administrátora zařízení. Vyberte přeskočit pro pokračování.</string>
     <string name="manage_storage_not_supported">Vaše zařízení nemá možnost spravovat externí úložiště.</string>
+    <string name="certificate_install_failed">Nepodařilo se nainstalovat certifikát %1$s: %2$s</string>
 </resources>

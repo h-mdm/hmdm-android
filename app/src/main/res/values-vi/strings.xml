@@ -127,4 +127,5 @@
     <string name="overlays_not_supported">Rất tiếc, lớp phủ không được hỗ trợ bởi thiết bị của bạn.</string>
     <string name="admin_not_supported">Thiết bị của bạn không có tùy chọn quản trị viên thiết bị. Nhấn Bỏ qua để tiếp tục.</string>
     <string name="manage_storage_not_supported">Thiết bị của bạn không có tùy chọn quản lý bộ nhớ ngoài.</string>
+    <string name="certificate_install_failed">Không thể cài đặt chứng chỉ %1$s: %2$s</string>
 </resources>

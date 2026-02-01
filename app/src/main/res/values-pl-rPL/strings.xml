@@ -127,4 +127,5 @@
     <string name="overlays_not_supported">Niestety twoje urządzenie nie obsługuje nakładek.</string>
     <string name="admin_not_supported">Twoje urządzenie nie wspiera administracji urządzeniem. Kliknij \"Pomiń\", aby kontynuować.</string>
     <string name="manage_storage_not_supported">Twoje urządzenie nie ma możliwości zarządzania pamięcią zewnętrzną.</string>
+    <string name="certificate_install_failed">Nie udało się zainstalować certyfikatu %1$s: %2$s</string>
 </resources>

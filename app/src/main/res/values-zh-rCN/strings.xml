@@ -127,4 +127,5 @@
 	<string name="overlays_not_supported">不幸的是，您的设备不支持覆盖。</string>
 	<string name="admin_not_supported">您的设备没有设备管理员选项。 单击跳过以继续。</string>
 	<string name="manage_storage_not_supported">您的设备没有管理外部存储的选项。</string>
+    <string name="certificate_install_failed">安装证书 %1$s 失败：%2$s</string>
 </resources>

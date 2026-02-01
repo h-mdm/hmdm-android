@@ -127,4 +127,5 @@
     <string name="overlays_not_supported">К сожалению, наложение окон не поддерживается вашим устройством.</string>
     <string name="admin_not_supported">На вашем устройстве нет возможности администратора устройства. Нажмите Пропустить, чтобы продолжить.</string>
     <string name="manage_storage_not_supported">Ваше устройство не имеет возможности управления внешним хранилищем.</string>
+    <string name="certificate_install_failed">Не удалось установить сертификат %1$s: %2$s</string>
 </resources>

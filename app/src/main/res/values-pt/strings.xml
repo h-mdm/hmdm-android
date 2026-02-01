@@ -127,4 +127,5 @@
     <string name="overlays_not_supported">Infelizmente, as sobreposições não são suportadas pelo seu dispositivo.</string>
     <string name="admin_not_supported">Seu dispositivo não tem opção de administrador do dispositivo. Clique em Pular para continuar.</string>
     <string name="manage_storage_not_supported">O seu dispositivo não tem opção para gerir o armazenamento externo.</string>
+    <string name="certificate_install_failed">Falha ao instalar o certificado %1$s: %2$s</string>
 </resources>

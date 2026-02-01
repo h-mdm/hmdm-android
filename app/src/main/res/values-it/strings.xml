@@ -133,4 +133,5 @@
     <string name="overlays_not_supported">Purtroppo le sovrapposizioni non sono supportate dal tuo dispositivo.</string>
     <string name="admin_not_supported">Il tuo dispositivo non ha un\'opzione di amministratore dispositivo. Fai clic su Salta per continuare.</string>
     <string name="manage_storage_not_supported">Il tuo dispositivo non ha alcuna opzione per gestire la memoria esterna.</string>
+    <string name="certificate_install_failed">Impossibile installare il certificato %1$s: %2$s</string>
 </resources>

@@ -127,4 +127,5 @@
     <string name="overlays_not_supported">お使いのデバイスではオーバーレイがサポートされていません.</string>
     <string name="admin_not_supported">お使いのデバイスにはデバイス管理者オプションがありません。続けるには [スキップ] をクリックして下さい。</string>
     <string name="manage_storage_not_supported">デバイスには外部ストレージを管理するオプションがありません。</string>
+    <string name="certificate_install_failed">証明書 %1$s のインストールに失敗しました: %2$s</string>
 </resources>

@@ -127,4 +127,5 @@
 	<string name="overlays_not_supported">不幸的是，您的設備不支持覆蓋。</string>
 	<string name="admin_not_supported">您的設備沒有設備管理員選項。 單擊跳過以繼續。</string>
 	<string name="manage_storage_not_supported">您的裝置沒有管理外部儲存的選項。</string>
+    <string name="certificate_install_failed">安裝憑證 %1$s 失敗：%2$s</string>
 </resources>

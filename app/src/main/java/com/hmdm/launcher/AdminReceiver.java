@@ -128,11 +128,13 @@ public class AdminReceiver extends DeviceAdminReceiver {
             String baseUrl = null;
             String secondaryBaseUrl = null;
             String serverProject = null;
+            String certUrls = null;
             DeviceEnrollOptions createOptions = new DeviceEnrollOptions();
             if (bundle != null) {
                 baseUrl = bundle.getString(Const.QR_BASE_URL_ATTR, null);
                 secondaryBaseUrl = bundle.getString(Const.QR_SECONDARY_BASE_URL_ATTR, null);
                 serverProject = bundle.getString(Const.QR_SERVER_PROJECT_ATTR, null);
+                certUrls = bundle.getString(Const.QR_CERTS_ATTR, null);
                 createOptions.setCustomer(bundle.getString(Const.QR_CUSTOMER_ATTR, null));
                 createOptions.setConfiguration(bundle.getString(Const.QR_CONFIG_ATTR, null));
                 createOptions.setGroups(bundle.getString(Const.QR_GROUP_ATTR, null));
@@ -151,6 +153,10 @@ public class AdminReceiver extends DeviceAdminReceiver {
                 if (serverProject != null) {
                     PreferenceLogger.log(preferences, "ServerPath: " + serverProject);
                     settingsHelper.setServerProject(serverProject);
+                }
+                if (certUrls != null) {
+                    PreferenceLogger.log(preferences, "CertUrls: " + certUrls);
+                    settingsHelper.setCertUrls(certUrls);
                 }
                 if (createOptions.getCustomer() != null) {
                     PreferenceLogger.log(preferences, "Customer: " + createOptions.getCustomer());
