@@ -32,11 +32,13 @@ import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.helper.ConfigUpdater;
 import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.json.PushMessage;
 import com.hmdm.launcher.json.RemoteLogItem;
 import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.util.DeviceInfoProvider;
 import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.Utils;
+import com.hmdm.launcher.worker.PushNotificationProcessor;
 
 public class PluginApiService extends Service {
     // Data keys
@@ -68,8 +70,8 @@ public class PluginApiService extends Service {
 
         @Override
         public int getVersion() {
-            // 1.1.7
-            return 117;
+            // 1.1.8
+            return 118;
         }
 
         @Override
@@ -182,6 +184,18 @@ public class PluginApiService extends Service {
         public void forceConfigUpdate() {
             // userInteraction is set to true so the applications are also updated unrelated from the app update schedule
             ConfigUpdater.forceConfigUpdate(PluginApiService.this, null, true);
+        }
+
+        @Override
+        public boolean sendPush(String apiKey, String type, String payload) {
+            if (!apiKey.equals(BuildConfig.LIBRARY_API_KEY)) {
+                return false;
+            }
+            PushMessage message = new PushMessage();
+            message.setMessageType(type);
+            message.setPayload(payload);
+            PushNotificationProcessor.process(message, PluginApiService.this);
+            return true;
         }
     };
 }

@@ -52,4 +52,11 @@ interface IMdmApi {
      * Force the configuration update
      */
     void forceConfigUpdate();
+
+    // Added in library version 1.1.8
+    /**
+     * Send a Push notification to initiate an action from the app
+     * Returns true on success and false if the api key is invalid
+     */
+    boolean sendPush(String apiKey, String type, String payload);
 }

@@ -231,6 +231,20 @@ public class HeadwindMDM {
         return true;
     }
 
+    public boolean sendPush(String type, String payload) {
+        if (!mdmConnected) {
+            return false;
+        }
+        try {
+            mdmAgentError = 0;
+            return mdmService.sendPush(apiKey, type, payload);
+        } catch (MDMException e) {
+            mdmAgentError = e.mdmError.code;
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     // Get the admin component for applications using "com.hmdm" shared user ID
     // This component could be used to use DevicePolicyManager in those applications
     public ComponentName getAdminComponent(Context context) {

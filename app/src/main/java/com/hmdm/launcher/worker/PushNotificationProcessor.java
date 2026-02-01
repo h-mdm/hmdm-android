@@ -19,11 +19,14 @@
 
 package com.hmdm.launcher.worker;
 
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
@@ -40,6 +43,7 @@ import com.hmdm.launcher.json.Download;
 import com.hmdm.launcher.json.PushMessage;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.util.InstallUtils;
+import com.hmdm.launcher.util.LegacyUtils;
 import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.SystemUtils;
 import com.hmdm.launcher.util.Utils;
@@ -51,6 +55,7 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 public class PushNotificationProcessor {
     public static void process(PushMessage message, Context context) {
@@ -118,6 +123,10 @@ public class PushNotificationProcessor {
         } else if (message.getMessageType().equals(PushMessage.TYPE_GRANT_PERMISSIONS)) {
             // Grant permissions to apps
             AsyncTask.execute(() -> grantPermissions(context, message.getPayloadJSON()));
+            return;
+        } else if (message.getMessageType().equals(PushMessage.TYPE_CLEAR_APP_DATA)) {
+            // Clear application data
+            AsyncTask.execute(() -> clearAppData(context, message.getPayloadJSON()));
             return;
         }
 
@@ -462,4 +471,34 @@ public class PushNotificationProcessor {
                     config.getAppPermissions(), false);
         }
     }
+
+    private static void clearAppData(Context context, JSONObject payload) {
+        if (payload == null) {
+            return;
+        }
+        try {
+            String pkg = payload.getString("pkg");
+            RemoteLogger.log(context, Const.LOG_INFO, "Clearing app data for " + pkg);
+            DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                dpm.clearApplicationUserData(
+                        adminComponentName,
+                        pkg,
+                        Executors.newSingleThreadExecutor(),
+                        (packageName, succeeded) -> {
+                            RemoteLogger.log(context, Const.LOG_INFO,
+                                    "App data for " + packageName + (succeeded ? " " : " not ") + "cleared");
+                        }
+                );
+            } else {
+                throw new Exception("Unsupported in SDK " + Build.VERSION.SDK_INT);
+            }
+
+        } catch (Exception e) {
+            RemoteLogger.log(context, Const.LOG_ERROR, "Failed to clear app data: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 }

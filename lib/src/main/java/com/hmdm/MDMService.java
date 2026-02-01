@@ -208,6 +208,25 @@ public class MDMService {
     }
 
     /**
+     * Send a push command
+     */
+    public boolean sendPush(String apiKey, String type, String payload) throws MDMException {
+        if (mdmApi == null) {
+            throw new MDMException(MDMError.ERROR_DISCONNECTED);
+        }
+
+        if (getVersion() < 118) {
+            throw new MDMException(MDMError.ERROR_VERSION);
+        }
+
+        try {
+            return mdmApi.sendPush(apiKey, type, payload);
+        } catch (RemoteException e) {
+            throw new MDMException(MDMError.ERROR_INTERNAL);
+        }
+    }
+
+    /**
      * Usage:
      * Log.v (etc)
      */
