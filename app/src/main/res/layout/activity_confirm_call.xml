@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="#000000"
+    android:padding="16dp">
+
+    <!-- Contact name -->
+    <TextView
+        android:id="@+id/confirm_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="22sp"
+        android:textColor="#FFFFFF"
+        android:gravity="center"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Phone number -->
+    <TextView
+        android:id="@+id/confirm_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColor="#AAAAAA"
+        android:gravity="center"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Blocked warning — shown instead of call button if blocked -->
+    <TextView
+        android:id="@+id/confirm_blocked_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="⛔ This number is not on the allowed list"
+        android:textSize="14sp"
+        android:textColor="#FF4444"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Action buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- Call button -->
+        <Button
+            android:id="@+id/confirm_call_button"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:layout_marginRight="8dp"
+            android:text="CALL"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#2E7D32"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusRight="@+id/confirm_cancel_button" />
+
+        <!-- Cancel button -->
+        <Button
+            android:id="@+id/confirm_cancel_button"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:layout_marginLeft="8dp"
+            android:text="CANCEL"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#B71C1C"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusLeft="@+id/confirm_call_button" />
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:background="@drawable/contact_item_selector">
+
+    <!-- Status indicator dot -->
+    <View
+        android:id="@+id/contact_status_dot"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:layout_marginRight="8dp"
+        android:background="@drawable/status_dot" />
+
+    <!-- Name and number -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/contact_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:singleLine="true"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/contact_number"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="#AAAAAA"
+            android:singleLine="true" />
+    </LinearLayout>
+
+    <!-- Lock icon for blocked contacts -->
+    <ImageView
+        android:id="@+id/contact_lock_icon"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@android:drawable/ic_lock_lock"
+        android:visibility="gone"
+        android:contentDescription="Blocked" />
+
+</LinearLayout>
