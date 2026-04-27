@@ -61,10 +61,10 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
@@ -77,6 +77,7 @@ import com.hmdm.launcher.AdminReceiver;
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
+import com.hmdm.launcher.dialer.DialerActivity;
 import com.hmdm.launcher.databinding.ActivityMainBinding;
 import com.hmdm.launcher.databinding.DialogAccessibilityServiceBinding;
 import com.hmdm.launcher.databinding.DialogAdministratorModeBinding;
@@ -444,7 +445,20 @@ public class MainActivity
             if (!getIntent().getBooleanExtra(Const.RESTORED_ACTIVITY, false)) {
                 startAppsAtBoot();
             }
-
+// Phone button in launcher UI
+            Button phoneButton = findViewById(R.id.launcher_phone_button);
+            if (phoneButton != null) {
+                phoneButton.setOnClickListener(v -> openDialer(null));
+                phoneButton.setOnKeyListener((v, keyCode, event) -> {
+                    if (event.getAction() == KeyEvent.ACTION_DOWN &&
+                            (keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                                    keyCode == KeyEvent.KEYCODE_ENTER)) {
+                        openDialer(null);
+                        return true;
+                    }
+                    return false;
+                });
+            }
             settingsHelper.setMainActivityRunning(true);
         });
     }
@@ -552,7 +566,36 @@ public class MainActivity
         }
         return super.onKeyUp(keyCode, event);
     }
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // Green call button from idle screen — open dialer immediately
+        if (keyCode == KeyEvent.KEYCODE_CALL) {
+            openDialer(null);
+            return true;
+        }
 
+        // Any digit key (0-9) typed from idle — open dialer with digit pre-filled
+        if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+            String digit = String.valueOf(keyCode - KeyEvent.KEYCODE_0);
+            openDialer(digit);
+            return true;
+        }
+
+        // Star or pound key — open dialer
+        if (keyCode == KeyEvent.KEYCODE_STAR || keyCode == KeyEvent.KEYCODE_POUND) {
+            openDialer(null);
+            return true;
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+    private void openDialer(String prefillDigit) {
+        Intent intent = new Intent(this, DialerActivity.class);
+        if (prefillDigit != null && !prefillDigit.isEmpty()) {
+            intent.putExtra("prefill_digit", prefillDigit);
+        }
+        startActivity(intent);
+    }
     // Workaround against crash "App is in background" on Android 9: this is an Android OS bug
     // https://stackoverflow.com/questions/52013545/android-9-0-not-allowed-to-start-service-app-is-in-background-after-onresume
     private void startServicesWithRetry() {

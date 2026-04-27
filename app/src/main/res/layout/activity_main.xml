@@ -154,7 +154,18 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/activity_bottom_line"/>
             </RelativeLayout>
-
+            <!-- Add at the bottom of your launcher's root layout -->
+            <Button
+                android:id="@+id/launcher_phone_button"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_alignParentBottom="true"
+                android:text="📞  Phone"
+                android:textSize="20sp"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#1B5E20"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
         </RelativeLayout>
 
     </RelativeLayout>
