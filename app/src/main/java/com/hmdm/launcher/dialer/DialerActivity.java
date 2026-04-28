@@ -11,6 +11,11 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.widget.EditText;
+import android.telephony.PhoneNumberFormattingTextWatcher;
+import android.telephony.PhoneNumberUtils;
+import android.widget.TextView;
+import android.view.View;
+import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -44,13 +49,50 @@ public class DialerActivity extends AppCompatActivity
         contactList.setLayoutManager(new LinearLayoutManager(this));
         contactList.setAdapter(adapter);
 
-        // Filter list as user types on physical keypad
-        searchField.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterContacts(s.toString());
+// Auto-format as digits are typed
+        searchField.addTextChangedListener(new PhoneNumberFormattingTextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                super.afterTextChanged(s);
+                String raw = s.toString();
+                filterContacts(raw);
+
+                // Show formatted preview line when it looks like a number
+                TextView preview = findViewById(R.id.dialer_formatted_preview);
+                String digitsOnly = raw.replaceAll("[^0-9]", "");
+                if (digitsOnly.length() >= 3) {
+                    preview.setVisibility(View.VISIBLE);
+                    preview.setText("Dial: " + raw.trim());
+                } else {
+                    preview.setVisibility(View.GONE);
+                }
             }
-            @Override public void afterTextChanged(Editable s) {}
+        });
+
+// Backspace button — single tap deletes one char, long press clears all
+        Button backspaceBtn = findViewById(R.id.dialer_backspace);
+        backspaceBtn.setOnClickListener(v -> {
+            String current = searchField.getText().toString();
+            if (!current.isEmpty()) {
+                searchField.setText(current.substring(0, current.length() - 1));
+                searchField.setSelection(searchField.getText().length());
+            }
+        });
+        backspaceBtn.setOnLongClickListener(v -> {
+            searchField.setText("");
+            return true;
+        });
+        backspaceBtn.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN &&
+                    keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+                String current = searchField.getText().toString();
+                if (!current.isEmpty()) {
+                    searchField.setText(current.substring(0, current.length() - 1));
+                    searchField.setSelection(searchField.getText().length());
+                }
+                return true;
+            }
+            return false;
         });
 
         // Allow dpad down from search field to move into list

@@ -1,34 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="HardcodedText,SmallSp"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#000000">
 
-    <!-- Search/filter bar — physical keys type here -->
-    <EditText
-        android:id="@+id/dialer_search"
+    <!-- Number display area -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:hint="Type to search..."
-        android:textColorHint="#888888"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:background="#1A1A1A"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#0D0D0D"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp"
         android:paddingLeft="8dp"
-        android:paddingRight="8dp"
-        android:inputType="phone"
-        android:imeOptions="actionSearch"
-        android:singleLine="true"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:nextFocusDown="@+id/dialer_contact_list" />
+        android:paddingRight="8dp">
 
-    <!-- Divider -->
+        <!-- Label -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DIAL OR SEARCH"
+            android:textColor="#555555"
+            android:textSize="12sp"
+            android:layout_marginBottom="2dp" />
+
+        <!-- Number input row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <EditText
+                android:id="@+id/dialer_search"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:hint="Name or number..."
+                android:textColorHint="#444444"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:background="@android:color/transparent"
+                android:inputType="phone"
+                android:imeOptions="actionDone"
+                android:singleLine="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:paddingLeft="4dp"
+                android:nextFocusDown="@+id/dialer_contact_list" />
+
+            <!-- Backspace button -->
+            <Button
+                android:id="@+id/dialer_backspace"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:text="DEL"
+                android:textSize="11sp"
+                android:textColor="#888888"
+                android:background="@android:color/transparent"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+
+        </LinearLayout>
+
+        <!-- Formatted number preview -->
+        <TextView
+            android:id="@+id/dialer_formatted_preview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#2196F3"
+            android:textSize="12sp"
+            android:paddingLeft="4dp"
+            android:paddingBottom="4dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- Thin divider -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#333333" />
+        android:background="#1A1A1A" />
+
+    <!-- Column headers -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:orientation="horizontal"
+        android:paddingLeft="20dp"
+        android:paddingRight="8dp"
+        android:gravity="center_vertical"
+        android:background="#050505">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="CONTACTS"
+            android:textColor="#444444"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="STATUS"
+            android:textColor="#444444"
+            android:textSize="12sp" />
+
+    </LinearLayout>
 
     <!-- Contact list -->
     <androidx.recyclerview.widget.RecyclerView
@@ -40,22 +122,34 @@
         android:focusableInTouchMode="true"
         android:descendantFocusability="afterDescendants"
         android:nextFocusUp="@+id/dialer_search"
-        android:scrollbars="vertical" />
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false" />
 
     <!-- Bottom hint bar -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="24dp"
-        android:background="#1A1A1A"
+        android:layout_height="22dp"
+        android:background="#0D0D0D"
         android:orientation="horizontal"
-        android:gravity="center">
+        android:gravity="center"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="UP/DOWN Navigate   OK = Call"
+            android:textColor="#444444"
+            android:textSize="11sp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="OK=Call  #=Direct Dial"
-            android:textColor="#666666"
-            android:textSize="10sp" />
+            android:text="# = Dial Number"
+            android:textColor="#444444"
+            android:textSize="11sp" />
+
     </LinearLayout>
 
 </LinearLayout>

@@ -57,35 +57,39 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
         private final TextView nameView;
         private final TextView numberView;
         private final View statusDot;
-        private final ImageView lockIcon;
+        // lockIcon removed — replaced by statusLabel in layout
 
         ViewHolder(View itemView) {
             super(itemView);
             nameView = itemView.findViewById(R.id.contact_name);
             numberView = itemView.findViewById(R.id.contact_number);
             statusDot = itemView.findViewById(R.id.contact_status_dot);
-            lockIcon = itemView.findViewById(R.id.contact_lock_icon);
         }
+
 
         void bind(ContactItem contact, OnContactSelectedListener listener) {
             nameView.setText(contact.name);
+            // Format the number for display
             numberView.setText(contact.number);
 
+            TextView statusLabel = itemView.findViewById(R.id.contact_status_label);
+
             if (contact.isAllowed) {
-                // Green dot, full brightness
                 statusDot.setBackgroundResource(R.drawable.status_dot);
                 nameView.setTextColor(Color.WHITE);
-                numberView.setTextColor(Color.parseColor("#AAAAAA"));
-                lockIcon.setVisibility(View.GONE);
+                numberView.setTextColor(Color.parseColor("#888888"));
+                statusLabel.setText("ALLOWED");
+                statusLabel.setTextColor(Color.parseColor("#4CAF50"));
+                statusLabel.setBackground(null);
             } else {
-                // Grey dot, dimmed text, lock icon
-                statusDot.setBackgroundColor(Color.parseColor("#555555"));
-                nameView.setTextColor(Color.parseColor("#777777"));
-                numberView.setTextColor(Color.parseColor("#555555"));
-                lockIcon.setVisibility(View.VISIBLE);
+                statusDot.setBackgroundColor(Color.parseColor("#333333"));
+                nameView.setTextColor(Color.parseColor("#666666"));
+                numberView.setTextColor(Color.parseColor("#444444"));
+                statusLabel.setText("BLOCKED");
+                statusLabel.setTextColor(Color.parseColor("#F44336"));
+                statusLabel.setBackground(null);
             }
 
-            // Handle dpad center and touch
             itemView.setOnClickListener(v -> listener.onContactSelected(contact));
             itemView.setOnKeyListener((v, keyCode, event) -> {
                 if (event.getAction() == KeyEvent.ACTION_DOWN &&
