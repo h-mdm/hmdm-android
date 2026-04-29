@@ -93,6 +93,11 @@
 
             </LinearLayout>
 
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/activity_bottom_line"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
         </LinearLayout>
 
         <RelativeLayout
@@ -147,12 +152,6 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 >
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:layout_centerHorizontal="true"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/activity_bottom_line"/>
 
                 <Button
                     android:id="@+id/launcher_phone_button"
