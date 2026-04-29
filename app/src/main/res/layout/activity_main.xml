@@ -98,6 +98,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
+            <Button
+                android:id="@+id/launcher_phone_button"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="-2dp"
+                android:backgroundTint="#1B5E20"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:text="📞  Phone"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp" />
+
         </LinearLayout>
 
         <RelativeLayout
@@ -153,18 +165,8 @@
                 android:layout_alignParentBottom="true"
                 >
 
-                <Button
-                    android:id="@+id/launcher_phone_button"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:layout_marginBottom="-2dp"
-                    android:backgroundTint="#1B5E20"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:text="📞  Phone"
-                    android:textColor="#FFFFFF"
-                    android:textSize="20sp" />
             </RelativeLayout>
+
             <!-- Add at the bottom of your launcher's root layout -->
         </RelativeLayout>
 
