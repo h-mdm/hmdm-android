@@ -11,7 +11,7 @@ import androidx.annotation.RequiresApi;
 
 import com.hmdm.launcher.util.CallWhitelistManager;
 
-@RequiresApi(api = Build.VERSION_CODES.N)
+@RequiresApi(api = Build.VERSION_CODES.Q)
 public class CallWhitelistScreeningService extends CallScreeningService {
 
     private static final String TAG = "CallScreening";

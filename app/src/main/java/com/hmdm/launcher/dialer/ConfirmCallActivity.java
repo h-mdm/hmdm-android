@@ -73,11 +73,14 @@ public class ConfirmCallActivity extends AppCompatActivity {
 
     private void placeCall(String number) {
         Uri uri = Uri.fromParts("tel", number, null);
+        // TelecomManager.placeCall() requires API 26+
+        // Use ACTION_CALL intent which works on all API levels
         Intent callIntent = new Intent(Intent.ACTION_CALL, uri);
         callIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(callIntent);
         finish();
     }
+
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {

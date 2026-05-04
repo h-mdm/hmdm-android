@@ -34,7 +34,7 @@ android {
     defaultConfig {
         applicationId "com.hmdm.launcher"
         minSdkVersion 16
-        targetSdkVersion 34
+        targetSdk 33
         versionCode 15340
         versionName "6.34"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

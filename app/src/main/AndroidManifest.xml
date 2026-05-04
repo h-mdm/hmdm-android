@@ -109,7 +109,6 @@
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_WINDOWS" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_WIPE_DATA" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
-    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
 
     <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
 
@@ -291,7 +290,8 @@
         <service
             android:name=".service.CallWhitelistScreeningService"
             android:permission="android.permission.BIND_SCREENING_SERVICE"
-            android:exported="true">
+            android:exported="true"
+            android:enabled="@bool/atLeastQ">
             <intent-filter>
                 <action android:name="android.telecom.CallScreeningService" />
             </intent-filter>
