@@ -1,40 +1,23 @@
-/*
- * Headwind MDM: Open Source Android MDM Software
- * https://h-mdm.com
- *
- * Copyright (C) 2019 Headwind Solutions LLC (http://h-sms.com)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 buildscript {
     repositories {
+        google()
         jcenter()
     }
 }
 apply plugin: 'com.android.application'
 
 repositories {
+    google()
     jcenter()
     mavenCentral()
 }
 
 android {
-    compileSdkVersion 34
+    compileSdkVersion 35
     defaultConfig {
         applicationId "com.hmdm.launcher"
-        minSdkVersion 16
-        targetSdk 33
+        minSdkVersion 21
+        targetSdk 35
         versionCode 15340
         versionName "6.34"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -48,59 +31,28 @@ android {
         namespace 'com.hmdm.launcher'
         multiDexEnabled true
 
-        // Default URL of the web panel (scheme + host!)
         buildConfigField("String", "BASE_URL", "\"https://app.h-mdm.com\"")
-        // URL of the secondary address of your web panel, called when the primary host is not available.
-        // Could be equal to the BASE_URL parameter
         buildConfigField("String", "SECONDARY_BASE_URL", "\"https://app.h-mdm.com\"")
-        // Relative path of the web panel on the server. Keep it empty if installed in the root
         buildConfigField("String", "SERVER_PROJECT", "\"\"")
-        // This parameter manages how the device ID should be set up at first start
-        // "user" - user enters it manually
-        // "suggest" - user can select among few predefined values (IMEI, serial, MAC)
-        // "imei", "serial", "mac" - set the selected parameter as device ID without user interaction
         buildConfigField("String", "DEVICE_ID_CHOICE", "\"user\"")
-        // Enables Push notifications. Setting it to false will stop automatic configuration updates after changing it on the server.
         buildConfigField("Boolean", "ENABLE_PUSH", "true")
-        // MQTT port for Push notifications
         buildConfigField("Integer", "MQTT_PORT", "31000")
-        // Set this parameter to true if you'll grant system privileges to Headwind MDM (signing it by system keys).
-        // This will enable silent installation and the launcher will try to get the device owner rights by updating system files.
-        // This may be useful, for example, when your device doesn't have QR code provisioning capability.
         buildConfigField("Boolean", "SYSTEM_PRIVILEGES", "false")
-        // Set this parameter to true if you'd like to trust every certificate, for example, self-signed
-        // Not recommended for security purposes!
         buildConfigField("Boolean", "TRUST_ANY_CERTIFICATE", "false")
-        // A shared secret to sign server config requests and MQTT (Push) messages
         buildConfigField("String", "REQUEST_SIGNATURE", "\"changeme-C3z9vi54\"")
-        // Set this parameter to true if the server signature should be checked
-        // (additional protection against Man-In-The-Middle attacks)
         buildConfigField("Boolean", "CHECK_SIGNATURE", "false")
-        // ANR watchdog flag (for testing purposes only as this watchdog may drain the resources!)
         buildConfigField("Boolean", "ANR_WATCHDOG", "false")
-        // If set to true, the server URL will be requested in UI in non-MDM mode even if it is hardcoded in build.gradle
-        // See the related "if" statement in MainActivity.java
         buildConfigField("Boolean", "REQUEST_SERVER_URL", "true")
-        // Set to true to debug admin receiver via remote logging
         buildConfigField("Boolean", "DEVICE_ADMIN_DEBUG", "false")
-        // Set to true to enable kiosk mode even if the app can't draw over other windows
-        // This may be required for weak devices where drawing over other windows is disabled by OS
         buildConfigField("Boolean", "ENABLE_KIOSK_WITHOUT_OVERLAYS", "false")
-        // Foreground service for MQTT: prevents OS from killing MQTT service on weak devices
         buildConfigField("Boolean", "MQTT_SERVICE_FOREGROUND", "true")
-        // Set Headwind MDM to default launcher at early time of the first start
-        // to prevent the user from clicking Home and stop initializing Headwind MDM
         buildConfigField("Boolean", "SET_DEFAULT_LAUNCHER_EARLY", "false")
-        // Adjust application selection on TV boxes
         buildConfigField("Boolean", "SELECTED_ITEM_BY_CLICK", "false")
-        // Adjust application selection on TV boxes
         buildConfigField("Boolean", "DISABLE_ORIENTATION_LOCK", "false")
-        // API key for the authorization of privileged library requests
         buildConfigField("String", "LIBRARY_API_KEY", "\"changeme-8gzk321W\"")
-        // Use accessibility services to control unwanted apps
-        // (this option is banned by Play Protect in some countries!)
         buildConfigField("Boolean", "USE_ACCESSIBILITY", "false")
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -114,8 +66,11 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        // Core library desugaring backports Java 9+ classes (including
+        // BootstrapMethodError) to older Android runtimes safely
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 
     packagingOptions {
@@ -133,6 +88,16 @@ android {
         exclude 'META-INF/LGPL2.1'
     }
 
+    // Force all Jackson modules to the same safe version
+    // Prevents transitive dependencies pulling in newer incompatible versions
+    configurations.all {
+        resolutionStrategy {
+            force 'com.fasterxml.jackson.core:jackson-databind:2.11.4'
+            force 'com.fasterxml.jackson.core:jackson-core:2.11.4'
+            force 'com.fasterxml.jackson.core:jackson-annotations:2.11.4'
+        }
+    }
+
     flavorDimensions "all"
 
     productFlavors {
@@ -141,31 +106,37 @@ android {
 }
 
 dependencies {
+    // Core library desugaring — backports Java 9+ to API 21+
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    implementation 'androidx.appcompat:appcompat:1.1.0'
+
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     testImplementation 'junit:junit:4.12'
-    implementation 'androidx.recyclerview:recyclerview:1.1.0'
-    implementation 'com.google.android.material:material:1.1.0'
-    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
 
     // MQTT messaging
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
 
-    // Picassomk
+    // Picasso
     implementation 'com.squareup.picasso:picasso:2.5.2'
     implementation 'com.jakewharton.picasso:picasso2-okhttp3-downloader:1.1.0'
 
-    // Retrofit
-    implementation 'com.squareup.retrofit2:retrofit:3.0.0'
-    implementation 'com.squareup.retrofit2:converter-jackson:3.0.0'
+    // Retrofit — 2.11.0 is the last stable 2.x, fully compatible API 21+
+    // Retrofit 3.x requires API 21+ but has other breaking changes; stay on 2.x for stability
+    implementation 'com.squareup.retrofit2:retrofit:2.11.0'
+    implementation 'com.squareup.retrofit2:converter-jackson:2.11.0'
 
-    // Jackson
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.21.1'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.21'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.21.1'
+    // Jackson — 2.14.3 is the last version that does NOT reference
+    // java.lang.BootstrapMethodError (added in Jackson 2.15)
+    // This is the critical fix for Android 7.1 (API 25) compatibility
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.11.4'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.11.4'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.11.4'
 
     // Worker
     implementation 'androidx.work:work-runtime:2.9.1'
@@ -174,7 +145,7 @@ dependencies {
     implementation 'com.google.zxing:core:3.3.0'
     implementation group: 'commons-io', name: 'commons-io', version: '2.0.1'
 
-    // JAX-B dependencies for JDK 9+
+    // JAX-B
     implementation "jakarta.xml.bind:jakarta.xml.bind-api:2.3.2"
     implementation "org.glassfish.jaxb:jaxb-runtime:2.3.2"
 }
