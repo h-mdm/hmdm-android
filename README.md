@@ -31,7 +31,6 @@ Licensed under the **Apache 2.0 License**. You may fork, modify, and distribute 
 - A running Headwind MDM server (see [hmdm-server](https://github.com/h-mdm/hmdm-server) or the Docker setup below)
 - ADB installed and on your PATH for device enrollment
 
-> **Corporate network note:** If you are behind a proxy that performs SSL inspection, you may need to add your corporate CA certificate to Android Studio, the JDK truststore, and any Docker containers used for the server. Gradle builds can fail silently on untrusted certificates.
 
 ---
 
