@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.hmdm.launcher.R;
+import com.hmdm.launcher.util.CallWhitelistManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,8 +75,11 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
 
             TextView statusLabel = itemView.findViewById(R.id.contact_status_label);
 
-            if (contact.isAllowed) {
-                statusDot.setBackgroundResource(R.drawable.status_dot);
+            boolean isAllowed = CallWhitelistManager
+                    .getInstance(itemView.getContext())
+                    .isAllowed(contact.number);
+
+            if (isAllowed) {                statusDot.setBackgroundResource(R.drawable.status_dot);
                 nameView.setTextColor(Color.WHITE);
                 numberView.setTextColor(Color.parseColor("#888888"));
                 statusLabel.setText("ALLOWED");

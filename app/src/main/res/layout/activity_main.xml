@@ -123,7 +123,7 @@
                     android:id="@+id/launcher_phone_button"
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
-                    android:text="PHONE"
+                    android:text="PHONE1"
                     android:textColor="#FFFFFF"
                     android:textSize="16sp"
                     android:letterSpacing="0.1"
