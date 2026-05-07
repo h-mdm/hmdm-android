@@ -1,19 +1,29 @@
 buildscript {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 }
 apply plugin: 'com.android.application'
 
 repositories {
     google()
-    jcenter()
     mavenCentral()
 }
 
 android {
+    namespace 'com.hmdm.launcher'
     compileSdkVersion 35
+
+    dataBinding {
+        enabled = true
+    }
+
+    buildFeatures {
+        aidl true
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId "com.hmdm.launcher"
         minSdkVersion 21
@@ -21,14 +31,6 @@ android {
         versionCode 15340
         versionName "6.34"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        dataBinding {
-            enabled = true
-        }
-        buildFeatures {
-            aidl true
-            buildConfig = true
-        }
-        namespace 'com.hmdm.launcher'
         multiDexEnabled true
 
         buildConfigField("String", "BASE_URL", "\"https://app.h-mdm.com\"")
@@ -131,7 +133,7 @@ dependencies {
     implementation 'com.squareup.retrofit2:retrofit:2.11.0'
     implementation 'com.squareup.retrofit2:converter-jackson:2.11.0'
 
-    // Jackson — 2.14.3 is the last version that does NOT reference
+    // Jackson — 2.11.4 is the last version that does NOT reference
     // java.lang.BootstrapMethodError (added in Jackson 2.15)
     // This is the critical fix for Android 7.1 (API 25) compatibility
     implementation 'com.fasterxml.jackson.core:jackson-core:2.11.4'
@@ -140,7 +142,7 @@ dependencies {
 
     // Worker
     implementation 'androidx.work:work-runtime:2.9.1'
-
+    implementation project(':lib')
     implementation('com.journeyapps:zxing-android-embedded:4.1.0') { transitive = false }
     implementation 'com.google.zxing:core:3.3.0'
     implementation group: 'commons-io', name: 'commons-io', version: '2.0.1'
