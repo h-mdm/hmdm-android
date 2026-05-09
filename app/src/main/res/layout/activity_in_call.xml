@@ -1,20 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    In-call screen layout for Kyocera E4610 (240x320, dpad-first).
-
-    Layout stack (top to bottom):
-      Status label    — "Connected" / "Calling..."
-      Timer           — live elapsed time (00:00)
-      Caller name     — large, prominent
-      Caller number   — secondary
-      Divider
-      [MUTE]  [SPEAKER]  — secondary controls, side by side
-      [      HANG UP    ] — full width, red, primary action
-
-    Dpad focus order:
-      MUTE → SPEAKER (right)
-      SPEAKER → MUTE (left)
-      HANG UP (separate row, always reachable via dpad down)
+    In-call screen for Kyocera E4610 (240x320, dpad-first).
+    Timer row is hidden during CALLING state and shown on CONNECTED.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -26,38 +13,30 @@
     android:background="#000000"
     android:padding="12dp">
 
-    <!-- ====================================================== -->
-    <!-- CALL STATUS                                             -->
-    <!-- ====================================================== -->
-
+    <!-- Status — "Calling..." (amber) or "Connected" (green) -->
     <TextView
         android:id="@+id/incall_status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Connected"
-        android:textColor="#4CAF50"
-        android:textSize="11sp"
+        android:text="Calling..."
+        android:textColor="#FFA000"
+        android:textSize="12sp"
         android:gravity="center"
         android:layout_marginBottom="4dp" />
 
-    <!-- ====================================================== -->
-    <!-- CALL TIMER                                              -->
-    <!-- ====================================================== -->
-
+    <!-- Timer — hidden while dialing, shown once connected -->
     <TextView
         android:id="@+id/incall_timer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="00:00"
+        android:text=""
         android:textColor="#FFFFFF"
         android:textSize="32sp"
         android:gravity="center"
-        android:layout_marginBottom="8dp" />
+        android:layout_marginBottom="8dp"
+        android:visibility="invisible" />
 
-    <!-- ====================================================== -->
-    <!-- CALLER INFO                                             -->
-    <!-- ====================================================== -->
-
+    <!-- Caller name -->
     <TextView
         android:id="@+id/incall_name"
         android:layout_width="match_parent"
@@ -69,6 +48,7 @@
         android:ellipsize="end"
         android:layout_marginBottom="4dp" />
 
+    <!-- Caller number -->
     <TextView
         android:id="@+id/incall_number"
         android:layout_width="match_parent"
@@ -78,20 +58,14 @@
         android:gravity="center"
         android:layout_marginBottom="16dp" />
 
-    <!-- ====================================================== -->
-    <!-- DIVIDER                                                 -->
-    <!-- ====================================================== -->
-
+    <!-- Divider -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="#1E1E1E"
         android:layout_marginBottom="16dp" />
 
-    <!-- ====================================================== -->
-    <!-- MUTE + SPEAKER                                          -->
-    <!-- ====================================================== -->
-
+    <!-- Mute + Speaker -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -133,10 +107,7 @@
 
     </LinearLayout>
 
-    <!-- ====================================================== -->
-    <!-- HANG UP — full width, prominent red                     -->
-    <!-- ====================================================== -->
-
+    <!-- Hang up -->
     <Button
         android:id="@+id/incall_hangup"
         android:layout_width="match_parent"
@@ -150,10 +121,7 @@
         android:stateListAnimator="@null"
         android:nextFocusUp="@+id/incall_mute" />
 
-    <!-- ====================================================== -->
-    <!-- KEY HINT                                                -->
-    <!-- ====================================================== -->
-
+    <!-- Key hint -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
