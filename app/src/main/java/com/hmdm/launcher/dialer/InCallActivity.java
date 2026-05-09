@@ -247,7 +247,7 @@ public class InCallActivity extends AppCompatActivity {
 
         HmdmInCallService service = HmdmInCallService.getInstance();
         if (service != null) {
-            service.setMuted(isMuted);
+            service.muteCall(isMuted);
         }
 
         muteBtn.setText(isMuted ? "UNMUTE" : "MUTE");
@@ -266,7 +266,7 @@ public class InCallActivity extends AppCompatActivity {
 
         HmdmInCallService service = HmdmInCallService.getInstance();
         if (service != null) {
-            service.setSpeaker(isSpeaker);
+            service.setSpeakerRoute(isSpeaker);
         }
 
         speakerBtn.setText(isSpeaker ? "SPEAKER ON" : "SPEAKER");

@@ -68,14 +68,13 @@ public class HmdmInCallService extends InCallService {
     /**
      * Mutes or unmutes the microphone during an active call.
      */
-    public void setMuted(boolean muted) {
-        setMicrophoneMute(muted);
+// Renamed to muteCall() to avoid colliding with InCallService.setMuted() which is final.
+// InCallService.setMuted(boolean) IS the correct API — we just call it directly.
+    public void muteCall(boolean muted) {
+        setMuted(muted);
     }
 
-    /**
-     * Switches audio routing between earpiece and speakerphone.
-     */
-    public void setSpeaker(boolean speaker) {
+    public void setSpeakerRoute(boolean speaker) {
         setAudioRoute(speaker
                 ? CallAudioState.ROUTE_SPEAKER
                 : CallAudioState.ROUTE_EARPIECE);
