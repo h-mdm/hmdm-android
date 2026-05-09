@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Single row in the call history list.
+    Sized for Kyocera E4610 (240px wide, dpad-first).
+
+    Layout:
+    [ TYPE ]  Name / Number          Date
+                                   Duration
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="52dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:background="@drawable/contact_item_selector">
+
+    <!-- Call type label — left side -->
+    <TextView
+        android:id="@+id/history_type"
+        android:layout_width="52dp"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        android:textColor="#4CAF50"
+        android:gravity="center" />
+
+    <!-- Name + number — centre -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginLeft="4dp">
+
+        <TextView
+            android:id="@+id/history_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:singleLine="true"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/history_number"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:textColor="#777777"
+            android:singleLine="true" />
+
+    </LinearLayout>
+
+    <!-- Date + duration — right side -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="end">
+
+        <TextView
+            android:id="@+id/history_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="10sp"
+            android:textColor="#666666"
+            android:gravity="end" />
+
+        <TextView
+            android:id="@+id/history_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="10sp"
+            android:textColor="#555555"
+            android:gravity="end" />
+
+    </LinearLayout>
+
+</LinearLayout>

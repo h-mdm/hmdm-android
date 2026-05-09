@@ -7,12 +7,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import com.hmdm.launcher.util.CallWhitelistManager;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.hmdm.launcher.R;
-import com.hmdm.launcher.util.CallWhitelistManager;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -118,7 +118,22 @@ public class DialerActivity extends AppCompatActivity
             }
             return false;
         });
+        // Recent calls link — bottom right of dialer screen
+        TextView historyLink = findViewById(R.id.dialer_history_link);
+        if (historyLink != null) {
+            historyLink.setOnClickListener(v ->
+                    startActivity(new Intent(this, CallHistoryActivity.class)));
 
+            historyLink.setOnKeyListener((v, keyCode, event) -> {
+                if (event.getAction() == KeyEvent.ACTION_DOWN &&
+                        (keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                                keyCode == KeyEvent.KEYCODE_ENTER)) {
+                    startActivity(new Intent(this, CallHistoryActivity.class));
+                    return true;
+                }
+                return false;
+            });
+        }
         loadContacts();
     }
 
