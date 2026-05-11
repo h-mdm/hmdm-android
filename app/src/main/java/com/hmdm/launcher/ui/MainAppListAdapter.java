@@ -29,6 +29,11 @@ public class MainAppListAdapter extends BaseAppListAdapter {
 
     public MainAppListAdapter(Activity parentActivity, OnAppChooseListener appChooseListener, SwitchAdapterListener switchAdapterListener) {
         super(parentActivity, appChooseListener, switchAdapterListener);
+        updateShortcuts(parentActivity);
+    }
+
+    @Override
+    public void updateShortcuts(Activity parentActivity) {
         items = AppShortcutManager.getInstance().getInstalledApps(parentActivity, false);
         initShortcuts();
     }

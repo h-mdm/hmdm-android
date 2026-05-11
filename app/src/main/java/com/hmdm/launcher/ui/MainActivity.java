@@ -32,6 +32,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.pm.LauncherApps;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -49,6 +50,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Display;
@@ -329,6 +331,9 @@ public class MainActivity
         }
     };
 
+    private LauncherApps appChangeService;
+    private LauncherApps.Callback appChangeCallback = null;
+
     private GradientDrawable selectedManageButtonBorder = new GradientDrawable();
     private ImageView exitView;
     private long exitFirstTapTime = 0;
@@ -447,6 +452,48 @@ public class MainActivity
 
             settingsHelper.setMainActivityRunning(true);
         });
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            appChangeCallback = new LauncherApps.Callback() {
+                private void updateShortcuts() {
+                    if (mainAppListAdapter != null) {
+                        mainAppListAdapter.updateShortcuts(MainActivity.this);
+                        mainAppListAdapter.notifyDataSetChanged();
+                    }
+                    if (bottomAppListAdapter != null) {
+                        bottomAppListAdapter.updateShortcuts(MainActivity.this);
+                        bottomAppListAdapter.notifyDataSetChanged();
+                    }
+                }
+
+                @Override
+                public void onPackageRemoved(String s, UserHandle userHandle) {
+                    updateShortcuts();
+                }
+
+                @Override
+                public void onPackageAdded(String s, UserHandle userHandle) {
+                    updateShortcuts();
+                }
+
+                @Override
+                public void onPackageChanged(String s, UserHandle userHandle) {
+                    updateShortcuts();
+                }
+
+                @Override
+                public void onPackagesAvailable(String[] strings, UserHandle userHandle, boolean b) {
+                }
+
+                @Override
+                public void onPackagesUnavailable(String[] strings, UserHandle userHandle, boolean b) {
+                }
+            };
+            appChangeService = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
+            if (appChangeService != null) {
+                appChangeService.registerCallback(appChangeCallback);
+            }
+        }
     }
 
     private void logCrash(Throwable e) throws FileNotFoundException {
@@ -527,6 +574,15 @@ public class MainActivity
             }
         } else {
             setSelfAsDeviceOwner();
+        }
+
+        if (mainAppListAdapter != null) {
+            mainAppListAdapter.updateShortcuts(this);
+            mainAppListAdapter.notifyDataSetChanged();
+        }
+        if (bottomAppListAdapter != null) {
+            bottomAppListAdapter.updateShortcuts(this);
+            bottomAppListAdapter.notifyDataSetChanged();
         }
     }
 
@@ -2055,6 +2111,11 @@ public class MainActivity
             unregisterReceiver(screenOffReceiver);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
+                appChangeService != null && appChangeCallback != null) {
+            appChangeService.unregisterCallback(appChangeCallback);
         }
     }
 
