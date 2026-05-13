@@ -584,6 +584,7 @@ public class ConfigUpdater {
                                     }
                                     createFileFromTemplate(file, finalFile, settingsHelper.getDeviceId(), imei, settingsHelper.getConfig());
                                 }
+                                postProcessFile(finalFile);
                                 RemoteFileTable.insert(dbHelper.getWritableDatabase(), remoteFile);
                                 remoteFileStatus.installed = true;
                                 if (lastDownload != null) {
@@ -669,6 +670,22 @@ public class ConfigUpdater {
         lastDownload.setInstalled(installed);
         DatabaseHelper dbHelper = DatabaseHelper.instance(context);
         DownloadTable.insert(dbHelper.getWritableDatabase(), lastDownload);
+    }
+
+    // Vendor-specific post-processing of config files
+    private void postProcessFile(File file) {
+        if (file.getAbsolutePath().startsWith("/enterprise/device/settings/datawedge/autoimport")) {
+            // By default, access to all is disabled, and Datawedge fails with "Access denied",
+            // so we should grant access manually
+            String cmd = "chmod 666 " + file.getAbsolutePath();
+            Log.d(Const.LOG_TAG, "Post-processing: run command: " + cmd);
+            String res = SystemUtils.executeShellCommand(cmd, false);
+            if (!"".equals(res)) {
+                Log.d(Const.LOG_TAG, "Execution failed: " + res);
+            } else {
+                Log.d(Const.LOG_TAG, "Command successfully executed");
+            }
+        }
     }
 
     // In background mode, we do not attempt to download files or apps in two cases:

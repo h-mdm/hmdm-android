@@ -44,7 +44,7 @@ import java.util.Map;
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 
-public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.ViewHolder> {
+public abstract class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.ViewHolder> {
     protected LayoutInflater layoutInflater;
     protected List<AppInfo> items;
     protected Map<Integer, AppInfo> shortcuts;        // Keycode -> Application, filled in getInstalledApps()
@@ -90,6 +90,8 @@ public class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppListAdapter.
             }
         }
     }
+
+    public abstract void updateShortcuts(Activity parentActivity);
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
