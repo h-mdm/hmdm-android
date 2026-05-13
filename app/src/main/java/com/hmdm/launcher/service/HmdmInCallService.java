@@ -79,10 +79,19 @@ public class HmdmInCallService extends InCallService {
         } else if (state == Call.STATE_DIALING ||
                 state == Call.STATE_CONNECTING ||
                 state == Call.STATE_NEW) {
-            // ---- OUTGOING call — show InCallActivity immediately ----
-            // User has already passed the whitelist check in ConfirmCallActivity.
-            // Show the in-call screen right away so the dialer isn't visible.
-            Log.d(TAG, "Outgoing call — launching InCallActivity (DIALING)");
+            // -------------------------------------------------------
+            // Enforce whitelist for ALL outgoing calls regardless of
+            // what app placed them — Contacts, browser, 3rd party, etc.
+            // ConfirmCallActivity is only a UI hint, not enforcement.
+            // -------------------------------------------------------
+            if (!CallWhitelistManager.getInstance(this).isAllowed(resolvedNumber)) {
+                Log.d(TAG, "BLOCKING outgoing call to: " + resolvedNumber);
+                call.disconnect();
+                currentCall = null;
+                return; // Do not register callback or launch any UI
+            }
+            // Allowed — show InCallActivity immediately with "Calling..." state
+            Log.d(TAG, "Outgoing call allowed — launching InCallActivity (DIALING)");
             launchInCallActivity(resolvedName, resolvedNumber, false);
         }
 

@@ -1,33 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Light theme contact row selector.
-    Default: white.
-    Focused: iOS blue fill (text handled in adapter).
-    Pressed: light gray.
+    Modern button background selector.
+    Default: white card with light border.
+    Focused (dpad): blue fill with white text trigger.
+    Pressed: darker blue.
 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Focused AND pressed -->
     <item android:state_focused="true" android:state_pressed="true">
         <shape android:shape="rectangle">
             <solid android:color="#0056CC" />
+            <corners android:radius="10dp" />
         </shape>
     </item>
 
+    <!-- Focused via dpad -->
     <item android:state_focused="true">
         <shape android:shape="rectangle">
             <solid android:color="#007AFF" />
+            <corners android:radius="10dp" />
         </shape>
     </item>
 
+    <!-- Pressed via touch -->
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="#F2F2F7" />
+            <solid android:color="#E5E5EA" />
+            <corners android:radius="10dp" />
         </shape>
     </item>
 
+    <!-- Default -->
     <item>
         <shape android:shape="rectangle">
             <solid android:color="#FFFFFF" />
+            <stroke android:width="1dp" android:color="#E5E5EA" />
+            <corners android:radius="10dp" />
         </shape>
     </item>
 

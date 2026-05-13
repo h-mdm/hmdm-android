@@ -1,33 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Single row in the call history list.
-    Sized for Kyocera E4610 (240px wide, dpad-first).
-
-    Layout:
-    [ TYPE ]  Name / Number          Date
-                                   Duration
+    Call history row — light theme, 240px wide, dpad-first.
+    Type label color: green=incoming, blue=outgoing, red=missed.
+    Focus flips all text to white on the blue highlight.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="52dp"
+    android:layout_height="56dp"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingLeft="8dp"
-    android:paddingRight="8dp"
+    android:paddingLeft="12dp"
+    android:paddingRight="12dp"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:background="@drawable/contact_item_selector">
 
-    <!-- Call type label — left side -->
+    <!-- Call type label -->
     <TextView
         android:id="@+id/history_type"
-        android:layout_width="52dp"
+        android:layout_width="56dp"
         android:layout_height="wrap_content"
         android:textSize="10sp"
-        android:textColor="#4CAF50"
+        android:textStyle="bold"
         android:gravity="center" />
 
-    <!-- Name + number — centre -->
+    <!-- Name + number -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -39,8 +36,9 @@
             android:id="@+id/history_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#1C1C1E"
             android:singleLine="true"
             android:ellipsize="end" />
 
@@ -49,12 +47,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="11sp"
-            android:textColor="#777777"
+            android:textColor="#8E8E93"
             android:singleLine="true" />
 
     </LinearLayout>
 
-    <!-- Date + duration — right side -->
+    <!-- Date + duration -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -66,7 +64,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="10sp"
-            android:textColor="#666666"
+            android:textColor="#8E8E93"
             android:gravity="end" />
 
         <TextView
@@ -74,7 +72,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="10sp"
-            android:textColor="#555555"
+            android:textColor="#C7C7CC"
             android:gravity="end" />
 
     </LinearLayout>

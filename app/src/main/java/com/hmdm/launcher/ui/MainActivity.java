@@ -198,10 +198,20 @@ public class MainActivity
     private ConfigUpdater configUpdater = null;
     private Picasso picasso = null;
 
+    // -------------------------------------------------------------------------
+    // Lock screen flag — set true when lockScreen() is called via end call key.
+    // Tells screenOnLockReceiver to show LockScreenActivity when screen wakes.
+    // -------------------------------------------------------------------------
+    private boolean screenWasLocked = false;
+
+    // =========================================================================
+    // Broadcast receivers
+    // =========================================================================
+
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
-        public void onReceive( Context context, Intent intent ) {
-            switch ( intent.getAction() ) {
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
                 case Const.ACTION_UPDATE_CONFIGURATION:
                     RemoteLogger.log(context, Const.LOG_DEBUG, "Update configuration by MainActivity");
                     updateConfig(false);
@@ -212,28 +222,21 @@ public class MainActivity
                     if (serverConfig.getLock() != null && serverConfig.getLock()) {
                         RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Showing lock screen due to server lock");
                         showLockScreen();
-                    } else if ( applicationNotAllowed != null &&
-                            (!ProUtils.kioskModeRequired(MainActivity.this) || !ProUtils.isKioskAppInstalled(MainActivity.this)) ) {
+                    } else if (applicationNotAllowed != null &&
+                            (!ProUtils.kioskModeRequired(MainActivity.this) || !ProUtils.isKioskAppInstalled(MainActivity.this))) {
                         RemoteLogger.log(MainActivity.this, Const.LOG_INFO, "Showing 'package not allowed' overlay for " + intent.getStringExtra(Const.PACKAGE_NAME));
-                        TextView textView = ( TextView ) applicationNotAllowed.findViewById( R.id.package_id );
+                        TextView textView = (TextView) applicationNotAllowed.findViewById(R.id.package_id);
                         textView.setText(intent.getStringExtra(Const.PACKAGE_NAME));
-                        applicationNotAllowed.setVisibility( View.VISIBLE );
+                        applicationNotAllowed.setVisibility(View.VISIBLE);
                         applicationNotAllowed.post(() -> {
                             View button = applicationNotAllowed.findViewById(R.id.layout_application_not_allowed_continue);
                             button.requestFocus();
                         });
-                        handler.postDelayed( new Runnable() {
-                            @Override
-                            public void run() {
-                                applicationNotAllowed.setVisibility( View.GONE );
-                            }
-                        }, 20000 );
+                        handler.postDelayed(() -> applicationNotAllowed.setVisibility(View.GONE), 20000);
                     }
                     break;
                 case Const.ACTION_DISABLE_BLOCK_WINDOW:
-                    if ( applicationNotAllowed != null) {
-                        applicationNotAllowed.setVisibility(View.GONE);
-                    }
+                    if (applicationNotAllowed != null) applicationNotAllowed.setVisibility(View.GONE);
                     break;
                 case Const.ACTION_EXIT:
                     finish();
@@ -284,9 +287,22 @@ public class MainActivity
                     }
                 }
             }
-            try {
-                applyEarlyPolicies(settingsHelper.getConfig());
-            } catch (Exception e) {
+            try { applyEarlyPolicies(settingsHelper.getConfig()); } catch (Exception e) {}
+        }
+    };
+
+    // -------------------------------------------------------------------------
+    // Screen-on receiver — launches LockScreenActivity after lockNow()
+    // Only fires if screenWasLocked=true so normal screen wakes are unaffected
+    // -------------------------------------------------------------------------
+    private final BroadcastReceiver screenOnLockReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Intent.ACTION_SCREEN_ON.equals(intent.getAction()) && screenWasLocked) {
+                screenWasLocked = false;
+                Intent lockIntent = new Intent(MainActivity.this, LockScreenActivity.class);
+                lockIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(lockIntent);
             }
         }
     };
@@ -301,9 +317,13 @@ public class MainActivity
     private View rightToolbarView;
     private boolean firstStartAfterProvisioning = false;
 
+    // =========================================================================
+    // onCreate
+    // =========================================================================
+
     @Override
-    protected void onCreate( Bundle savedInstanceState ) {
-        super.onCreate( savedInstanceState );
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
         Intent intent = getIntent();
         Log.d(Const.LOG_TAG, "MainActivity started" + (intent != null && intent.getAction() != null ?
@@ -326,10 +346,10 @@ public class MainActivity
                 ProUtils.sendExceptionToCrashlytics(e);
                 CrashLoopProtection.registerFault(MainActivity.this);
                 if (!CrashLoopProtection.isCrashLoopDetected(MainActivity.this)) {
-                    Intent intent = getPackageManager().getLaunchIntentForPackage(Const.LAUNCHER_RESTARTER_PACKAGE_ID);
-                    if (intent != null) { startActivity(intent); }
+                    Intent i = getPackageManager().getLaunchIntentForPackage(Const.LAUNCHER_RESTARTER_PACKAGE_ID);
+                    if (i != null) startActivity(i);
                 }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) { finishAffinity(); }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) finishAffinity();
                 System.exit(0);
             }
         });
@@ -342,7 +362,7 @@ public class MainActivity
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-        binding.setMessage(getString( R.string.main_start_preparations));
+        binding.setMessage(getString(R.string.main_start_preparations));
         binding.loading.setVisibility(View.VISIBLE);
 
         settingsHelper = SettingsHelper.getInstance(this);
@@ -364,6 +384,7 @@ public class MainActivity
             startServicesWithRetry();
             initReceiver();
 
+            // Connectivity / Bluetooth state changes
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
             intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
@@ -374,19 +395,27 @@ public class MainActivity
                 registerReceiver(stateChangeReceiver, intentFilter);
             }
 
-            intentFilter = new IntentFilter();
-            intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+            // Screen off receiver
+            IntentFilter screenOffFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                registerReceiver(screenOffReceiver, intentFilter, Context.RECEIVER_EXPORTED);
+                registerReceiver(screenOffReceiver, screenOffFilter, Context.RECEIVER_EXPORTED);
             } else {
-                registerReceiver(screenOffReceiver, intentFilter);
+                registerReceiver(screenOffReceiver, screenOffFilter);
+            }
+
+            // Screen on receiver — shows LockScreenActivity after lockNow()
+            IntentFilter screenOnFilter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                registerReceiver(screenOnLockReceiver, screenOnFilter, Context.RECEIVER_EXPORTED);
+            } else {
+                registerReceiver(screenOnLockReceiver, screenOnFilter);
             }
 
             if (!getIntent().getBooleanExtra(Const.RESTORED_ACTIVITY, false)) {
                 startAppsAtBoot();
             }
 
-            // Wire up the Phone button in the launcher UI
+            // Phone button
             Button phoneButton = findViewById(R.id.launcher_phone_button);
             if (phoneButton != null) {
                 phoneButton.setOnClickListener(v -> openDialer(null));
@@ -401,8 +430,7 @@ public class MainActivity
                 });
             }
 
-            // Request default dialer role so HmdmInCallService receives all calls.
-            // Shown once on first launch, persists until manually changed.
+            // Set as default dialer (once, persists)
             if (Utils.isDeviceOwner(this)) {
                 setDefaultDialerApp();
             }
@@ -413,7 +441,7 @@ public class MainActivity
 
     private void logCrash(Throwable e) throws FileNotFoundException {
         File file = new File("/storage/emulated/0/Download/hmdm_stack_trace.txt");
-        if (file.exists()) { file.delete(); }
+        if (file.exists()) file.delete();
         FileOutputStream fos = new FileOutputStream(file, false);
         PrintWriter writer = new PrintWriter(new OutputStreamWriter(fos));
         e.printStackTrace(writer);
@@ -427,16 +455,14 @@ public class MainActivity
             binding.setMessage(getString(R.string.main_start_preparations));
             binding.loading.setVisibility(View.VISIBLE);
         }
-        if (settingsHelper == null) { settingsHelper = SettingsHelper.getInstance(this); }
-        if (preferences == null) { preferences = getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE); }
+        if (settingsHelper == null) settingsHelper = SettingsHelper.getInstance(this);
+        if (preferences == null) preferences = getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_GPS_STATE_CHANGE) {
-            startLocationServiceWithRetry();
-        }
+        if (requestCode == REQUEST_CODE_GPS_STATE_CHANGE) startLocationServiceWithRetry();
     }
 
     private void initReceiver() {
@@ -448,6 +474,10 @@ public class MainActivity
         intentFilter.addAction(Const.ACTION_ADMIN_PANEL);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilter);
     }
+
+    // =========================================================================
+    // onResume
+    // =========================================================================
 
     @Override
     protected void onResume() {
@@ -474,23 +504,25 @@ public class MainActivity
         int rotation = getWindowManager().getDefaultDisplay().getRotation();
         Log.d(Const.LOG_TAG, "Lock orientation: orientation=" + orientation + ", rotation=" + rotation);
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-            setRequestedOrientation(rotation < Surface.ROTATION_180 ? ActivityInfo.SCREEN_ORIENTATION_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
+            setRequestedOrientation(rotation < Surface.ROTATION_180 ?
+                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT :
+                    ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
         } else {
-            setRequestedOrientation(rotation < Surface.ROTATION_180 ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+            setRequestedOrientation(rotation < Surface.ROTATION_180 ?
+                    ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE :
+                    ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
         }
     }
 
     // =========================================================================
-    // Key handling — green key, digits, and star/pound open dialer from idle
+    // Key handling
     // =========================================================================
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (mainAppListAdapter != null && event.getAction() == KeyEvent.ACTION_UP) {
             if (!mainAppListAdapter.onKey(keyCode)) {
-                if (bottomAppListAdapter != null) {
-                    return bottomAppListAdapter.onKey(keyCode);
-                }
+                if (bottomAppListAdapter != null) return bottomAppListAdapter.onKey(keyCode);
             }
         }
         return super.onKeyUp(keyCode, event);
@@ -498,23 +530,29 @@ public class MainActivity
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_CALL) {
-            openDialer(null);
-            return true;
-        }
-        if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
-            openDialer(String.valueOf(keyCode - KeyEvent.KEYCODE_0));
-            return true;
-        }
-        if (keyCode == KeyEvent.KEYCODE_STAR || keyCode == KeyEvent.KEYCODE_POUND) {
-            openDialer(null);
-            return true;
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_ENDCALL:
+                lockScreen();
+                return true;
+            case KeyEvent.KEYCODE_CALL:
+                openDialer(null);
+                return true;
+            case KeyEvent.KEYCODE_0: case KeyEvent.KEYCODE_1: case KeyEvent.KEYCODE_2:
+            case KeyEvent.KEYCODE_3: case KeyEvent.KEYCODE_4: case KeyEvent.KEYCODE_5:
+            case KeyEvent.KEYCODE_6: case KeyEvent.KEYCODE_7: case KeyEvent.KEYCODE_8:
+            case KeyEvent.KEYCODE_9:
+                openDialer(String.valueOf(keyCode - KeyEvent.KEYCODE_0));
+                return true;
+            case KeyEvent.KEYCODE_STAR:
+            case KeyEvent.KEYCODE_POUND:
+                openDialer(null);
+                return true;
         }
         return super.onKeyDown(keyCode, event);
     }
 
     // =========================================================================
-    // Dialer helpers
+    // Dialer
     // =========================================================================
 
     private void openDialer(String prefillDigit) {
@@ -526,15 +564,27 @@ public class MainActivity
     }
 
     // =========================================================================
-    // Default dialer — single definition, called once from onCreate
+    // Lock screen — single definition
+    // Sets screenWasLocked=true so screenOnLockReceiver shows LockScreenActivity
     // =========================================================================
 
-    /**
-     * Requests that this app become the default phone/dialer app.
-     * API 23-28: one-time system dialog.
-     * API 29+:   RoleManager (may be silent on Device Owner).
-     * Required for HmdmInCallService to intercept all calls.
-     */
+    private void lockScreen() {
+        if (Utils.isDeviceOwner(this)) {
+            // Device Owner: lock instantly and silently.
+            // screenOnLockReceiver will show LockScreenActivity when screen wakes.
+            screenWasLocked = true;
+            DevicePolicyManager dpm = (DevicePolicyManager) getSystemService(DEVICE_POLICY_SERVICE);
+            if (dpm != null) dpm.lockNow();
+        } else {
+            // Fallback when not Device Owner: show lock screen directly
+            startActivity(new Intent(this, LockScreenActivity.class));
+        }
+    }
+
+    // =========================================================================
+    // Default dialer
+    // =========================================================================
+
     private void setDefaultDialerApp() {
         try {
             android.telecom.TelecomManager tm =
@@ -587,7 +637,6 @@ public class MainActivity
         if (SystemClock.uptimeMillis() > BOOT_DURATION_SEC * 1000) return;
         final ServerConfig config = settingsHelper.getConfig();
         if (config == null || config.getApplications() == null) return;
-
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
@@ -616,9 +665,8 @@ public class MainActivity
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
-                if (!SystemUtils.becomeDeviceOwnerByCommand(MainActivity.this)) {
+                if (!SystemUtils.becomeDeviceOwnerByCommand(MainActivity.this))
                     SystemUtils.becomeDeviceOwnerByXmlFile(MainActivity.this);
-                }
                 return null;
             }
             @Override
@@ -627,13 +675,11 @@ public class MainActivity
     }
 
     private void startServices() {
-        if (preferences.getInt(Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
+        if (preferences.getInt(Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON)
             startService(new Intent(MainActivity.this, CheckForegroundApplicationService.class));
-        }
         if (BuildConfig.USE_ACCESSIBILITY &&
-                preferences.getInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON) {
+                preferences.getInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF) == Const.PREFERENCES_ON)
             startService(new Intent(MainActivity.this, CheckForegroundAppAccessibilityService.class));
-        }
         startService(new Intent(MainActivity.this, StatusControlService.class));
         startService(new Intent(MainActivity.this, PluginApiService.class));
         RemoteLogger.resetState();
@@ -655,11 +701,10 @@ public class MainActivity
             }
             boolean locationDisabled = false;
             for (int n = 0; n < permissions.length; n++) {
-                if (permissions[n].equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
-                    if (grantResults[n] != PackageManager.PERMISSION_GRANTED) {
-                        preferences.edit().putInt(Const.PREFERENCES_DISABLE_LOCATION, Const.PREFERENCES_ON).commit();
-                        locationDisabled = true;
-                    }
+                if (permissions[n].equals(Manifest.permission.ACCESS_FINE_LOCATION) &&
+                        grantResults[n] != PackageManager.PERMISSION_GRANTED) {
+                    preferences.edit().putInt(Const.PREFERENCES_DISABLE_LOCATION, Const.PREFERENCES_ON).commit();
+                    locationDisabled = true;
                 }
             }
             boolean requestPermissions = false;
@@ -676,11 +721,8 @@ public class MainActivity
     }
 
     private void waitForProvisioning(int attempts) {
-        if (Utils.isDeviceOwner(this) || attempts <= 0) {
-            setDefaultLauncherEarly();
-        } else {
-            handler.postDelayed(() -> waitForProvisioning(attempts - 1), 1000);
-        }
+        if (Utils.isDeviceOwner(this) || attempts <= 0) setDefaultLauncherEarly();
+        else handler.postDelayed(() -> waitForProvisioning(attempts - 1), 1000);
     }
 
     private void setDefaultLauncherEarly() {
@@ -706,62 +748,29 @@ public class MainActivity
         preferences.edit().putInt(Const.PREFERENCES_DEVICE_OWNER, deviceOwner ? Const.PREFERENCES_ON : Const.PREFERENCES_OFF).commit();
 
         int miuiPermissionMode = preferences.getInt(Const.PREFERENCES_MIUI_PERMISSIONS, -1);
-        if (miuiPermissionMode == -1) {
-            preferences.edit().putInt(Const.PREFERENCES_MIUI_PERMISSIONS, Const.PREFERENCES_ON).commit();
-            if (checkMiuiPermissions(Const.MIUI_PERMISSIONS)) return;
-        }
+        if (miuiPermissionMode == -1) { preferences.edit().putInt(Const.PREFERENCES_MIUI_PERMISSIONS, Const.PREFERENCES_ON).commit(); if (checkMiuiPermissions(Const.MIUI_PERMISSIONS)) return; }
         int miuiDeveloperMode = preferences.getInt(Const.PREFERENCES_MIUI_DEVELOPER, -1);
-        if (miuiDeveloperMode == -1) {
-            preferences.edit().putInt(Const.PREFERENCES_MIUI_DEVELOPER, Const.PREFERENCES_ON).commit();
-            if (checkMiuiPermissions(Const.MIUI_DEVELOPER)) return;
-        }
+        if (miuiDeveloperMode == -1) { preferences.edit().putInt(Const.PREFERENCES_MIUI_DEVELOPER, Const.PREFERENCES_ON).commit(); if (checkMiuiPermissions(Const.MIUI_DEVELOPER)) return; }
         int miuiOptimizationMode = preferences.getInt(Const.PREFERENCES_MIUI_OPTIMIZATION, -1);
-        if (miuiOptimizationMode == -1) {
-            preferences.edit().putInt(Const.PREFERENCES_MIUI_OPTIMIZATION, Const.PREFERENCES_ON).commit();
-            if (checkMiuiPermissions(Const.MIUI_OPTIMIZATION)) return;
-        }
+        if (miuiOptimizationMode == -1) { preferences.edit().putInt(Const.PREFERENCES_MIUI_OPTIMIZATION, Const.PREFERENCES_ON).commit(); if (checkMiuiPermissions(Const.MIUI_OPTIMIZATION)) return; }
         int unknownSourceMode = preferences.getInt(Const.PREFERENCES_UNKNOWN_SOURCES, -1);
-        if (!deviceOwner && unknownSourceMode == -1) {
-            if (checkUnknownSources()) {
-                preferences.edit().putInt(Const.PREFERENCES_UNKNOWN_SOURCES, Const.PREFERENCES_ON).commit();
-            } else return;
-        }
+        if (!deviceOwner && unknownSourceMode == -1) { if (checkUnknownSources()) preferences.edit().putInt(Const.PREFERENCES_UNKNOWN_SOURCES, Const.PREFERENCES_ON).commit(); else return; }
         int administratorMode = preferences.getInt(Const.PREFERENCES_ADMINISTRATOR, -1);
-        if (administratorMode == -1) {
-            if (checkAdminMode()) {
-                RemoteLogger.log(this, Const.LOG_DEBUG, "Saving device admin state as 1 (TRUE)");
-                preferences.edit().putInt(Const.PREFERENCES_ADMINISTRATOR, Const.PREFERENCES_ON).commit();
-            } else return;
-        }
+        if (administratorMode == -1) { if (checkAdminMode()) { RemoteLogger.log(this, Const.LOG_DEBUG, "Saving device admin state as 1 (TRUE)"); preferences.edit().putInt(Const.PREFERENCES_ADMINISTRATOR, Const.PREFERENCES_ON).commit(); } else return; }
         int overlayMode = preferences.getInt(Const.PREFERENCES_OVERLAY, -1);
-        if (ProUtils.isPro() && overlayMode == -1 && needRequestOverlay()) {
-            if (checkAlarmWindow()) {
-                preferences.edit().putInt(Const.PREFERENCES_OVERLAY, Const.PREFERENCES_ON).commit();
-            } else return;
-        }
+        if (ProUtils.isPro() && overlayMode == -1 && needRequestOverlay()) { if (checkAlarmWindow()) preferences.edit().putInt(Const.PREFERENCES_OVERLAY, Const.PREFERENCES_ON).commit(); else return; }
         int usageStatisticsMode = preferences.getInt(Const.PREFERENCES_USAGE_STATISTICS, -1);
         if (ProUtils.isPro() && usageStatisticsMode == -1 && needRequestUsageStats()) {
-            if (checkUsageStatistics()) {
-                preferences.edit().putInt(Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_ON).commit();
-                preferences.edit().putInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF).commit();
-            } else return;
+            if (checkUsageStatistics()) { preferences.edit().putInt(Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_ON).commit(); preferences.edit().putInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_OFF).commit(); } else return;
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             int manageStorageMode = preferences.getInt(Const.PREFERENCES_MANAGE_STORAGE, -1);
-            if (manageStorageMode == -1) {
-                if (checkManageStorage()) {
-                    preferences.edit().putInt(Const.PREFERENCES_MANAGE_STORAGE, Const.PREFERENCES_ON).commit();
-                } else return;
-            }
+            if (manageStorageMode == -1) { if (checkManageStorage()) preferences.edit().putInt(Const.PREFERENCES_MANAGE_STORAGE, Const.PREFERENCES_ON).commit(); else return; }
         }
         int accessibilityService = preferences.getInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, -1);
         if (ProUtils.isPro() && BuildConfig.USE_ACCESSIBILITY && accessibilityService == -1 && needRequestUsageStats()) {
-            if (checkAccessibilityService()) {
-                preferences.edit().putInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_ON).commit();
-            } else {
-                createAndShowAccessibilityServiceDialog();
-                return;
-            }
+            if (checkAccessibilityService()) preferences.edit().putInt(Const.PREFERENCES_ACCESSIBILITY_SERVICE, Const.PREFERENCES_ON).commit();
+            else { createAndShowAccessibilityServiceDialog(); return; }
         }
         if (settingsHelper != null && settingsHelper.getConfig() != null &&
                 settingsHelper.getConfig().getLockStatusBar() != null && settingsHelper.getConfig().getLockStatusBar()) {
@@ -777,10 +786,8 @@ public class MainActivity
         dismissDialog(permissionsDialog);
         permissionsDialog = new Dialog(this);
         dialogPermissionsBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.dialog_permissions, null, false);
-        permissionsDialog.setCancelable(false);
-        permissionsDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        permissionsDialog.setContentView(dialogPermissionsBinding.getRoot());
-        permissionsDialog.show();
+        permissionsDialog.setCancelable(false); permissionsDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        permissionsDialog.setContentView(dialogPermissionsBinding.getRoot()); permissionsDialog.show();
     }
 
     public void permissionsRetryClicked(View view) { dismissDialog(permissionsDialog); startLauncher(); }
@@ -791,10 +798,8 @@ public class MainActivity
         accessibilityServiceDialog = new Dialog(this);
         dialogAccessibilityServiceBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.dialog_accessibility_service, null, false);
         dialogAccessibilityServiceBinding.hint.setText(getString(R.string.dialog_accessibility_service_message, getString(R.string.white_app_name)));
-        accessibilityServiceDialog.setCancelable(false);
-        accessibilityServiceDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        accessibilityServiceDialog.setContentView(dialogAccessibilityServiceBinding.getRoot());
-        accessibilityServiceDialog.show();
+        accessibilityServiceDialog.setCancelable(false); accessibilityServiceDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        accessibilityServiceDialog.setContentView(dialogAccessibilityServiceBinding.getRoot()); accessibilityServiceDialog.show();
     }
 
     public void skipAccessibilityService(View view) {
@@ -812,11 +817,7 @@ public class MainActivity
 
     private boolean checkAccessibilityService() { return ProUtils.checkAccessibilityService(this); }
 
-    private void createLauncherButtons() {
-        createExitButton();
-        createInfoButton();
-        createUpdateButton();
-    }
+    private void createLauncherButtons() { createExitButton(); createInfoButton(); createUpdateButton(); }
 
     private void createButtons() {
         ServerConfig config = settingsHelper.getConfig();
@@ -824,13 +825,10 @@ public class MainActivity
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this) && !BuildConfig.ENABLE_KIOSK_WITHOUT_OVERLAYS) {
                 RemoteLogger.log(this, Const.LOG_WARN, "Kiosk mode disabled: no permission to draw over other windows.");
                 Toast.makeText(this, getString(R.string.kiosk_mode_requires_overlays, getString(R.string.white_app_name)), Toast.LENGTH_LONG).show();
-                config.setKioskMode(false);
-                settingsHelper.updateConfig(config);
-                createLauncherButtons();
-                return;
+                config.setKioskMode(false); settingsHelper.updateConfig(config); createLauncherButtons(); return;
             }
             View kioskUnlockButton = null;
-            if (config.isKioskExit()) { kioskUnlockButton = ProUtils.createKioskUnlockButton(this); }
+            if (config.isKioskExit()) kioskUnlockButton = ProUtils.createKioskUnlockButton(this);
             if (kioskUnlockButton != null) {
                 kioskUnlockButton.setOnClickListener(v -> {
                     kioskUnlockCounter++;
@@ -844,46 +842,30 @@ public class MainActivity
                     }
                 });
             }
-        } else {
-            createLauncherButtons();
-        }
+        } else { createLauncherButtons(); }
     }
 
     private void startLauncher() {
         createButtons();
-        if (configUpdater.isPendingAppInstall()) {
-            configUpdater.repeatDownloadApps();
-        } else if (!checkPermissions(true)) {
-            Log.i(Const.LOG_TAG, "startLauncher: requesting permissions");
-        } else if (!settingsHelper.isBaseUrlSet() && BuildConfig.REQUEST_SERVER_URL) {
-            createAndShowServerDialog(false, settingsHelper.getBaseUrl(), settingsHelper.getServerProject());
-        } else if (settingsHelper.getDeviceId().length() == 0) {
+        if (configUpdater.isPendingAppInstall()) { configUpdater.repeatDownloadApps(); }
+        else if (!checkPermissions(true)) { Log.i(Const.LOG_TAG, "startLauncher: requesting permissions"); }
+        else if (!settingsHelper.isBaseUrlSet() && BuildConfig.REQUEST_SERVER_URL) { createAndShowServerDialog(false, settingsHelper.getBaseUrl(), settingsHelper.getServerProject()); }
+        else if (settingsHelper.getDeviceId().length() == 0) {
             Log.d(Const.LOG_TAG, "Device ID is empty");
             Utils.autoGrantPhonePermission(this);
-            if (!SystemUtils.autoSetDeviceId(this)) {
-                createAndShowEnterDeviceIdDialog(false, null);
-            } else {
-                startLauncher();
-            }
+            if (!SystemUtils.autoSetDeviceId(this)) createAndShowEnterDeviceIdDialog(false, null);
+            else startLauncher();
         } else if (!configInitialized) {
             Log.i(Const.LOG_TAG, "Updating configuration in startLauncher()");
             boolean userInteraction = true;
             boolean integratedProvisioningFlow = settingsHelper.isIntegratedProvisioningFlow();
-            if (integratedProvisioningFlow) { settingsHelper.setIntegratedProvisioningFlow(false); }
-            if (settingsHelper.getConfig() != null && !integratedProvisioningFlow) {
-                showContent(settingsHelper.getConfig());
-                userInteraction = false;
-            }
+            if (integratedProvisioningFlow) settingsHelper.setIntegratedProvisioningFlow(false);
+            if (settingsHelper.getConfig() != null && !integratedProvisioningFlow) { showContent(settingsHelper.getConfig()); userInteraction = false; }
             updateConfig(userInteraction);
-        } else {
-            showContent(settingsHelper.getConfig());
-        }
+        } else { showContent(settingsHelper.getConfig()); }
     }
 
-    private boolean checkAdminMode() {
-        if (!Utils.checkAdminMode(this)) { createAndShowAdministratorDialog(); return false; }
-        return true;
-    }
+    private boolean checkAdminMode() { if (!Utils.checkAdminMode(this)) { createAndShowAdministratorDialog(); return false; } return true; }
 
     private boolean needRequestUsageStats() {
         ServerConfig config = SettingsHelper.getInstance(this).getConfig();
@@ -894,8 +876,7 @@ public class MainActivity
     private boolean checkUsageStatistics() {
         if (!ProUtils.checkUsageStatistics(this)) {
             if (SystemUtils.autoSetUsageStatsPermission(this, getPackageName()) && ProUtils.checkUsageStatistics(this)) return true;
-            createAndShowHistorySettingsDialog();
-            return false;
+            createAndShowHistorySettingsDialog(); return false;
         }
         return true;
     }
@@ -904,8 +885,7 @@ public class MainActivity
     private boolean checkManageStorage() {
         if (!Environment.isExternalStorageManager()) {
             if (SystemUtils.autoSetStoragePermission(this, getPackageName()) && Environment.isExternalStorageManager()) return true;
-            createAndShowManageStorageDialog();
-            return false;
+            createAndShowManageStorageDialog(); return false;
         }
         return true;
     }
@@ -921,8 +901,7 @@ public class MainActivity
     private boolean checkAlarmWindow() {
         if (ProUtils.isPro() && !Utils.canDrawOverlays(this)) {
             if (SystemUtils.autoSetOverlayPermission(this, getPackageName()) && Utils.canDrawOverlays(this)) return true;
-            createAndShowOverlaySettingsDialog();
-            return false;
+            createAndShowOverlaySettingsDialog(); return false;
         }
         return true;
     }
@@ -930,24 +909,18 @@ public class MainActivity
     private boolean checkMiuiPermissions(int screen) {
         if (Utils.isMiui(this) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_ENABLE_SETTINGS));
-            createAndShowMiuiPermissionsDialog(screen);
-            return true;
+            createAndShowMiuiPermissionsDialog(screen); return true;
         }
         return false;
     }
 
-    private boolean checkUnknownSources() {
-        if (!Utils.canInstallPackages(this)) { createAndShowUnknownSourcesDialog(); return false; }
-        return true;
-    }
+    private boolean checkUnknownSources() { if (!Utils.canInstallPackages(this)) { createAndShowUnknownSourcesDialog(); return false; } return true; }
 
     private WindowManager.LayoutParams overlayLockScreenParams() {
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.type = Utils.OverlayWindowType();
-        lp.gravity = Gravity.RIGHT;
+        lp.type = Utils.OverlayWindowType(); lp.gravity = Gravity.RIGHT;
         lp.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
-        lp.height = WindowManager.LayoutParams.MATCH_PARENT;
-        lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+        lp.height = WindowManager.LayoutParams.MATCH_PARENT; lp.width = WindowManager.LayoutParams.MATCH_PARENT;
         lp.format = PixelFormat.TRANSPARENT;
         return lp;
     }
@@ -957,10 +930,7 @@ public class MainActivity
         WindowManager manager = ((WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE));
         applicationNotAllowed = LayoutInflater.from(this).inflate(R.layout.layout_application_not_allowed, null);
         applicationNotAllowed.findViewById(R.id.layout_application_not_allowed_continue).setOnClickListener(v -> applicationNotAllowed.setVisibility(View.GONE));
-        applicationNotAllowed.findViewById(R.id.layout_application_not_allowed_admin).setOnClickListener(v -> {
-            applicationNotAllowed.setVisibility(View.GONE);
-            createAndShowEnterPasswordDialog();
-        });
+        applicationNotAllowed.findViewById(R.id.layout_application_not_allowed_admin).setOnClickListener(v -> { applicationNotAllowed.setVisibility(View.GONE); createAndShowEnterPasswordDialog(); });
         final TextView tvPackageId = applicationNotAllowed.findViewById(R.id.package_id);
         tvPackageId.setOnClickListener(v -> {
             try {
@@ -970,12 +940,8 @@ public class MainActivity
             } catch (Exception e) { e.printStackTrace(); }
         });
         applicationNotAllowed.setVisibility(View.GONE);
-        try {
-            manager.addView(applicationNotAllowed, overlayLockScreenParams());
-        } catch (Exception e) {
-            try { ((RelativeLayout) findViewById(R.id.activity_main)).addView(applicationNotAllowed); }
-            catch (Exception e1) { e1.printStackTrace(); }
-        }
+        try { manager.addView(applicationNotAllowed, overlayLockScreenParams()); }
+        catch (Exception e) { try { ((RelativeLayout) findViewById(R.id.activity_main)).addView(applicationNotAllowed); } catch (Exception e1) { e1.printStackTrace(); } }
     }
 
     private void createLockScreen() {
@@ -988,42 +954,30 @@ public class MainActivity
         lockScreen.findViewById(R.id.message2).setVisibility(View.GONE);
         ((TextView) lockScreen.findViewById(R.id.message)).setText(getString(R.string.device_locked, SettingsHelper.getInstance(this).getDeviceId()));
         lockScreen.setVisibility(View.GONE);
-        try {
-            manager.addView(lockScreen, overlayLockScreenParams());
-        } catch (Exception e) {
-            try { ((RelativeLayout) findViewById(R.id.activity_main)).addView(lockScreen); }
-            catch (Exception e1) { e1.printStackTrace(); }
-        }
+        try { manager.addView(lockScreen, overlayLockScreenParams()); }
+        catch (Exception e) { try { ((RelativeLayout) findViewById(R.id.activity_main)).addView(lockScreen); } catch (Exception e1) { e1.printStackTrace(); } }
     }
 
     private boolean isDarkBackground() {
-        try {
-            ServerConfig config = settingsHelper.getConfig();
-            if (config.getBackgroundColor() != null) return !Utils.isLightColor(Color.parseColor(config.getBackgroundColor()));
-        } catch (Exception e) {}
+        try { ServerConfig config = settingsHelper.getConfig(); if (config.getBackgroundColor() != null) return !Utils.isLightColor(Color.parseColor(config.getBackgroundColor())); } catch (Exception e) {}
         return true;
     }
 
     private ImageView createManageButton(int imageResource, int imageResourceBlack, int offset) {
         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lp.addRule(RelativeLayout.CENTER_VERTICAL);
-        lp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        lp.addRule(RelativeLayout.CENTER_VERTICAL); lp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
         int offsetRight = 0;
-        if (settingsHelper != null && settingsHelper.getConfig() != null &&
-                settingsHelper.getConfig().getLockStatusBar() != null && settingsHelper.getConfig().getLockStatusBar()) {
+        if (settingsHelper != null && settingsHelper.getConfig() != null && settingsHelper.getConfig().getLockStatusBar() != null && settingsHelper.getConfig().getLockStatusBar())
             offsetRight = getResources().getDimensionPixelOffset(R.dimen.prevent_applications_list_width);
-        }
         RelativeLayout view = new RelativeLayout(this);
-        view.setPadding(0, offset * 2, offsetRight, 0);
-        view.setLayoutParams(lp);
+        view.setPadding(0, offset * 2, offsetRight, 0); view.setLayoutParams(lp);
         ImageView manageButton = new ImageView(this);
         manageButton.setImageResource(isDarkBackground() ? imageResource : imageResourceBlack);
         view.addView(manageButton);
         selectedManageButtonBorder.setColor(0);
         selectedManageButtonBorder.setStroke(2, isDarkBackground() ? 0xa0ffffff : 0xa0000000);
         manageButton.setOnFocusChangeListener((v, hasFocus) -> v.setBackground(hasFocus ? selectedManageButtonBorder : null));
-        try { ((RelativeLayout) findViewById(R.id.activity_main)).addView(view); }
-        catch (Exception e) { e.printStackTrace(); }
+        try { ((RelativeLayout) findViewById(R.id.activity_main)).addView(view); } catch (Exception e) { e.printStackTrace(); }
         return manageButton;
     }
 
@@ -1042,31 +996,25 @@ public class MainActivity
 
     private void createInfoButton() {
         if (infoView != null) return;
-        infoView = createManageButton(R.drawable.ic_info_opaque_24dp, R.drawable.ic_info_black_24dp,
-                getResources().getDimensionPixelOffset(R.dimen.info_icon_margin));
+        infoView = createManageButton(R.drawable.ic_info_opaque_24dp, R.drawable.ic_info_black_24dp, getResources().getDimensionPixelOffset(R.dimen.info_icon_margin));
         infoView.setOnClickListener(this);
     }
 
     private void createUpdateButton() {
         if (updateView != null) return;
-        updateView = createManageButton(R.drawable.ic_system_update_opaque_24dp, R.drawable.ic_system_update_black_24dp,
-                (int)(2.05f * getResources().getDimensionPixelOffset(R.dimen.info_icon_margin)));
+        updateView = createManageButton(R.drawable.ic_system_update_opaque_24dp, R.drawable.ic_system_update_black_24dp, (int)(2.05f * getResources().getDimensionPixelOffset(R.dimen.info_icon_margin)));
         updateView.setOnClickListener(this);
     }
 
     private void updateConfig(final boolean userInteraction) {
-        needSendDeviceInfoAfterReconfigure = true;
-        needRedrawContentAfterReconfigure = true;
+        needSendDeviceInfoAfterReconfigure = true; needRedrawContentAfterReconfigure = true;
         if (!orientationLocked && !BuildConfig.DISABLE_ORIENTATION_LOCK) { lockOrientation(); orientationLocked = true; }
         configUpdater.updateConfig(this, this, userInteraction);
     }
 
     private void startLocationServiceWithRetry() {
         try { startLocationService(); }
-        catch (Exception e) {
-            e.printStackTrace();
-            handler.postDelayed(() -> { try { startLocationService(); } catch (Exception e2) { e2.printStackTrace(); } }, 1000);
-        }
+        catch (Exception e) { e.printStackTrace(); handler.postDelayed(() -> { try { startLocationService(); } catch (Exception e2) { e2.printStackTrace(); } }, 1000); }
     }
 
     private void startLocationService() {
@@ -1086,8 +1034,7 @@ public class MainActivity
 
     @Override
     public void onConfigUpdateNetworkError(String errorText) {
-        if (ProUtils.isKioskModeRunning(this) && settingsHelper.getConfig() != null &&
-                !getPackageName().equals(settingsHelper.getConfig().getMainApp())) {
+        if (ProUtils.isKioskModeRunning(this) && settingsHelper.getConfig() != null && !getPackageName().equals(settingsHelper.getConfig().getMainApp())) {
             interruptResumeFlow = true;
             Intent rl = new Intent(MainActivity.this, MainActivity.class);
             rl.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
@@ -1100,59 +1047,39 @@ public class MainActivity
 
     @Override public void onConfigLoaded() { applyEarlyPolicies(settingsHelper.getConfig()); }
     @Override public void onPoliciesUpdated() { startLocationServiceWithRetry(); }
-
-    @Override
-    public void onFileDownloading(RemoteFile remoteFile) {
-        handler.post(() -> { binding.setMessage(getString(R.string.main_file_downloading) + " " + remoteFile.getPath()); binding.setDownloading(true); });
-    }
-
-    @Override
-    public void onDownloadProgress(final int progress, final long total, final long current) {
-        handler.post(() -> { binding.progress.setMax(100); binding.progress.setProgress(progress); binding.setFileLength(total); binding.setDownloadedLength(current); });
-    }
+    @Override public void onFileDownloading(RemoteFile remoteFile) { handler.post(() -> { binding.setMessage(getString(R.string.main_file_downloading) + " " + remoteFile.getPath()); binding.setDownloading(true); }); }
+    @Override public void onDownloadProgress(final int progress, final long total, final long current) { handler.post(() -> { binding.progress.setMax(100); binding.progress.setProgress(progress); binding.setFileLength(total); binding.setDownloadedLength(current); }); }
 
     @Override
     public void onFileDownloadError(RemoteFile remoteFile) {
         if (!ProUtils.kioskModeRequired(this) && !isContentShown()) { downloadingFile = true; createAndShowFileNotDownloadedDialog(remoteFile.getUrl()); binding.setDownloading(false); }
-        else { configUpdater.skipDownloadFiles(); }
+        else configUpdater.skipDownloadFiles();
     }
 
     @Override
     public void onFileInstallError(RemoteFile remoteFile) {
         if (!ProUtils.kioskModeRequired(MainActivity.this) && !isContentShown()) {
-            try {
-                new AlertDialog.Builder(MainActivity.this)
-                        .setMessage(getString(R.string.file_create_error) + " " + remoteFile.getPath())
-                        .setPositiveButton(R.string.dialog_administrator_mode_continue, (d, w) -> configUpdater.skipDownloadFiles())
-                        .create().show();
-            } catch (Exception e) { e.printStackTrace(); }
-        } else { configUpdater.skipDownloadFiles(); }
+            try { new AlertDialog.Builder(MainActivity.this).setMessage(getString(R.string.file_create_error) + " " + remoteFile.getPath()).setPositiveButton(R.string.dialog_administrator_mode_continue, (d, w) -> configUpdater.skipDownloadFiles()).create().show(); }
+            catch (Exception e) { e.printStackTrace(); }
+        } else configUpdater.skipDownloadFiles();
     }
 
     @Override public void onAppUpdateStart() { binding.setMessage(getString(R.string.main_activity_applications_update)); configInitialized = true; }
-
-    @Override
-    public void onAppInstalling(final Application application) {
-        handler.post(() -> { binding.setMessage(getString(R.string.main_app_installing) + " " + application.getName()); binding.setDownloading(false); });
-    }
+    @Override public void onAppInstalling(final Application application) { handler.post(() -> { binding.setMessage(getString(R.string.main_app_installing) + " " + application.getName()); binding.setDownloading(false); }); }
 
     @Override
     public void onAppDownloadError(Application application) {
         if (!ProUtils.kioskModeRequired(MainActivity.this) && !isContentShown()) { downloadingFile = false; createAndShowFileNotDownloadedDialog(application.getName()); binding.setDownloading(false); }
-        else { configUpdater.skipDownloadApps(); }
+        else configUpdater.skipDownloadApps();
     }
 
     @Override
     public void onAppInstallError(String packageName) {
         handler.post(() -> {
             if (!ProUtils.kioskModeRequired(MainActivity.this) && !isContentShown()) {
-                try {
-                    new AlertDialog.Builder(MainActivity.this)
-                            .setMessage(getString(R.string.install_error) + " " + packageName)
-                            .setPositiveButton(R.string.dialog_administrator_mode_continue, (d, w) -> configUpdater.repeatDownloadApps())
-                            .create().show();
-                } catch (Exception e) { e.printStackTrace(); }
-            } else { configUpdater.repeatDownloadApps(); }
+                try { new AlertDialog.Builder(MainActivity.this).setMessage(getString(R.string.install_error) + " " + packageName).setPositiveButton(R.string.dialog_administrator_mode_continue, (d, w) -> configUpdater.repeatDownloadApps()).create().show(); }
+                catch (Exception e) { e.printStackTrace(); }
+            } else configUpdater.repeatDownloadApps();
         });
     }
 
@@ -1164,31 +1091,19 @@ public class MainActivity
         String deviceAdminLog = PreferenceLogger.getLogString(prefs);
         if (deviceAdminLog != null && !deviceAdminLog.equals("")) { RemoteLogger.log(this, Const.LOG_DEBUG, deviceAdminLog); PreferenceLogger.clearLogString(prefs); }
         Log.i(Const.LOG_TAG, "Showing content from setActions()");
-        settingsHelper.refreshConfig(this);
-        showContent(settingsHelper.getConfig());
+        settingsHelper.refreshConfig(this); showContent(settingsHelper.getConfig());
     }
 
     @Override
     public void onAllAppInstallComplete() {
         Log.i(Const.LOG_TAG, "Refreshing content - new apps installed");
-        settingsHelper.refreshConfig(this);
-        handler.post(() -> showContent(settingsHelper.getConfig()));
+        settingsHelper.refreshConfig(this); handler.post(() -> showContent(settingsHelper.getConfig()));
     }
 
-    @Override
-    public void onAppDownloading(final Application application) {
-        handler.post(() -> { binding.setMessage(getString(R.string.main_app_downloading) + " " + application.getName()); binding.setDownloading(true); });
-    }
+    @Override public void onAppDownloading(final Application application) { handler.post(() -> { binding.setMessage(getString(R.string.main_app_downloading) + " " + application.getName()); binding.setDownloading(true); }); }
+    @Override public void onAppRemoving(final Application application) { handler.post(() -> { binding.setMessage(getString(R.string.main_app_removing) + " " + application.getName()); binding.setDownloading(false); }); }
 
-    @Override
-    public void onAppRemoving(final Application application) {
-        handler.post(() -> { binding.setMessage(getString(R.string.main_app_removing) + " " + application.getName()); binding.setDownloading(false); });
-    }
-
-    private boolean applyEarlyPolicies(ServerConfig config) {
-        Initializer.applyEarlyNonInteractivePolicies(this, config);
-        return true;
-    }
+    private boolean applyEarlyPolicies(ServerConfig config) { Initializer.applyEarlyNonInteractivePolicies(this, config); return true; }
 
     private boolean applyLatePolicies(ServerConfig config) {
         boolean dialogWillShow = false;
@@ -1210,95 +1125,66 @@ public class MainActivity
                 } catch (Exception e) {}
             }
         }
-        if (!Utils.setPasswordMode(config.getPasswordMode(), this)) {
-            postDelayedSystemSettingDialog(getString(R.string.message_set_password), new Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD), null, true);
-        }
+        if (!Utils.setPasswordMode(config.getPasswordMode(), this)) postDelayedSystemSettingDialog(getString(R.string.message_set_password), new Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD), null, true);
         return true;
     }
 
-    private boolean isContentShown() {
-        if (binding != null) return binding.getShowContent() != null && binding.getShowContent();
-        return false;
-    }
+    private boolean isContentShown() { if (binding != null) return binding.getShowContent() != null && binding.getShowContent(); return false; }
 
     private void showContent(ServerConfig config) {
         if (!applyEarlyPolicies(config)) return;
         applyLatePolicies(config);
-        sendDeviceInfoAfterReconfigure();
-        scheduleDeviceInfoSending();
-        scheduleInstalledAppsRun();
-
-        if (config.getLock() != null && config.getLock()) { showLockScreen(); return; }
-        else { hideLockScreen(); }
-
+        sendDeviceInfoAfterReconfigure(); scheduleDeviceInfoSending(); scheduleInstalledAppsRun();
+        if (config.getLock() != null && config.getLock()) { showLockScreen(); return; } else hideLockScreen();
         if (config.getRunDefaultLauncher() != null && config.getRunDefaultLauncher() &&
-                !getPackageName().equals(Utils.getDefaultLauncher(this)) && !Utils.isLauncherIntent(getIntent())) {
-            openDefaultLauncher(); return;
-        }
-
+                !getPackageName().equals(Utils.getDefaultLauncher(this)) && !Utils.isLauncherIntent(getIntent())) { openDefaultLauncher(); return; }
         if (orientationLocked && !BuildConfig.DISABLE_ORIENTATION_LOCK) { Utils.setOrientation(this, config); orientationLocked = false; }
-
         if (ProUtils.kioskModeRequired(this)) {
             String kioskApp = settingsHelper.getConfig().getMainApp();
-            if (kioskApp != null && kioskApp.trim().length() > 0 &&
-                    (!kioskApp.equals(getPackageName()) || !ProUtils.isKioskModeRunning(this))) {
-                if (ProUtils.getKioskAppIntent(kioskApp, this) != null && startKiosk(kioskApp)) {
-                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); return;
-                } else { Log.e(Const.LOG_TAG, "Kiosk mode failed, proceed with the default flow"); }
+            if (kioskApp != null && kioskApp.trim().length() > 0 && (!kioskApp.equals(getPackageName()) || !ProUtils.isKioskModeRunning(this))) {
+                if (ProUtils.getKioskAppIntent(kioskApp, this) != null && startKiosk(kioskApp)) { getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); return; }
+                else Log.e(Const.LOG_TAG, "Kiosk mode failed, proceed with the default flow");
             } else {
-                if (kioskApp != null && kioskApp.equals(getPackageName()) && ProUtils.isKioskModeRunning(this)) {
-                    ProUtils.updateKioskAllowedApps(kioskApp, this, false); ProUtils.updateKioskOptions(this);
-                } else { Log.e(Const.LOG_TAG, "Kiosk mode disabled: please setup the main app!"); }
+                if (kioskApp != null && kioskApp.equals(getPackageName()) && ProUtils.isKioskModeRunning(this)) { ProUtils.updateKioskAllowedApps(kioskApp, this, false); ProUtils.updateKioskOptions(this); }
+                else Log.e(Const.LOG_TAG, "Kiosk mode disabled: please setup the main app!");
             }
-        } else {
-            if (ProUtils.isKioskModeRunning(this)) { ProUtils.unlockKiosk(this); openDefaultLauncher(); }
-        }
-
+        } else { if (ProUtils.isKioskModeRunning(this)) { ProUtils.unlockKiosk(this); openDefaultLauncher(); } }
         if (config.getBackgroundColor() != null) {
             try { binding.activityMainContentWrapper.setBackgroundColor(Color.parseColor(config.getBackgroundColor())); }
             catch (Exception e) { e.printStackTrace(); binding.activityMainContentWrapper.setBackgroundColor(getResources().getColor(R.color.defaultBackground)); }
-        } else { binding.activityMainContentWrapper.setBackgroundColor(getResources().getColor(R.color.defaultBackground)); }
-
+        } else binding.activityMainContentWrapper.setBackgroundColor(getResources().getColor(R.color.defaultBackground));
         updateTitle(config);
         statusBarUpdater.updateControlsState(config.isDisplayStatus(), isDarkBackground());
-
         if (mainAppListAdapter == null || needRedrawContentAfterReconfigure) {
             needRedrawContentAfterReconfigure = false;
-
             if (config.getBackgroundImageUrl() != null && config.getBackgroundImageUrl().length() > 0) {
                 if (picasso == null) {
                     Picasso.Builder builder = new Picasso.Builder(this);
-                    if (BuildConfig.TRUST_ANY_CERTIFICATE) {
-                        builder.downloader(new OkHttp3Downloader(UnsafeOkHttpClient.getUnsafeOkHttpClient()));
-                    } else {
+                    if (BuildConfig.TRUST_ANY_CERTIFICATE) { builder.downloader(new OkHttp3Downloader(UnsafeOkHttpClient.getUnsafeOkHttpClient())); }
+                    else {
                         OkHttpClient clientWithSignature = new OkHttpClient.Builder()
                                 .cache(new Cache(new File(getApplication().getCacheDir(), "image_cache"), 1000000L))
-                                .addInterceptor(chain -> {
-                                    okhttp3.Request.Builder rb = chain.request().newBuilder();
-                                    String sig = InstallUtils.getRequestSignature(chain.request().url().toString());
-                                    if (sig != null) rb.addHeader("X-Request-Signature", sig);
-                                    return chain.proceed(rb.build());
-                                }).build();
+                                .addInterceptor(chain -> { okhttp3.Request.Builder rb = chain.request().newBuilder(); String sig = InstallUtils.getRequestSignature(chain.request().url().toString()); if (sig != null) rb.addHeader("X-Request-Signature", sig); return chain.proceed(rb.build()); }).build();
                         builder.downloader(new OkHttp3Downloader(clientWithSignature));
                     }
                     builder.listener((p, uri, ex) -> p.load(config.getBackgroundImageUrl()).networkPolicy(NetworkPolicy.OFFLINE).fit().centerCrop().into(binding.activityMainBackground));
                     picasso = builder.build();
                 }
                 picasso.load(config.getBackgroundImageUrl()).fit().centerCrop().into(binding.activityMainBackground);
-            } else {
-                binding.activityMainBackground.setImageDrawable(null);
-            }
-
+            } else binding.activityMainBackground.setImageDrawable(null);
             Display display = getWindowManager().getDefaultDisplay();
-            Point size = new Point();
-            display.getSize(size);
+            Point size = new Point(); display.getSize(size);
             spanCount = (int)(size.x * 1.0f / getResources().getDimensionPixelSize(R.dimen.app_list_item_size));
             mainAppListAdapter = new MainAppListAdapter(this, this, this);
             mainAppListAdapter.setSpanCount(spanCount);
             binding.activityMainContent.setLayoutManager(new GridLayoutManager(this, spanCount));
             binding.activityMainContent.setAdapter(mainAppListAdapter);
             mainAppListAdapter.notifyDataSetChanged();
-
+            // Long press on background → home customization
+            binding.activityMainContentWrapper.setOnLongClickListener(v -> {
+                startActivityForResult(new Intent(MainActivity.this, HomeCustomizationActivity.class), 3001);
+                return true;
+            });
             int bottomAppCount = AppShortcutManager.getInstance().getInstalledAppCount(this, true);
             if (bottomAppCount > 0) {
                 bottomAppListAdapter = new BottomAppListAdapter(this, this, this);
@@ -1307,13 +1193,9 @@ public class MainActivity
                 binding.activityBottomLine.setLayoutManager(new GridLayoutManager(this, bottomAppCount < spanCount ? bottomAppCount : spanCount));
                 binding.activityBottomLine.setAdapter(bottomAppListAdapter);
                 bottomAppListAdapter.notifyDataSetChanged();
-            } else {
-                bottomAppListAdapter = null;
-                binding.activityBottomLayout.setVisibility(View.GONE);
-            }
+            } else { bottomAppListAdapter = null; binding.activityBottomLayout.setVisibility(View.GONE); }
         }
-        binding.loading.setVisibility(View.GONE);
-        binding.setShowContent(true);
+        binding.loading.setVisibility(View.GONE); binding.setShowContent(true);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
@@ -1335,9 +1217,7 @@ public class MainActivity
         lockScreen.setVisibility(View.VISIBLE);
     }
 
-    private void hideLockScreen() {
-        if (lockScreen != null && lockScreen.getVisibility() == View.VISIBLE) lockScreen.setVisibility(View.GONE);
-    }
+    private void hideLockScreen() { if (lockScreen != null && lockScreen.getVisibility() == View.VISIBLE) lockScreen.setVisibility(View.GONE); }
 
     private void notifyPolicyViolation(int cause) {
         switch (cause) {
@@ -1348,37 +1228,19 @@ public class MainActivity
         }
     }
 
-    private void openDefaultLauncher() {
-        Intent intent = new Intent(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_HOME);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-    }
+    private void openDefaultLauncher() { Intent intent = new Intent(Intent.ACTION_MAIN); intent.addCategory(Intent.CATEGORY_HOME); intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK); startActivity(intent); }
 
-    private void sendDeviceInfoAfterReconfigure() {
-        if (needSendDeviceInfoAfterReconfigure) {
-            needSendDeviceInfoAfterReconfigure = false;
-            new SendDeviceInfoTask(this).execute(DeviceInfoProvider.getDeviceInfo(this, true, true));
-        }
-    }
+    private void sendDeviceInfoAfterReconfigure() { if (needSendDeviceInfoAfterReconfigure) { needSendDeviceInfoAfterReconfigure = false; new SendDeviceInfoTask(this).execute(DeviceInfoProvider.getDeviceInfo(this, true, true)); } }
 
-    private void scheduleDeviceInfoSending() {
-        if (sendDeviceInfoScheduled) return;
-        sendDeviceInfoScheduled = true;
-        SendDeviceInfoWorker.scheduleDeviceInfoSending(this);
-    }
+    private void scheduleDeviceInfoSending() { if (sendDeviceInfoScheduled) return; sendDeviceInfoScheduled = true; SendDeviceInfoWorker.scheduleDeviceInfoSending(this); }
 
     private void scheduleInstalledAppsRun() {
         List<Application> applicationsForRun = configUpdater.getApplicationsForRun();
         if (applicationsForRun.size() == 0) return;
         int pause = PAUSE_BETWEEN_AUTORUNS_SEC;
         while (applicationsForRun.size() > 0) {
-            final Application application = applicationsForRun.get(0);
-            applicationsForRun.remove(0);
-            handler.postDelayed(() -> {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage(application.getPkg());
-                if (launchIntent != null) startActivity(launchIntent);
-            }, pause * 1000);
+            final Application application = applicationsForRun.get(0); applicationsForRun.remove(0);
+            handler.postDelayed(() -> { Intent launchIntent = getPackageManager().getLaunchIntentForPackage(application.getPkg()); if (launchIntent != null) startActivity(launchIntent); }, pause * 1000);
             pause += PAUSE_BETWEEN_AUTORUNS_SEC;
         }
     }
@@ -1387,11 +1249,11 @@ public class MainActivity
         String titleType = config.getTitle();
         if (titleType != null) {
             if (titleType.equals(ServerConfig.TITLE_NONE)) { binding.activityMainTitle.setVisibility(View.GONE); return; }
-            if (config.getTextColor() != null) {
-                try { binding.activityMainTitle.setTextColor(Color.parseColor(settingsHelper.getConfig().getTextColor())); }
+            if (config.getTextColor() != null && !config.getTextColor().isEmpty()) {
+                try { binding.activityMainTitle.setTextColor(
+                        Color.parseColor(settingsHelper.getConfig().getTextColor())); }
                 catch (Exception e) { e.printStackTrace(); }
-            }
-            binding.activityMainTitle.setVisibility(View.VISIBLE);
+            }            binding.activityMainTitle.setVisibility(View.VISIBLE);
             String imei = DeviceInfoProvider.getImei(this); if (imei == null) imei = "";
             String serial = DeviceInfoProvider.getSerialNumber(); if (serial == null) serial = "";
             String ip = SettingsHelper.getInstance(this).getExternalIp(); if (ip == null) ip = "";
@@ -1401,11 +1263,9 @@ public class MainActivity
                     .replace(ServerConfig.TITLE_CUSTOM1, config.getCustom1() != null ? config.getCustom1() : "")
                     .replace(ServerConfig.TITLE_CUSTOM2, config.getCustom2() != null ? config.getCustom2() : "")
                     .replace(ServerConfig.TITLE_CUSTOM3, config.getCustom3() != null ? config.getCustom3() : "")
-                    .replace(ServerConfig.TITLE_IMEI, imei)
-                    .replace(ServerConfig.TITLE_SERIAL, serial)
-                    .replace(ServerConfig.TITLE_EXTERNAL_IP, ip)
-                    .replace("\\n", "\n"));
-        } else { binding.activityMainTitle.setVisibility(View.GONE); }
+                    .replace(ServerConfig.TITLE_IMEI, imei).replace(ServerConfig.TITLE_SERIAL, serial)
+                    .replace(ServerConfig.TITLE_EXTERNAL_IP, ip).replace("\\n", "\n"));
+        } else binding.activityMainTitle.setVisibility(View.GONE);
     }
 
     @Override
@@ -1423,6 +1283,7 @@ public class MainActivity
             LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
             unregisterReceiver(stateChangeReceiver);
             unregisterReceiver(screenOffReceiver);
+            unregisterReceiver(screenOnLockReceiver);
         } catch (Exception e) { e.printStackTrace(); }
     }
 
@@ -1431,18 +1292,10 @@ public class MainActivity
         super.onPause();
         isBackground = true;
         statusBarUpdater.stopUpdating();
-        dismissDialog(fileNotDownloadedDialog);
-        dismissDialog(enterServerDialog);
-        dismissDialog(enterDeviceIdDialog);
-        dismissDialog(networkErrorDialog);
-        dismissDialog(enterPasswordDialog);
-        dismissDialog(historySettingsDialog);
-        dismissDialog(unknownSourcesDialog);
-        dismissDialog(overlaySettingsDialog);
-        dismissDialog(administratorModeDialog);
-        dismissDialog(deviceInfoDialog);
-        dismissDialog(accessibilityServiceDialog);
-        dismissDialog(systemSettingsDialog);
+        dismissDialog(fileNotDownloadedDialog); dismissDialog(enterServerDialog); dismissDialog(enterDeviceIdDialog);
+        dismissDialog(networkErrorDialog); dismissDialog(enterPasswordDialog); dismissDialog(historySettingsDialog);
+        dismissDialog(unknownSourcesDialog); dismissDialog(overlaySettingsDialog); dismissDialog(administratorModeDialog);
+        dismissDialog(deviceInfoDialog); dismissDialog(accessibilityServiceDialog); dismissDialog(systemSettingsDialog);
         dismissDialog(permissionsDialog);
         LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_SHOW_LAUNCHER));
     }
@@ -1452,92 +1305,54 @@ public class MainActivity
         administratorModeDialog = new Dialog(this);
         dialogAdministratorModeBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.dialog_administrator_mode, null, false);
         dialogAdministratorModeBinding.hint.setText(getString(R.string.dialog_administrator_mode_message, getString(R.string.white_app_name)));
-        administratorModeDialog.setCancelable(false);
-        administratorModeDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        administratorModeDialog.setContentView(dialogAdministratorModeBinding.getRoot());
-        administratorModeDialog.show();
+        administratorModeDialog.setCancelable(false); administratorModeDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        administratorModeDialog.setContentView(dialogAdministratorModeBinding.getRoot()); administratorModeDialog.show();
     }
 
-    public void skipAdminMode(View view) {
-        dismissDialog(administratorModeDialog);
-        RemoteLogger.log(this, Const.LOG_INFO, "Manually skipped the device admin permissions setup");
-        preferences.edit().putInt(Const.PREFERENCES_ADMINISTRATOR, Const.PREFERENCES_OFF).commit();
-        checkAndStartLauncher();
-    }
-
-    public void setAdminMode(View view) {
-        dismissDialog(administratorModeDialog);
-        startActivity(new Intent(MainActivity.this, AdminModeRequestActivity.class));
-    }
+    public void skipAdminMode(View view) { dismissDialog(administratorModeDialog); RemoteLogger.log(this, Const.LOG_INFO, "Manually skipped the device admin permissions setup"); preferences.edit().putInt(Const.PREFERENCES_ADMINISTRATOR, Const.PREFERENCES_OFF).commit(); checkAndStartLauncher(); }
+    public void setAdminMode(View view) { dismissDialog(administratorModeDialog); startActivity(new Intent(MainActivity.this, AdminModeRequestActivity.class)); }
 
     private void createAndShowFileNotDownloadedDialog(String fileName) {
         dismissDialog(fileNotDownloadedDialog);
         fileNotDownloadedDialog = new Dialog(this);
         dialogFileDownloadingFailedBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.dialog_file_downloading_failed, null, false);
         dialogFileDownloadingFailedBinding.title.setText(getString(this.downloadingFile ? R.string.main_file_downloading_error : R.string.main_app_downloading_error) + " " + fileName);
-        fileNotDownloadedDialog.setCancelable(false);
-        fileNotDownloadedDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        fileNotDownloadedDialog.setCancelable(false); fileNotDownloadedDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         fileNotDownloadedDialog.setContentView(dialogFileDownloadingFailedBinding.getRoot());
         try { fileNotDownloadedDialog.show(); } catch (Exception e) {}
     }
 
-    public void repeatDownloadClicked(View view) {
-        dismissDialog(fileNotDownloadedDialog);
-        if (downloadingFile) configUpdater.repeatDownloadFiles(); else configUpdater.repeatDownloadApps();
-    }
-
-    public void confirmDownloadFailureClicked(View view) {
-        dismissDialog(fileNotDownloadedDialog);
-        if (downloadingFile) configUpdater.skipDownloadFiles(); else configUpdater.skipDownloadApps();
-    }
+    public void repeatDownloadClicked(View view) { dismissDialog(fileNotDownloadedDialog); if (downloadingFile) configUpdater.repeatDownloadFiles(); else configUpdater.repeatDownloadApps(); }
+    public void confirmDownloadFailureClicked(View view) { dismissDialog(fileNotDownloadedDialog); if (downloadingFile) configUpdater.skipDownloadFiles(); else configUpdater.skipDownloadApps(); }
 
     private void createAndShowHistorySettingsDialog() {
         dismissDialog(historySettingsDialog);
         historySettingsDialog = new Dialog(this);
         dialogHistorySettingsBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.dialog_history_settings, null, false);
         dialogHistorySettingsBinding.hint.setText(getString(R.string.dialog_history_settings_title, getString(R.string.white_app_name)));
-        historySettingsDialog.setCancelable(false);
-        historySettingsDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        historySettingsDialog.setContentView(dialogHistorySettingsBinding.getRoot());
-        historySettingsDialog.show();
+        historySettingsDialog.setCancelable(false); historySettingsDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        historySettingsDialog.setContentView(dialogHistorySettingsBinding.getRoot()); historySettingsDialog.show();
     }
 
-    public void historyWithoutPermission(View view) {
-        dismissDialog(historySettingsDialog);
-        preferences.edit().putInt(Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_OFF).commit();
-        checkAndStartLauncher();
-    }
-
+    public void historyWithoutPermission(View view) { dismissDialog(historySettingsDialog); preferences.edit().putInt(Const.PREFERENCES_USAGE_STATISTICS, Const.PREFERENCES_OFF).commit(); checkAndStartLauncher(); }
     public void continueHistory(View view) { dismissDialog(historySettingsDialog); startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)); }
 
     private void createAndShowManageStorageDialog() {
         dismissDialog(manageStorageDialog);
         manageStorageDialog = new Dialog(this);
         dialogManageStorageBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.dialog_manage_storage, null, false);
-        manageStorageDialog.setCancelable(false);
-        manageStorageDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        manageStorageDialog.setContentView(dialogManageStorageBinding.getRoot());
-        manageStorageDialog.show();
+        manageStorageDialog.setCancelable(false); manageStorageDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        manageStorageDialog.setContentView(dialogManageStorageBinding.getRoot()); manageStorageDialog.show();
     }
 
-    public void storageWithoutPermission(View view) {
-        dismissDialog(manageStorageDialog);
-        preferences.edit().putInt(Const.PREFERENCES_MANAGE_STORAGE, Const.PREFERENCES_OFF).commit();
-        checkAndStartLauncher();
-    }
+    public void storageWithoutPermission(View view) { dismissDialog(manageStorageDialog); preferences.edit().putInt(Const.PREFERENCES_MANAGE_STORAGE, Const.PREFERENCES_OFF).commit(); checkAndStartLauncher(); }
 
     public void continueStorage(View view) {
         dismissDialog(manageStorageDialog);
-        try {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.fromParts("package", this.getPackageName(), null));
-            startActivity(intent);
-        } catch (Exception e) {
+        try { startActivity(new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.fromParts("package", this.getPackageName(), null))); }
+        catch (Exception e) {
             try { startActivity(new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)); }
-            catch (Exception e1) {
-                Toast.makeText(this, R.string.manage_storage_not_supported, Toast.LENGTH_LONG).show();
-                preferences.edit().putInt(Const.PREFERENCES_MANAGE_STORAGE, Const.PREFERENCES_OFF).commit();
-                checkAndStartLauncher();
-            }
+            catch (Exception e1) { Toast.makeText(this, R.string.manage_storage_not_supported, Toast.LENGTH_LONG).show(); preferences.edit().putInt(Const.PREFERENCES_MANAGE_STORAGE, Const.PREFERENCES_OFF).commit(); checkAndStartLauncher(); }
         }
     }
 
@@ -1546,17 +1361,11 @@ public class MainActivity
         overlaySettingsDialog = new Dialog(this);
         dialogOverlaySettingsBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.dialog_overlay_settings, null, false);
         dialogOverlaySettingsBinding.hint.setText(getString(R.string.dialog_overlay_settings_title, getString(R.string.white_app_name)));
-        overlaySettingsDialog.setCancelable(false);
-        overlaySettingsDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        overlaySettingsDialog.setContentView(dialogOverlaySettingsBinding.getRoot());
-        overlaySettingsDialog.show();
+        overlaySettingsDialog.setCancelable(false); overlaySettingsDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        overlaySettingsDialog.setContentView(dialogOverlaySettingsBinding.getRoot()); overlaySettingsDialog.show();
     }
 
-    public void overlayWithoutPermission(View view) {
-        dismissDialog(overlaySettingsDialog);
-        preferences.edit().putInt(Const.PREFERENCES_OVERLAY, Const.PREFERENCES_OFF).commit();
-        checkAndStartLauncher();
-    }
+    public void overlayWithoutPermission(View view) { dismissDialog(overlaySettingsDialog); preferences.edit().putInt(Const.PREFERENCES_OVERLAY, Const.PREFERENCES_OFF).commit(); checkAndStartLauncher(); }
 
     public void continueOverlay(View view) {
         dismissDialog(overlaySettingsDialog);
@@ -1567,19 +1376,15 @@ public class MainActivity
     public void saveDeviceId(View view) {
         String deviceId = enterDeviceIdDialogBinding.deviceId.getText().toString();
         if ("".equals(deviceId)) return;
-        settingsHelper.setDeviceId(deviceId);
-        enterDeviceIdDialogBinding.setError(false);
-        dismissDialog(enterDeviceIdDialog);
+        settingsHelper.setDeviceId(deviceId); enterDeviceIdDialogBinding.setError(false); dismissDialog(enterDeviceIdDialog);
         if (checkPermissions(true)) { Log.i(Const.LOG_TAG, "saveDeviceId(): calling updateConfig()"); updateConfig(true); }
     }
 
     public void saveServerUrl(View view) { if (saveServerUrlBase()) { ServerServiceKeeper.resetServices(); checkAndStartLauncher(); } }
-
     public void networkErrorRepeatClicked(View view) { dismissDialog(networkErrorDialog); Log.i(Const.LOG_TAG, "networkErrorRepeatClicked(): calling updateConfig()"); updateConfig(true); }
 
     public void networkErrorResetClicked(View view) {
-        dismissDialog(networkErrorDialog);
-        Log.i(Const.LOG_TAG, "networkErrorResetClicked(): calling updateConfig()");
+        dismissDialog(networkErrorDialog); Log.i(Const.LOG_TAG, "networkErrorResetClicked(): calling updateConfig()");
         settingsHelper.setDeviceId(""); settingsHelper.setBaseUrl(""); settingsHelper.setSecondaryBaseUrl(""); settingsHelper.setServerProject("");
         createAndShowServerDialog(false, settingsHelper.getBaseUrl(), settingsHelper.getServerProject());
     }
@@ -1632,8 +1437,7 @@ public class MainActivity
             if (startSettings) {
                 boolean activeModeLocation = false;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    try { activeModeLocation = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED; }
-                    catch (Exception e) { e.printStackTrace(); }
+                    try { activeModeLocation = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED; } catch (Exception e) { e.printStackTrace(); }
                 }
                 if (activeModeLocation) {
                     try {
@@ -1658,17 +1462,12 @@ public class MainActivity
         dismissDialog(enterPasswordDialog);
         enterPasswordDialog = new Dialog(this);
         dialogEnterPasswordBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.dialog_enter_password, null, false);
-        enterPasswordDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        enterPasswordDialog.setCancelable(false);
-        enterPasswordDialog.setContentView(dialogEnterPasswordBinding.getRoot());
-        dialogEnterPasswordBinding.setLoading(false);
+        enterPasswordDialog.requestWindowFeature(Window.FEATURE_NO_TITLE); enterPasswordDialog.setCancelable(false);
+        enterPasswordDialog.setContentView(dialogEnterPasswordBinding.getRoot()); dialogEnterPasswordBinding.setLoading(false);
         try { enterPasswordDialog.show(); } catch (Exception e) { Toast.makeText(getApplicationContext(), R.string.internal_error, Toast.LENGTH_LONG).show(); }
     }
 
-    public void closeEnterPasswordDialog(View view) {
-        dismissDialog(enterPasswordDialog);
-        if (ProUtils.kioskModeRequired(this)) { checkAndStartLauncher(); updateConfig(false); }
-    }
+    public void closeEnterPasswordDialog(View view) { dismissDialog(enterPasswordDialog); if (ProUtils.kioskModeRequired(this)) { checkAndStartLauncher(); updateConfig(false); } }
 
     public void checkAdministratorPassword(View view) {
         dialogEnterPasswordBinding.setLoading(true);
@@ -1678,9 +1477,8 @@ public class MainActivity
                 dialogEnterPasswordBinding.setLoading(false);
                 String masterPassword = CryptoHelper.getMD5String("12345678");
                 if (settingsHelper.getConfig() != null && settingsHelper.getConfig().getPassword() != null) masterPassword = settingsHelper.getConfig().getPassword();
-                if (CryptoHelper.getMD5String(dialogEnterPasswordBinding.password.getText().toString()).equals(masterPassword)) {
-                    dismissDialog(enterPasswordDialog); dialogEnterPasswordBinding.setError(false); openAdminPanel();
-                } else { dialogEnterPasswordBinding.setError(true); }
+                if (CryptoHelper.getMD5String(dialogEnterPasswordBinding.password.getText().toString()).equals(masterPassword)) { dismissDialog(enterPasswordDialog); dialogEnterPasswordBinding.setError(false); openAdminPanel(); }
+                else dialogEnterPasswordBinding.setError(true);
             }
         };
         task.execute();
@@ -1696,10 +1494,8 @@ public class MainActivity
         dismissDialog(unknownSourcesDialog);
         unknownSourcesDialog = new Dialog(this);
         dialogUnknownSourcesBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.dialog_unknown_sources, null, false);
-        unknownSourcesDialog.setCancelable(false);
-        unknownSourcesDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        unknownSourcesDialog.setContentView(dialogUnknownSourcesBinding.getRoot());
-        unknownSourcesDialog.show();
+        unknownSourcesDialog.setCancelable(false); unknownSourcesDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        unknownSourcesDialog.setContentView(dialogUnknownSourcesBinding.getRoot()); unknownSourcesDialog.show();
     }
 
     public void continueUnknownSources(View view) {
@@ -1712,15 +1508,13 @@ public class MainActivity
         dismissDialog(miuiPermissionsDialog);
         miuiPermissionsDialog = new Dialog(this);
         dialogMiuiPermissionsBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.dialog_miui_permissions, null, false);
-        miuiPermissionsDialog.setCancelable(false);
-        miuiPermissionsDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        miuiPermissionsDialog.setCancelable(false); miuiPermissionsDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         switch (screen) {
             case Const.MIUI_PERMISSIONS: dialogMiuiPermissionsBinding.title.setText(R.string.dialog_miui_permissions_title); break;
             case Const.MIUI_DEVELOPER: dialogMiuiPermissionsBinding.title.setText(R.string.dialog_miui_developer_title); break;
             case Const.MIUI_OPTIMIZATION: dialogMiuiPermissionsBinding.title.setText(R.string.dialog_miui_optimization_title); break;
         }
-        miuiPermissionsDialog.setContentView(dialogMiuiPermissionsBinding.getRoot());
-        miuiPermissionsDialog.show();
+        miuiPermissionsDialog.setContentView(dialogMiuiPermissionsBinding.getRoot()); miuiPermissionsDialog.show();
     }
 
     public void continueMiuiPermissions(View view) {
@@ -1729,8 +1523,8 @@ public class MainActivity
         LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_ENABLE_SETTINGS));
         Intent intent;
         if (titleText.equals(getString(R.string.dialog_miui_permissions_title))) { intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS); intent.setData(Uri.fromParts("package", getPackageName(), null)); }
-        else if (titleText.equals(getString(R.string.dialog_miui_developer_title))) { intent = new Intent(Settings.ACTION_DEVICE_INFO_SETTINGS); }
-        else { intent = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS); }
+        else if (titleText.equals(getString(R.string.dialog_miui_developer_title))) intent = new Intent(Settings.ACTION_DEVICE_INFO_SETTINGS);
+        else intent = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
         try { startActivity(intent); } catch (Exception e) { e.printStackTrace(); }
     }
 
@@ -1748,13 +1542,12 @@ public class MainActivity
 
     @Override
     public void onClick(View v) {
-        if (v.equals(infoView)) { createAndShowInfoDialog(); }
+        if (v.equals(infoView)) createAndShowInfoDialog();
         else if (v.equals(updateView)) {
             if (enterDeviceIdDialog != null && enterDeviceIdDialog.isShowing()) { Log.i(Const.LOG_TAG, "Occasional update request when device info is entered, ignoring!"); return; }
             Log.i(Const.LOG_TAG, "updating config on request");
             binding.loading.setVisibility(View.VISIBLE); binding.setShowContent(false);
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            updateConfig(true);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); updateConfig(true);
         }
     }
 
@@ -1773,8 +1566,7 @@ public class MainActivity
         dismissDialog(systemSettingsDialog);
         systemSettingsDialog = new Dialog(this);
         dialogSystemSettingsBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.dialog_system_settings, null, false);
-        systemSettingsDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        systemSettingsDialog.setCancelable(false);
+        systemSettingsDialog.requestWindowFeature(Window.FEATURE_NO_TITLE); systemSettingsDialog.setCancelable(false);
         systemSettingsDialog.setContentView(dialogSystemSettingsBinding.getRoot());
         dialogSystemSettingsBinding.setMessage(message);
         systemSettingsDialog.findViewById(R.id.continueButton).setOnClickListener(v -> {
@@ -1787,9 +1579,7 @@ public class MainActivity
         catch (Exception e) { RemoteLogger.log(this, Const.LOG_WARN, "Failed to open a popup system dialog! " + e.getMessage()); e.printStackTrace(); systemSettingsDialog = null; }
     }
 
-    private void startActivityOptionalResult(Intent intent, Integer requestCode) {
-        if (requestCode != null) startActivityForResult(intent, requestCode); else startActivity(intent);
-    }
+    private void startActivityOptionalResult(Intent intent, Integer requestCode) { if (requestCode != null) startActivityForResult(intent, requestCode); else startActivity(intent); }
 
     private void startLauncherRestarter() {
         Intent intent = getPackageManager().getLaunchIntentForPackage(Const.LAUNCHER_RESTARTER_PACKAGE_ID);

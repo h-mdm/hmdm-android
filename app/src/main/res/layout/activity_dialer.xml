@@ -1,190 +1,161 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Dialer screen layout for Kyocera E4610 (240x320, dpad-first).
-
-    Changes from previous version:
-    - Added green DIAL button next to DEL for direct dial of typed numbers
-    - DIAL button visible only when search field has content
-    - # key, green call key, and dpad OK on search field all dial typed number
+    Modern Light Theme Dialer for Kyocera E4610 (240x320)
+    Optimized for D-Pad navigation with high-contrast focus states.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="HardcodedText,SmallSp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#000000">
+    android:background="#F5F5F7"
+    tools:ignore="HardcodedText,SmallSp">
 
-    <!-- Number display area -->
+    <!-- Top Section: Input Card -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="#0D0D0D"
-        android:paddingTop="8dp"
-        android:paddingBottom="4dp"
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp">
+        android:background="#FFFFFF"
+        android:elevation="2dp"
+        android:paddingHorizontal="12dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="8dp">
 
-        <!-- Label -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="DIAL OR SEARCH"
-            android:textColor="#555555"
-            android:textSize="12sp"
-            android:layout_marginBottom="2dp" />
+            android:textColor="#8E8E93"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            android:textSize="10sp"
+            android:layout_marginBottom="4dp" />
 
-        <!-- Number input row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:background="@drawable/search_field_background">
 
-            <!-- Search / number entry field -->
             <EditText
                 android:id="@+id/dialer_search"
                 android:layout_width="0dp"
-                android:layout_height="52dp"
+                android:layout_height="48dp"
                 android:layout_weight="1"
                 android:hint="Name or number..."
-                android:textColorHint="#444444"
-                android:textColor="#FFFFFF"
-                android:textSize="22sp"
+                android:textColorHint="#BCBCC0"
+                android:textColor="#1C1C1E"
+                android:textSize="18sp"
                 android:background="@android:color/transparent"
                 android:inputType="phone"
                 android:imeOptions="actionDone"
                 android:singleLine="true"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:paddingLeft="4dp"
+                android:paddingLeft="8dp"
                 android:nextFocusDown="@+id/dialer_contact_list"
                 android:nextFocusRight="@+id/dialer_dial_button" />
 
-            <!-- DIAL button — visible when number is typed, hidden otherwise -->
-            <!-- Green, prominent — dials whatever is in the search field -->
             <Button
                 android:id="@+id/dialer_dial_button"
-                android:layout_width="65dp"
-                android:layout_height="44dp"
+                android:layout_width="60dp"
+                android:layout_height="36dp"
                 android:text="CALL"
-                android:textSize="10sp"
+                android:textSize="11sp"
+                android:textStyle="bold"
                 android:textColor="#FFFFFF"
-                android:backgroundTint="#1B5E20"
+                android:backgroundTint="#34C759"
                 android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:stateListAnimator="@null"
                 android:visibility="gone"
                 android:nextFocusLeft="@+id/dialer_search"
                 android:nextFocusRight="@+id/dialer_backspace" />
 
-            <!-- DEL button -->
             <Button
                 android:id="@+id/dialer_backspace"
                 android:layout_width="44dp"
                 android:layout_height="44dp"
-                android:text="DEL"
-                android:textSize="11sp"
-                android:textColor="#888888"
-                android:background="@android:color/transparent"
+                android:text="⌫"
+                android:textSize="18sp"
+                android:textColor="#8E8E93"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
-                android:focusableInTouchMode="true"
                 android:nextFocusLeft="@+id/dialer_dial_button" />
-
         </LinearLayout>
 
-        <!-- Formatted number preview — shown when typing digits -->
         <TextView
             android:id="@+id/dialer_formatted_preview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#2196F3"
+            android:textColor="#007AFF"
             android:textSize="12sp"
-            android:paddingLeft="4dp"
-            android:paddingBottom="4dp"
+            android:paddingTop="4dp"
             android:visibility="gone" />
-
     </LinearLayout>
 
-    <!-- Thin divider -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#1A1A1A" />
-
-    <!-- Column headers -->
+    <!-- Header Row -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="20dp"
+        android:layout_height="28dp"
         android:orientation="horizontal"
-        android:paddingLeft="20dp"
-        android:paddingRight="8dp"
+        android:paddingHorizontal="12dp"
         android:gravity="center_vertical"
-        android:background="#050505">
+        android:background="#F5F5F7">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="CONTACTS"
-            android:textColor="#444444"
-            android:textSize="12sp" />
+            android:textColor="#8E8E93"
+            android:textStyle="bold"
+            android:textSize="11sp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="STATUS"
-            android:textColor="#444444"
-            android:textSize="12sp" />
-
+            android:textColor="#8E8E93"
+            android:textStyle="bold"
+            android:textSize="11sp" />
     </LinearLayout>
 
-    <!-- Contact list -->
+    <!-- Main List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/dialer_contact_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:background="#FFFFFF"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:descendantFocusability="afterDescendants"
         android:nextFocusUp="@+id/dialer_search"
-        android:scrollbars="vertical"
-        android:fadeScrollbars="false" />
+        android:scrollbars="vertical" />
 
-    <!-- Bottom hint bar with RECENT link -->
+    <!-- Modern Bottom Navigation bar -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="26dp"
-        android:background="#0D0D0D"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="UP/DOWN Navigate   OK = Call"
-            android:textColor="#444444"
-            android:textSize="11sp" />
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        android:padding="4dp"
+        android:elevation="8dp"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/dialer_history_link"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="RECENT"
-            android:textColor="#2196F3"
-            android:textSize="11sp"
-            android:paddingLeft="12dp"
-            android:paddingRight="4dp"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="@drawable/modern_button_selector"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:background="@drawable/contact_item_selector" />
-
+            android:gravity="center"
+            android:text="VIEW CALL HISTORY"
+            android:textColor="@color/history_text_selector"
+            android:textStyle="bold"
+            android:textSize="14sp" />
     </LinearLayout>
 
 </LinearLayout>

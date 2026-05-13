@@ -1,18 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Incoming call screen layout for Kyocera E4610 (240x320 px, dpad-first).
-
-    Design principles:
-    - Large text for gloved/outdoor use
-    - Maximum 3 interactive elements to keep dpad navigation trivial
-    - High contrast on black background (bright sunlight readability)
-    - Answer left, Reject right — matches physical green/red key positions
-      on Kyocera E4610 keypad
-    - No touch-only gestures (no swipe to answer)
-
-    Focus order:
-    1. incoming_answer (default focus on launch)
-    2. incoming_reject (dpad right from answer)
+    Incoming call screen — light theme, 240x320, dpad-first.
+    Matches activity_in_call.xml style.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -20,31 +9,29 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:background="#000000"
-    android:padding="12dp">
+    android:gravity="center_horizontal"
+    android:background="#F5F5F7"
+    android:padding="16dp">
 
-    <!-- ===================================================== -->
-    <!-- CALLER INFO SECTION                                    -->
-    <!-- ===================================================== -->
-
-    <!-- "INCOMING CALL" label -->
+    <!-- Incoming label -->
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="INCOMING CALL"
-        android:textColor="#555555"
-        android:textSize="11sp"
-        android:gravity="center"
+        android:textColor="#8E8E93"
+        android:textStyle="bold"
+        android:textSize="10sp"
+        android:layout_marginTop="10dp"
         android:layout_marginBottom="12dp" />
 
-    <!-- Caller name — resolved from local contacts or falls back to number -->
+    <!-- Caller name -->
     <TextView
         android:id="@+id/incoming_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="24sp"
-        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#1C1C1E"
         android:gravity="center"
         android:singleLine="true"
         android:ellipsize="end"
@@ -56,31 +43,36 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="14sp"
-        android:textColor="#AAAAAA"
+        android:textColor="#8E8E93"
         android:gravity="center"
-        android:layout_marginBottom="20dp" />
+        android:layout_marginBottom="4dp" />
 
-    <!-- ===================================================== -->
-    <!-- DIVIDER                                                -->
-    <!-- ===================================================== -->
+    <!-- Blocked warning -->
+    <TextView
+        android:id="@+id/incoming_blocked_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="BLOCKED — Not on allowed list"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="#FF3B30"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="8dp" />
 
+    <!-- Spacer -->
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#1E1E1E"
-        android:layout_marginBottom="20dp" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
-    <!-- ===================================================== -->
-    <!-- ANSWER / REJECT BUTTONS                                -->
-    <!-- ===================================================== -->
-
+    <!-- Answer / Reject -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center">
+        android:layout_marginBottom="12dp">
 
-        <!-- ANSWER — green, dpad focus starts here -->
         <Button
             android:id="@+id/incoming_answer"
             android:layout_width="0dp"
@@ -88,16 +80,14 @@
             android:layout_weight="1"
             android:layout_marginRight="6dp"
             android:text="ANSWER"
-            android:textSize="15sp"
+            android:textStyle="bold"
             android:textColor="#FFFFFF"
-            android:backgroundTint="#1B5E20"
+            android:backgroundTint="#34C759"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:stateListAnimator="@null"
-            android:nextFocusRight="@+id/incoming_reject"
-            android:nextFocusLeft="@+id/incoming_reject" />
+            android:nextFocusRight="@+id/incoming_reject" />
 
-        <!-- REJECT — red -->
         <Button
             android:id="@+id/incoming_reject"
             android:layout_width="0dp"
@@ -105,28 +95,23 @@
             android:layout_weight="1"
             android:layout_marginLeft="6dp"
             android:text="REJECT"
-            android:textSize="15sp"
+            android:textStyle="bold"
             android:textColor="#FFFFFF"
-            android:backgroundTint="#B71C1C"
+            android:backgroundTint="#FF3B30"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:stateListAnimator="@null"
-            android:nextFocusLeft="@+id/incoming_answer"
-            android:nextFocusRight="@+id/incoming_answer" />
+            android:nextFocusLeft="@+id/incoming_answer" />
 
     </LinearLayout>
 
-    <!-- ===================================================== -->
-    <!-- KEY HINT BAR                                           -->
-    <!-- ===================================================== -->
-
+    <!-- Key hint -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Green key = Answer     Red key = Reject"
-        android:textColor="#333333"
+        android:textColor="#C7C7CC"
         android:textSize="10sp"
-        android:gravity="center"
-        android:layout_marginTop="12dp" />
+        android:gravity="center" />
 
 </LinearLayout>

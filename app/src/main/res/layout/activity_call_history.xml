@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Call history screen layout for Kyocera E4610 (240x320, dpad-first).
-
-    Structure:
-      [ ALL ][ MISSED ][ IN ][ OUT ]   — tab row
-      ─────────────────────────────   — divider
-      RecyclerView (call log entries)  — scrollable list
-      "No calls" empty state label     — shown when list is empty
+    Call history screen — light theme, 240x320, dpad-first.
+    Tabs: ALL / MISSED / IN / OUT using modern_button_selector.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -14,122 +9,130 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#000000">
+    android:background="#F5F5F7">
 
-    <!-- ====================================================== -->
-    <!-- HEADER                                                  -->
-    <!-- ====================================================== -->
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="22dp"
-        android:text="RECENT CALLS"
-        android:textColor="#555555"
-        android:textSize="11sp"
-        android:gravity="center"
-        android:background="#0D0D0D" />
-
-    <!-- ====================================================== -->
-    <!-- TAB ROW                                                 -->
-    <!-- ====================================================== -->
-
+    <!-- Header card -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="36dp"
-        android:orientation="horizontal"
-        android:background="#0D0D0D">
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        android:elevation="2dp"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="8dp"
+        android:orientation="vertical">
 
-        <Button
-            android:id="@+id/tab_all"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="ALL"
-            android:textSize="11sp"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#1565C0"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:stateListAnimator="@null"
-            android:nextFocusRight="@+id/tab_missed" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="RECENT CALLS"
+            android:textColor="#8E8E93"
+            android:textStyle="bold"
+            android:textSize="10sp"
+            android:layout_marginBottom="8dp" />
 
-        <Button
-            android:id="@+id/tab_missed"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="MISSED"
-            android:textSize="11sp"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#1A1A1A"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:stateListAnimator="@null"
-            android:nextFocusLeft="@+id/tab_all"
-            android:nextFocusRight="@+id/tab_incoming" />
+        <!-- Tab buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/tab_incoming"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="IN"
-            android:textSize="11sp"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#1A1A1A"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:stateListAnimator="@null"
-            android:nextFocusLeft="@+id/tab_missed"
-            android:nextFocusRight="@+id/tab_outgoing" />
+            <Button
+                android:id="@+id/tab_all"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:layout_marginRight="3dp"
+                android:text="ALL"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:background="@drawable/modern_button_selector"
+                android:textColor="@color/history_text_selector"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:stateListAnimator="@null"
+                android:nextFocusRight="@+id/tab_missed" />
 
-        <Button
-            android:id="@+id/tab_outgoing"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="OUT"
-            android:textSize="11sp"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#1A1A1A"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:stateListAnimator="@null"
-            android:nextFocusLeft="@+id/tab_incoming" />
+            <Button
+                android:id="@+id/tab_missed"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:layout_marginRight="3dp"
+                android:text="MISSED"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:background="@drawable/modern_button_selector"
+                android:textColor="@color/history_text_selector"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:stateListAnimator="@null"
+                android:nextFocusLeft="@+id/tab_all"
+                android:nextFocusRight="@+id/tab_incoming" />
+
+            <Button
+                android:id="@+id/tab_incoming"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:layout_marginRight="3dp"
+                android:text="IN"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:background="@drawable/modern_button_selector"
+                android:textColor="@color/history_text_selector"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:stateListAnimator="@null"
+                android:nextFocusLeft="@+id/tab_missed"
+                android:nextFocusRight="@+id/tab_outgoing" />
+
+            <Button
+                android:id="@+id/tab_outgoing"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:text="OUT"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:background="@drawable/modern_button_selector"
+                android:textColor="@color/history_text_selector"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:stateListAnimator="@null"
+                android:nextFocusLeft="@+id/tab_incoming" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
-    <!-- Divider -->
+    <!-- Separator -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#1A1A1A" />
+        android:background="#E5E5EA" />
 
-    <!-- ====================================================== -->
-    <!-- CALL LOG LIST                                           -->
-    <!-- ====================================================== -->
-
+    <!-- Call list -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/history_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:background="#FFFFFF"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:descendantFocusability="afterDescendants"
         android:scrollbars="vertical"
         android:fadeScrollbars="false" />
 
-    <!-- ====================================================== -->
-    <!-- EMPTY STATE                                             -->
-    <!-- ====================================================== -->
-
+    <!-- Empty state -->
     <TextView
         android:id="@+id/history_empty"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="No call history"
-        android:textColor="#444444"
+        android:textColor="#C7C7CC"
         android:textSize="14sp"
         android:gravity="center"
         android:padding="24dp"

@@ -31,4 +31,22 @@
 
     <color name="statusBarLight">#aaffffff</color>
     <color name="statusBarDark">#aa000000</color>
+
+    <!-- Modern UI palette -->
+    <color name="modern_bg">#F5F5F7</color>
+    <color name="modern_surface">#FFFFFF</color>
+    <color name="modern_text_primary">#1C1C1E</color>
+    <color name="modern_text_secondary">#8E8E93</color>
+    <color name="modern_accent_blue">#007AFF</color>
+    <color name="modern_accent_green">#34C759</color>
+    <color name="modern_accent_red">#FF3B30</color>
+    <color name="modern_separator">#E5E5EA</color>
+    <color name="modern_fill">#F2F2F7</color>
+    <color name="modern_btn_focused">#007AFF</color>
 </resources>
+    <!--
+        Add these color entries to your existing res/values/colors.xml.
+        history_text_selector is a reference to a color state list file.
+        We define the actual state list in res/color/history_text_selector.xml
+        and simply use @color/history_text_selector in layouts.
+    -->

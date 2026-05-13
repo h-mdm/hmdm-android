@@ -68,38 +68,64 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
         }
 
 
+        /*
+         * ContactsAdapter — light theme color updates only.
+         *
+         * Replace the body of the bind() method in your existing ViewHolder
+         * with this version. Everything else in ContactsAdapter.java stays the same.
+         */
+
         void bind(ContactItem contact, OnContactSelectedListener listener) {
             nameView.setText(contact.name);
-            // Format the number for display
             numberView.setText(contact.number);
 
-            TextView statusLabel = itemView.findViewById(R.id.contact_status_label);
-
+            // Live whitelist check — offline safe
             boolean isAllowed = CallWhitelistManager
                     .getInstance(itemView.getContext())
                     .isAllowed(contact.number);
 
-            if (isAllowed) {                statusDot.setBackgroundResource(R.drawable.status_dot);
-                nameView.setTextColor(Color.WHITE);
-                numberView.setTextColor(Color.parseColor("#888888"));
+            TextView statusLabel = itemView.findViewById(R.id.contact_status_label);
+
+            if (isAllowed) {
+                statusDot.setBackgroundResource(R.drawable.status_dot);
+                nameView.setTextColor(android.graphics.Color.parseColor("#1C1C1E"));
+                numberView.setTextColor(android.graphics.Color.parseColor("#8E8E93"));
                 statusLabel.setText("ALLOWED");
-                statusLabel.setTextColor(Color.parseColor("#4CAF50"));
-                statusLabel.setBackground(null);
+                statusLabel.setTextColor(android.graphics.Color.parseColor("#34C759"));
             } else {
-                statusDot.setBackgroundColor(Color.parseColor("#333333"));
-                nameView.setTextColor(Color.parseColor("#666666"));
-                numberView.setTextColor(Color.parseColor("#444444"));
+                statusDot.setBackgroundColor(android.graphics.Color.parseColor("#C7C7CC"));
+                nameView.setTextColor(android.graphics.Color.parseColor("#8E8E93"));
+                numberView.setTextColor(android.graphics.Color.parseColor("#C7C7CC"));
                 statusLabel.setText("BLOCKED");
-                statusLabel.setTextColor(Color.parseColor("#F44336"));
-                statusLabel.setBackground(null);
+                statusLabel.setTextColor(android.graphics.Color.parseColor("#FF3B30"));
             }
+
+            // When row is focused via dpad, flip text to white so it's readable on blue
+            itemView.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) {
+                    nameView.setTextColor(android.graphics.Color.WHITE);
+                    numberView.setTextColor(android.graphics.Color.parseColor("#E5E5EA"));
+                    statusLabel.setTextColor(android.graphics.Color.WHITE);
+                } else {
+                    // Restore original colors
+                    if (isAllowed) {
+                        nameView.setTextColor(android.graphics.Color.parseColor("#1C1C1E"));
+                        numberView.setTextColor(android.graphics.Color.parseColor("#8E8E93"));
+                        statusLabel.setTextColor(android.graphics.Color.parseColor("#34C759"));
+                    } else {
+                        nameView.setTextColor(android.graphics.Color.parseColor("#8E8E93"));
+                        numberView.setTextColor(android.graphics.Color.parseColor("#C7C7CC"));
+                        statusLabel.setTextColor(android.graphics.Color.parseColor("#FF3B30"));
+                    }
+                }
+            });
 
             itemView.setOnClickListener(v -> listener.onContactSelected(contact));
             itemView.setOnKeyListener((v, keyCode, event) -> {
-                if (event.getAction() == KeyEvent.ACTION_DOWN &&
-                        (keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-                                keyCode == KeyEvent.KEYCODE_ENTER ||
-                                keyCode == KeyEvent.KEYCODE_CALL)) {
+                if (event.getAction() == android.view.KeyEvent.ACTION_DOWN &&
+                        (keyCode == android.view.KeyEvent.KEYCODE_DPAD_CENTER ||
+                                keyCode == android.view.KeyEvent.KEYCODE_ENTER ||
+                                keyCode == android.view.KeyEvent.KEYCODE_CALL)) {
                     listener.onContactSelected(contact);
                     return true;
                 }

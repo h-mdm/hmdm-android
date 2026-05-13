@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Focused state for D-pad (Modern Blue) -->
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#007AFF" />
+        </shape>
+    </item>
+    <!-- Default state (White) -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF" />
+        </shape>
+    </item>
+</selector>

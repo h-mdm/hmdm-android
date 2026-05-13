@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Lock screen — light theme.
+    Full screen, white background.
+    Large time, date, missed calls, swipe hint.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="HardcodedText,SmallSp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="#F5F5F7"
+    android:padding="16dp">
+
+    <!-- Top spacer -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Time — very large -->
+    <TextView
+        android:id="@+id/lock_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="12:00"
+        android:textColor="#1C1C1E"
+        android:textSize="72sp"
+        android:fontFamily="sans-serif-light"
+        android:gravity="center"
+        android:layout_marginBottom="2dp" />
+
+    <!-- Date -->
+    <TextView
+        android:id="@+id/lock_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Monday, January 1"
+        android:textColor="#8E8E93"
+        android:textSize="15sp"
+        android:gravity="center"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Missed calls pill -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="#FFEEEE"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/lock_missed_calls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2 missed calls"
+            android:textColor="#FF3B30"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- Bottom spacer -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2" />
+
+    <!-- Swipe hint -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Swipe up or press any key to unlock"
+        android:textColor="#C7C7CC"
+        android:textSize="12sp"
+        android:gravity="center"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="^"
+        android:textColor="#C7C7CC"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:layout_marginBottom="8dp" />
+
+</LinearLayout>

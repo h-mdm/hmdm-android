@@ -1,134 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    In-call screen for Kyocera E4610 (240x320, dpad-first).
-    Timer row is hidden during CALLING state and shown on CONNECTED.
--->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="HardcodedText,SmallSp"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:background="#000000"
-    android:padding="12dp">
+    android:gravity="center_horizontal"
+    android:background="#F5F5F7"
+    android:padding="16dp"
+    tools:ignore="HardcodedText">
 
-    <!-- Status — "Calling..." (amber) or "Connected" (green) -->
     <TextView
         android:id="@+id/incall_status"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Calling..."
-        android:textColor="#FFA000"
+        android:textColor="#007AFF"
+        android:textStyle="bold"
         android:textSize="12sp"
-        android:gravity="center"
-        android:layout_marginBottom="4dp" />
+        android:layout_marginTop="10dp" />
 
-    <!-- Timer — hidden while dialing, shown once connected -->
     <TextView
         android:id="@+id/incall_timer"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=""
-        android:textColor="#FFFFFF"
+        android:textColor="#1C1C1E"
         android:textSize="32sp"
-        android:gravity="center"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
         android:visibility="invisible" />
 
-    <!-- Caller name -->
     <TextView
         android:id="@+id/incall_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="22sp"
-        android:textColor="#FFFFFF"
+        android:textColor="#1C1C1E"
+        android:textStyle="bold"
         android:gravity="center"
         android:singleLine="true"
         android:ellipsize="end"
-        android:layout_marginBottom="4dp" />
+        android:layout_marginTop="4dp" />
 
-    <!-- Caller number -->
     <TextView
         android:id="@+id/incall_number"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="13sp"
-        android:textColor="#AAAAAA"
-        android:gravity="center"
-        android:layout_marginBottom="16dp" />
+        android:textSize="14sp"
+        android:textColor="#8E8E93"
+        android:gravity="center" />
 
-    <!-- Divider -->
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#1E1E1E"
-        android:layout_marginBottom="16dp" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
-    <!-- Mute + Speaker -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="10dp">
+        android:layout_marginBottom="12dp">
 
         <Button
             android:id="@+id/incall_mute"
             android:layout_width="0dp"
-            android:layout_height="44dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:layout_marginRight="4dp"
             android:text="MUTE"
-            android:textSize="13sp"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#1565C0"
+            android:textColor="@color/history_text_selector"
+            android:background="@drawable/modern_button_selector"
             android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:stateListAnimator="@null"
             android:nextFocusRight="@+id/incall_speaker"
             android:nextFocusDown="@+id/incall_hangup" />
 
         <Button
             android:id="@+id/incall_speaker"
             android:layout_width="0dp"
-            android:layout_height="44dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:layout_marginLeft="4dp"
             android:text="SPEAKER"
-            android:textSize="13sp"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#1565C0"
+            android:textColor="@color/history_text_selector"
+            android:background="@drawable/modern_button_selector"
             android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:stateListAnimator="@null"
             android:nextFocusLeft="@+id/incall_mute"
             android:nextFocusDown="@+id/incall_hangup" />
-
     </LinearLayout>
 
-    <!-- Hang up -->
     <Button
         android:id="@+id/incall_hangup"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:text="HANG UP"
-        android:textSize="16sp"
+        android:textStyle="bold"
         android:textColor="#FFFFFF"
-        android:backgroundTint="#B71C1C"
+        android:backgroundTint="#FF3B30"
         android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:stateListAnimator="@null"
         android:nextFocusUp="@+id/incall_mute" />
-
-    <!-- Key hint -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Red key = Hang Up"
-        android:textColor="#333333"
-        android:textSize="10sp"
-        android:gravity="center"
-        android:layout_marginTop="10dp" />
-
 </LinearLayout>

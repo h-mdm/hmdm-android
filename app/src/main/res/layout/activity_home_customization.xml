@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Home customization screen — light theme, 240x320, dpad-first.
+    Wallpaper section: gallery pick + 8 colour presets + reset.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="HardcodedText,SmallSp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F7">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="HOME SCREEN SETTINGS"
+            android:textColor="#8E8E93"
+            android:textStyle="bold"
+            android:textSize="10sp"
+            android:gravity="center"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Wallpaper card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:elevation="1dp"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="WALLPAPER"
+                android:textColor="#8E8E93"
+                android:textStyle="bold"
+                android:textSize="10sp"
+                android:layout_marginBottom="6dp" />
+
+            <!-- Current status -->
+            <TextView
+                android:id="@+id/custom_current_wallpaper"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Current: default"
+                android:textColor="#8E8E93"
+                android:textSize="12sp"
+                android:layout_marginBottom="10dp" />
+
+            <!-- Gallery button -->
+            <Button
+                android:id="@+id/custom_gallery_btn"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:text="Choose from Gallery"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:background="@drawable/modern_button_selector"
+                android:textColor="@color/history_text_selector"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:stateListAnimator="@null"
+                android:layout_marginBottom="10dp" />
+
+            <!-- Color presets label -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="SOLID COLORS"
+                android:textColor="#8E8E93"
+                android:textStyle="bold"
+                android:textSize="10sp"
+                android:layout_marginBottom="6dp" />
+
+            <!-- Colour row 1 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="4dp">
+
+                <Button
+                    android:id="@+id/color_btn_0"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:layout_marginRight="2dp"
+                    android:text="Black"
+                    android:textSize="10sp"
+                    android:stateListAnimator="@null"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true" />
+
+                <Button
+                    android:id="@+id/color_btn_1"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:layout_marginRight="2dp"
+                    android:text="Navy"
+                    android:textSize="10sp"
+                    android:stateListAnimator="@null"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true" />
+
+                <Button
+                    android:id="@+id/color_btn_2"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:layout_marginRight="2dp"
+                    android:text="Forest"
+                    android:textSize="10sp"
+                    android:stateListAnimator="@null"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true" />
+
+                <Button
+                    android:id="@+id/color_btn_3"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:text="Purple"
+                    android:textSize="10sp"
+                    android:stateListAnimator="@null"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true" />
+
+            </LinearLayout>
+
+            <!-- Colour row 2 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="10dp">
+
+                <Button
+                    android:id="@+id/color_btn_4"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:layout_marginRight="2dp"
+                    android:text="Burgundy"
+                    android:textSize="10sp"
+                    android:stateListAnimator="@null"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true" />
+
+                <Button
+                    android:id="@+id/color_btn_5"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:layout_marginRight="2dp"
+                    android:text="Slate"
+                    android:textSize="10sp"
+                    android:stateListAnimator="@null"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true" />
+
+                <Button
+                    android:id="@+id/color_btn_6"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:layout_marginRight="2dp"
+                    android:text="Charcoal"
+                    android:textSize="10sp"
+                    android:stateListAnimator="@null"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true" />
+
+                <Button
+                    android:id="@+id/color_btn_7"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:text="Dusk"
+                    android:textSize="10sp"
+                    android:stateListAnimator="@null"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true" />
+
+            </LinearLayout>
+
+            <!-- Reset -->
+            <Button
+                android:id="@+id/custom_reset_btn"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:text="Reset to Default"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:background="@drawable/modern_button_selector"
+                android:textColor="@color/history_text_selector"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:stateListAnimator="@null" />
+
+        </LinearLayout>
+
+        <!-- Done button -->
+        <Button
+            android:id="@+id/custom_done_btn"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="DONE"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#34C759"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:stateListAnimator="@null" />
+
+    </LinearLayout>
+
+</ScrollView>
