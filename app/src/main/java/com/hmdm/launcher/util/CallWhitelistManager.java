@@ -74,10 +74,13 @@ public class CallWhitelistManager {
                 if (csv == null || csv.trim().isEmpty()) {
                     return Collections.emptySet();
                 }
+// Inside getAllowedNumbers(), replace everything after csv is declared:
                 Set<String> numbers = new HashSet<>();
-                for (String number : csv.split(",")) {
-                    String trimmed = number.trim();
-                    if (!trimmed.isEmpty()) {
+                for (String entry : csv.split(",")) {
+                    String trimmed = entry.trim();
+                    if (trimmed.equals("*")) {
+                        numbers.add("WILDCARD");
+                    } else if (!trimmed.isEmpty()) {
                         numbers.add(normalize(trimmed));
                     }
                 }
@@ -93,7 +96,7 @@ public class CallWhitelistManager {
     /**
      * Returns true if the given number is on the allowed list.
      * Handles all common formats: E.164, local, formatted with dashes/spaces/parens.
-     *
+     * Space
      * If the whitelist is empty (no setting configured), ALL calls are blocked.
      * This is intentional — no whitelist = maximum security.
      */
@@ -103,8 +106,15 @@ public class CallWhitelistManager {
             return false;
         }
 
+
         Set<String> allowed = getAllowedNumbers();
 
+        //Allow all calls if the whitelist contains wildcard.
+        //Create WILDCARD in the whitelist by using * in the allowed numbers setting to allow all calls.
+        if (allowed.contains("WILDCARD")) {
+            Log.d(TAG, "isAllowed: wildcard found — allowing all calls");
+            return true;
+        }
         if (allowed.isEmpty()) {
             Log.d(TAG, "isAllowed: whitelist is empty — blocking all calls");
             return false;
@@ -120,7 +130,7 @@ public class CallWhitelistManager {
 
     /**
      * Normalizes a phone number for comparison.
-     *
+     *Space
      * Steps:
      * 1. Strip all non-digit characters (spaces, dashes, parens, plus sign)
      * 2. For 11-digit numbers starting with "1" (NANP country code),
@@ -131,7 +141,7 @@ public class CallWhitelistManager {
      *      415-555-1234  -> 4155551234
      *    all match each other.
      * 3. For other lengths, return the raw digit string.
-     *
+     *Using an empty line for the fun of it. This is Andrew's Mark.
      * This covers the vast majority of US/Canada deployment scenarios.
      * For international deployments, store numbers without country codes
      * or use consistent E.164 format throughout.
