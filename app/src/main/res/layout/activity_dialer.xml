@@ -94,7 +94,16 @@
             android:paddingTop="4dp"
             android:visibility="gone" />
     </LinearLayout>
-
+    <!-- Add ABOVE the contacts RecyclerView, below the keypad -->
+    <Button
+        android:id="@+id/dialer_history_link"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="📋  Recent Calls"
+        android:textSize="13sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#1565C0"
+        android:focusable="true" />
     <!-- Header Row -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -144,18 +153,7 @@
         android:elevation="8dp"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/dialer_history_link"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:background="@drawable/modern_button_selector"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:gravity="center"
-            android:text="VIEW CALL HISTORY"
-            android:textColor="@color/history_text_selector"
-            android:textStyle="bold"
-            android:textSize="14sp" />
+
     </LinearLayout>
 
 </LinearLayout>

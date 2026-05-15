@@ -415,20 +415,7 @@ public class MainActivity
                 startAppsAtBoot();
             }
 
-            // Phone button
-            Button phoneButton = findViewById(R.id.launcher_phone_button);
-            if (phoneButton != null) {
-                phoneButton.setOnClickListener(v -> openDialer(null));
-                phoneButton.setOnKeyListener((v, keyCode, event) -> {
-                    if (event.getAction() == KeyEvent.ACTION_DOWN &&
-                            (keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-                                    keyCode == KeyEvent.KEYCODE_ENTER)) {
-                        openDialer(null);
-                        return true;
-                    }
-                    return false;
-                });
-            }
+
 
             // Set as default dialer (once, persists)
             if (Utils.isDeviceOwner(this)) {

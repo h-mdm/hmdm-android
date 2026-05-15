@@ -19,9 +19,11 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.CallLog;
+import android.provider.ContactsContract;
 import android.view.KeyEvent;
 import android.widget.Button;
 import android.widget.TextView;
@@ -163,6 +165,22 @@ public class CallHistoryActivity extends AppCompatActivity
         }
     }
 
+    private String lookupContactName(String number) {
+        Uri lookupUri = Uri.withAppendedPath(
+                ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+                Uri.encode(number));
+        Cursor c = getContentResolver().query(lookupUri,
+                new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME},
+                null, null, null);
+        try {
+            if (c != null && c.moveToFirst()) {
+                return c.getString(0);
+            }
+        } finally {
+            if (c != null) c.close();
+        }
+        return number; // fall back to number if no contact found
+    }
     // -------------------------------------------------------------------------
     // Load call log from device
     // -------------------------------------------------------------------------
@@ -196,6 +214,10 @@ public class CallHistoryActivity extends AppCompatActivity
                 while (cursor.moveToNext()) {
                     String name     = cursor.getString(0);
                     String number   = cursor.getString(1);
+                    // If cached name is missing, do a live contacts lookup
+                    if (name == null || name.isEmpty()) {
+                        name = lookupContactName(number);
+                    }
                     int    type     = cursor.getInt(2);
                     long   date     = cursor.getLong(3);
                     long   duration = cursor.getLong(4);

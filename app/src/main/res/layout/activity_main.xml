@@ -126,36 +126,7 @@
             <!-- ============================================ -->
             <!-- PHONE BUTTON BAR — fixed at bottom          -->
             <!-- ============================================ -->
-            <LinearLayout
-                android:id="@+id/phone_button_bar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:orientation="vertical"
-                android:background="#FFFFFF"
-                android:elevation="8dp">
 
-                <!-- Thin green accent line at the very top of the bar -->
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#145607" />
-
-                <Button
-                    android:id="@+id/launcher_phone_button"
-                    android:layout_width="match_parent"
-                    android:layout_height="64dp"
-                    android:text="PHONE"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.1"
-                    android:backgroundTint="#34C759"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:stateListAnimator="@null" />
-
-            </LinearLayout>
 
             <!-- ============================================ -->
             <!-- STATUS HEADER — fixed at top                -->

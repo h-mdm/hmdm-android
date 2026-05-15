@@ -106,7 +106,32 @@ public abstract class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppLis
         AppInfo appInfo = items.get(position);
         holder.binding.rootLinearLayout.setTag(appInfo);
         holder.binding.textView.setText(appInfo.name);
+// In onBindViewHolder(), after setting tag:
+        int col = position % spanCount;
+        int row = position / spanCount;
+        int total = getItemCount();
 
+// Wrap left edge → go to previous row's last item
+// Wrap right edge → go to next row's first item  
+// These are handled by the GridLayoutManager already for UP/DOWN.
+// For LEFT/RIGHT wrapping at edges:
+        holder.itemView.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
+            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT && col == 0 && position > 0) {
+                // Jump to end of previous row
+                RecyclerView rv = (RecyclerView) v.getParent();
+                RecyclerView.ViewHolder prev = rv.findViewHolderForAdapterPosition(position - 1);
+                if (prev != null) prev.itemView.requestFocus();
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && col == spanCount - 1 && position < total - 1) {
+                RecyclerView rv = (RecyclerView) v.getParent();
+                RecyclerView.ViewHolder next = rv.findViewHolderForAdapterPosition(position + 1);
+                if (next != null) next.itemView.requestFocus();
+                return true;
+            }
+            return false;
+        });
         if (settingsHelper.getConfig().getTextColor() != null && !settingsHelper.getConfig().getTextColor().trim().equals("")) {
             try {
                 holder.binding.textView.setTextColor(Color.parseColor(settingsHelper.getConfig().getTextColor()));

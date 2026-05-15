@@ -191,13 +191,14 @@ public class HmdmInCallService extends InCallService {
 
     private String resolveCallerName(String number) {
         if (number == null || number.isEmpty()) return "Unknown";
+        Uri lookupUri = Uri.withAppendedPath(
+                ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+                Uri.encode(number));
         Cursor cursor = null;
         try {
-            cursor = getContentResolver().query(
-                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                    new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME},
-                    ContactsContract.CommonDataKinds.Phone.NUMBER + " = ?",
-                    new String[]{number}, null);
+            cursor = getContentResolver().query(lookupUri,
+                    new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME},
+                    null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
                 String name = cursor.getString(0);
                 if (name != null && !name.isEmpty()) return name;
