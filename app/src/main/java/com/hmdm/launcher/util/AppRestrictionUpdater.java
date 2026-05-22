@@ -120,7 +120,7 @@ public class AppRestrictionUpdater {
     }
 
     private static String[] parseArray(String str) {
-        String str1 = str.substring(1, str.length() - 2);
+        String str1 = str.substring(1, str.length() - 1);
         String[] parts = str1.split(",");
         List<String> res = new LinkedList<>();
         for (String part : parts) {
