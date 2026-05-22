@@ -33,7 +33,13 @@ android {
     compileSdkVersion 34
     defaultConfig {
         applicationId "com.hmdm.launcher"
-        minSdkVersion 16
+        //minSdkVersion 16
+        // Starting with version 6.33, we use newer version of com.fasterxml.jackson
+        // which is only compatible with API 26 (Android 8+).
+        // To avoid failures after the upgrade, the minimal SDK version increased here.
+        // If it is required to maintain the backward compatibility with Android 5-7,
+        // downgrade the dependency to com.fasterxml.jackson to 2.13.5
+        minSdkVersion 26
         targetSdkVersion 34
         versionCode 15350
         versionName "6.35"
