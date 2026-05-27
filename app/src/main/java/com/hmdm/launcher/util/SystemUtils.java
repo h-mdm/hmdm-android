@@ -47,16 +47,15 @@ public class SystemUtils {
         return result.startsWith("Active admin component set");
     }
 
-    public static String executeShellCommand(String command, boolean useShell) {
+    public static String executeShellCommand(String[] cmdArray) {
         StringBuffer output = new StringBuffer();
 
         Process p;
         try {
-            if (useShell) {
-                String[] cmdArray = {"sh", "-c", command};
-                p = Runtime.getRuntime().exec(cmdArray);
+            if (cmdArray.length == 1) {
+                p = Runtime.getRuntime().exec(cmdArray[0]);
             } else {
-                p = Runtime.getRuntime().exec(command);
+                p = Runtime.getRuntime().exec(cmdArray);
             }
             p.waitFor();
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -78,6 +77,16 @@ public class SystemUtils {
         }
         String response = output.toString();
         return response;
+    }
+
+    public static String executeShellCommand(String command, boolean useShell) {
+        if (useShell) {
+            String[] cmdArray = {"sh", "-c", command};
+            return executeShellCommand(cmdArray);
+        } else {
+            String[] cmdArray = {command};
+            return executeShellCommand(cmdArray);
+        }
     }
 
     public static boolean autoSetDeviceId(Context context) {

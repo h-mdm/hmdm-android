@@ -103,6 +103,11 @@ public class DeviceInfoProvider {
 
                 List<RemoteFile> requiredFiles = SettingsHelper.getInstance(context).getConfig().getFiles();
                 for (RemoteFile remoteFile : requiredFiles) {
+                    if (remoteFile.getPath() == null || remoteFile.getPath().isEmpty()) {
+                        // Protection against crash if the file configuration is invalid
+                        // (sometimes happens after upgrading web panel to 5.38.1)
+                        continue;
+                    }
                     File file = new File(Environment.getExternalStorageDirectory(), remoteFile.getPath());
                     if (file.exists()) {
                         RemoteFile remoteFileDb = RemoteFileTable.selectByPath(DatabaseHelper.instance(context).getReadableDatabase(),

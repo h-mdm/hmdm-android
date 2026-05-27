@@ -677,9 +677,9 @@ public class ConfigUpdater {
         if (file.getAbsolutePath().startsWith("/enterprise/device/settings/datawedge/autoimport")) {
             // By default, access to all is disabled, and Datawedge fails with "Access denied",
             // so we should grant access manually
-            String cmd = "chmod 666 " + file.getAbsolutePath();
-            Log.d(Const.LOG_TAG, "Post-processing: run command: " + cmd);
-            String res = SystemUtils.executeShellCommand(cmd, false);
+            String[] cmdArray = {"chmod", "666", file.getAbsolutePath()};
+            Log.d(Const.LOG_TAG, "Post-processing: run command: chmod 666 " + file.getAbsolutePath());
+            String res = SystemUtils.executeShellCommand(cmdArray);
             if (!"".equals(res)) {
                 Log.d(Const.LOG_TAG, "Execution failed: " + res);
             } else {
