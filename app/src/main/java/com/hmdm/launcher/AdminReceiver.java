@@ -51,21 +51,20 @@ public class AdminReceiver extends DeviceAdminReceiver {
     @Override
     public void onEnabled(Context context, Intent intent) {
         // We come here after both successful provisioning and manual activation of the device owner
-        SharedPreferences preferences = context.getApplicationContext().getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
+        SharedPreferences preferences = context.getApplicationContext().getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE);
         PreferenceLogger.log(preferences, "Administrator enabled");
         preferences.edit().putInt(Const.PREFERENCES_ADMINISTRATOR, Const.PREFERENCES_ON).commit();
     }
 
     @Override
     public void onProfileProvisioningComplete(Context context, Intent intent) {
-        SharedPreferences preferences = context.getApplicationContext().getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
+        SharedPreferences preferences = context.getApplicationContext().getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE);
         PreferenceLogger.log(preferences, "Profile provisioning complete");
 
-        if ( Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ) {
-            // This function is never called on Android versions less than 5 (in fact, less than 7)
-            return;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+          // This function is never called on Android versions less than 5 (in fact, less than 7)
+          return;
         }
-
         PersistableBundle bundle = intent.getParcelableExtra(EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
         updateSettings(context, bundle);
     }

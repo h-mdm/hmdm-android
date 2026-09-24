@@ -8,3 +8,4 @@
 .externalNativeBuild
 example/
 app/release
+.jdtls

@@ -17,7 +17,7 @@ import java.net.URL;
 import dalvik.system.PathClassLoader;
 
 /**
- * Higher level Headwind MDM integration API incapsulating reconnection to the service and configuration update
+ * Higher level Headwind MDM integration API encapsulating reconnection to the service and configuration update
  */
 public class HeadwindMDM {
 
