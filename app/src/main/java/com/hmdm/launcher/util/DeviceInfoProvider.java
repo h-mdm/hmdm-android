@@ -19,6 +19,8 @@
 
 package com.hmdm.launcher.util;
 
+import static com.hmdm.launcher.json.Application.TYPE_APP;
+
 import android.annotation.SuppressLint;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
@@ -53,6 +55,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DeviceInfoProvider {
     public static DeviceInfo getDeviceInfo(Context context, boolean queryPermissions, boolean queryApps) {
@@ -74,7 +77,29 @@ public class DeviceInfoProvider {
         if (queryApps) {
             PackageManager packageManager = context.getPackageManager();
             if (config.getConfig() != null) {
-                List<Application> requiredApps = SettingsHelper.getInstance(context).getConfig().getApplications();
+                List<Application> requiredApps = packageManager.getInstalledPackages(0).stream()
+                        .map(packageInfo -> {
+                            Application app = new Application();
+
+                            app.setType(TYPE_APP);
+
+                            CharSequence label = packageInfo.applicationInfo.loadLabel(packageManager);
+                            app.setName(label.toString());
+                            app.setPkg(packageInfo.packageName);
+                            app.setVersion(packageInfo.versionName != null ? packageInfo.versionName : "1.0");
+
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                app.setCode((int) packageInfo.getLongVersionCode());
+                            } else {
+                                @SuppressWarnings("deprecation")
+                                int versionCode = packageInfo.versionCode;
+                                app.setCode(versionCode);
+                            }
+
+                            return app;
+                        })
+                        .collect(Collectors.toList());
+
                 for (Application application : requiredApps) {
                     if (application.isRemove()) {
                         continue;
