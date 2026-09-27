@@ -19,6 +19,8 @@
 
 package com.hmdm.launcher.util;
 
+import static com.hmdm.launcher.json.Application.TYPE_APP;
+
 import android.annotation.SuppressLint;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
@@ -37,12 +39,14 @@ import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.hmdm.launcher.App;
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.db.DatabaseHelper;
 import com.hmdm.launcher.db.RemoteFileTable;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.Application;
+import com.hmdm.launcher.json.DetailedInfo;
 import com.hmdm.launcher.json.DeviceInfo;
 import com.hmdm.launcher.json.RemoteFile;
 import com.hmdm.launcher.pro.ProUtils;
@@ -53,6 +57,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DeviceInfoProvider {
     public static DeviceInfo getDeviceInfo(Context context, boolean queryPermissions, boolean queryApps) {
@@ -74,34 +79,8 @@ public class DeviceInfoProvider {
         if (queryApps) {
             PackageManager packageManager = context.getPackageManager();
             if (config.getConfig() != null) {
-                List<Application> requiredApps = SettingsHelper.getInstance(context).getConfig().getApplications();
-                for (Application application : requiredApps) {
-                    if (application.isRemove()) {
-                        continue;
-                    }
-                    try {
-                        PackageInfo packageInfo = packageManager.getPackageInfo(application.getPkg(), 0);
 
-                        Application installedApp = new Application();
-                        installedApp.setName(application.getName());
-                        installedApp.setPkg(packageInfo.packageName);
-                        installedApp.setVersion(packageInfo.versionName);
-
-                        // Verify there's no duplicates (due to different versions in config), otherwise it causes an error on the server
-                        boolean appPresents = false;
-                        for (Application a : applications) {
-                            if (a.getPkg().equalsIgnoreCase(installedApp.getPkg())) {
-                                appPresents = true;
-                                break;
-                            }
-                        }
-                        if (!appPresents) {
-                            applications.add(installedApp);
-                        }
-                    } catch (PackageManager.NameNotFoundException e) {
-                        // Application not installed
-                    }
-                }
+                getAllApps(packageManager, applications);
 
                 List<RemoteFile> requiredFiles = SettingsHelper.getInstance(context).getConfig().getFiles();
                 for (RemoteFile remoteFile : requiredFiles) {
@@ -131,7 +110,7 @@ public class DeviceInfoProvider {
             }
         }
 
-        deviceInfo.setDeviceId( SettingsHelper.getInstance( context ).getDeviceId() );
+        deviceInfo.setDeviceId(SettingsHelper.getInstance(context).getDeviceId());
 
         String phone = DeviceInfoProvider.getPhoneNumber(context, 0);
         if (phone == null || phone.equals("")) {
@@ -198,10 +177,64 @@ public class DeviceInfoProvider {
         return deviceInfo;
     }
 
+    public static void getAllApps(PackageManager packageManager, List<Application> applications) {
+        List<Application> requiredApps = packageManager.getInstalledPackages(0).stream()
+                .map(packageInfo -> {
+                    Application app = new Application();
+
+                    app.setType(TYPE_APP);
+
+                    CharSequence label = packageInfo.applicationInfo.loadLabel(packageManager);
+                    app.setName(label.toString());
+                    app.setPkg(packageInfo.packageName);
+                    app.setVersion(packageInfo.versionName != null ? packageInfo.versionName : "1.0");
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        app.setCode((int) packageInfo.getLongVersionCode());
+                    } else {
+                        @SuppressWarnings("deprecation")
+                        int versionCode = packageInfo.versionCode;
+                        app.setCode(versionCode);
+                    }
+
+                    return app;
+                })
+                .collect(Collectors.toList());
+
+        for (Application application : requiredApps) {
+            if (application.isRemove()) {
+                continue;
+            }
+            try {
+                PackageInfo packageInfo = packageManager.getPackageInfo(application.getPkg(), 0);
+
+                Application installedApp = new Application();
+                installedApp.setName(application.getName());
+                installedApp.setPkg(packageInfo.packageName);
+                installedApp.setVersion(packageInfo.versionName);
+
+                // Verify there's no duplicates (due to different versions in config), otherwise it causes an error on the server
+                boolean appPresents = false;
+                for (Application a : applications) {
+                    if (a.getPkg().equalsIgnoreCase(installedApp.getPkg())) {
+                        appPresents = true;
+                        break;
+                    }
+                }
+                if (!appPresents) {
+                    applications.add(installedApp);
+                }
+            } catch (PackageManager.NameNotFoundException e) {
+                // Application not installed
+            }
+        }
+    }
+
+
     @SuppressWarnings({"MissingPermission"})
     public static DeviceInfo.Location getLocation(Context context) {
         try {
-            LocationManager locationManager = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+            LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             Location lastLocationGps = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             Location lastLocationNetwork = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
@@ -265,7 +298,7 @@ public class DeviceInfoProvider {
         return Build.SERIAL;
     }
 
-    @SuppressLint( { "MissingPermission" } )
+    @SuppressLint({"MissingPermission"})
     public static String getPhoneNumber(Context context) {
         try {
             TelephonyManager tMgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
@@ -279,7 +312,7 @@ public class DeviceInfoProvider {
         }
     }
 
-    @SuppressLint( { "MissingPermission" } )
+    @SuppressLint({"MissingPermission"})
     public static String getIccid(Context context) {
         try {
             TelephonyManager tMgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
@@ -292,7 +325,7 @@ public class DeviceInfoProvider {
         }
     }
 
-    @SuppressLint( { "MissingPermission" } )
+    @SuppressLint({"MissingPermission"})
     public static String getImsi(Context context) {
         try {
             TelephonyManager tMgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
@@ -305,24 +338,24 @@ public class DeviceInfoProvider {
         }
     }
 
-    @SuppressLint( { "MissingPermission" } )
+    @SuppressLint({"MissingPermission"})
     public static String getImsi(Context context, int slot) {
         String imsi = null;
         try {
-            TelephonyManager telephonyManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+            TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
             // This method is hidden, use reflection
             // Thanks to https://stackoverflow.com/questions/36902916/subscriptionmanager-to-read-imsi-for-dual-sim-devices-ruuning-android-5-1
             Class c = Class.forName("android.telephony.TelephonyManager");
-            Method m = c.getMethod("getSubscriberId", new Class[] {int.class});
+            Method m = c.getMethod("getSubscriberId", new Class[]{int.class});
             Object o = m.invoke(telephonyManager, new Object[]{slot});
-            imsi = (String)o;
+            imsi = (String) o;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return imsi;
     }
 
-    @SuppressLint( { "MissingPermission" } )
+    @SuppressLint({"MissingPermission"})
     public static String getPhoneNumber(Context context, int slot) {
         try {
             Utils.autoGrantPhonePermission(context);
@@ -345,7 +378,7 @@ public class DeviceInfoProvider {
         return null;
     }
 
-    @SuppressLint( { "MissingPermission" } )
+    @SuppressLint({"MissingPermission"})
     public static String getIccid(Context context, int slot) {
         try {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP_MR1) {
@@ -367,7 +400,7 @@ public class DeviceInfoProvider {
         return null;
     }
 
-    @SuppressLint( { "MissingPermission" } )
+    @SuppressLint({"MissingPermission"})
     public static String getImei(Context context) {
         try {
             TelephonyManager tMgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
@@ -380,7 +413,7 @@ public class DeviceInfoProvider {
         }
     }
 
-    @SuppressLint( { "MissingPermission" } )
+    @SuppressLint({"MissingPermission"})
     public static String getImei(Context context, int slot) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             if (slot == 0) {
