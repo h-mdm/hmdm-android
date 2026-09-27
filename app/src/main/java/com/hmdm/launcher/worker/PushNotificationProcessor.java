@@ -114,7 +114,7 @@ public class PushNotificationProcessor {
         } else if (message.getMessageType().equals(PushMessage.TYPE_EXIT_KIOSK)) {
             // Temporarily exit kiosk mode
             LocalBroadcastManager.getInstance(context).
-                sendBroadcast(new Intent(Const.ACTION_EXIT_KIOSK));
+                    sendBroadcast(new Intent(Const.ACTION_EXIT_KIOSK));
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_ADMIN_PANEL)) {
             LocalBroadcastManager.getInstance(context).
@@ -381,7 +381,7 @@ public class PushNotificationProcessor {
         DatabaseHelper dbHelper = DatabaseHelper.instance(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         List<Download> downloads = DownloadTable.selectAll(db);
-        for (Download d: downloads) {
+        for (Download d : downloads) {
             File file = new File(d.getPath());
             try {
                 file.delete();
@@ -466,15 +466,15 @@ public class PushNotificationProcessor {
             // By default, grant permissions to all packagee having an URL
             apps = new LinkedList<>();
             List<Application> configApps = config.getApplications();
-            for (Application app: configApps) {
+            for (Application app : configApps) {
                 if (Application.TYPE_APP.equals(app.getType()) &&
-                    app.getUrl() != null && app.getPkg() != null) {
+                        app.getUrl() != null && app.getPkg() != null) {
                     apps.add(app.getPkg());
                 }
             }
         }
 
-        for (String app: apps) {
+        for (String app : apps) {
             Utils.autoGrantRequestedPermissions(context, app,
                     config.getAppPermissions(), false);
         }
