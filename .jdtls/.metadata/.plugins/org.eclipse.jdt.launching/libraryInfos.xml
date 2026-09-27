@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<libraryInfos>
+    <libraryInfo home="/usr/lib/jvm/java-26-openjdk" version="26.0.2.1"/>
+    <libraryInfo home="/home/alex/.sdkman/candidates/java/11.0.32+1.1-tem" version="11.0.32.1"/>
+    <libraryInfo home="/usr/lib/jvm/java-11-openjdk" version="11.0.32.1"/>
+    <libraryInfo home="/home/alex/.sdkman/candidates/java/17.0.20-tem" version="17.0.20"/>
+    <libraryInfo home="/home/alex/.sdkman/candidates/java/25.0.4-tem" version="25.0.4"/>
+</libraryInfos>

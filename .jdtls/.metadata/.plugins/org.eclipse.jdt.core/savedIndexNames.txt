@@ -1,0 +1,4 @@
+INDEX VERSION 1.134+/home/alex/Documents/Projects/hmdm-android/.jdtls/.metadata/.plugins/org.eclipse.jdt.core
+1865797976.index
+3842426239.index
+1471090951.index
