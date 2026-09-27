@@ -28,7 +28,8 @@ repositories {
     jcenter()
     mavenCentral()
 }
-
+def customVersionSuffix = "custom-1"
+def baseVersionName = "6.39"
 android {
     compileSdkVersion 34
     defaultConfig {
@@ -41,8 +42,8 @@ android {
         // downgrade the dependency to com.fasterxml.jackson to 2.13.5
         minSdkVersion 26
         targetSdkVersion 34
-        versionCode 15390
-        versionName "6.39"
+        versionCode 15391
+        versionName "${baseVersionName}-${customVersionSuffix}"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true
