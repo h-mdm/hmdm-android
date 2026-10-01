@@ -1158,8 +1158,11 @@ public class ConfigUpdater {
                 }
             };
         } else {
-            // Renewed the configuration multiple times?
-            unregisterAppInstallReceiver();
+            // A previous update flow is still waiting for its installation to complete:
+            // keep its receiver, otherwise the completion is never heard and the package
+            // stays in pendingInstallations until the process restarts
+            Log.d(Const.LOG_TAG, "Install completion receiver already registered");
+            return;
         }
 
         try {
