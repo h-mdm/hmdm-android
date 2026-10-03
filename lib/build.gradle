@@ -37,9 +37,9 @@ android {
         }
     }
     buildFeatures {
-        aidl true
+        aidl = true
     }
-    namespace 'com.hmdm'
+    namespace = 'com.hmdm'
 
 }
 

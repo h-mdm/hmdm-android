@@ -19,13 +19,12 @@
 
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral() 
     }
 }
 apply plugin: 'com.android.application'
 
 repositories {
-    jcenter()
     mavenCentral()
 }
 def customVersionSuffix = "custom-1"
@@ -49,11 +48,11 @@ android {
             enabled = true
         }
         buildFeatures {
-            aidl true
+            aidl = true
             buildConfig = true
         }
-        namespace 'com.hmdm.launcher'
-        multiDexEnabled true
+        namespace = 'com.hmdm.launcher'
+        multiDexEnabled = true
 
         // Default URL of the web panel (scheme + host!)
         buildConfigField("String", "BASE_URL", "\"https://app.h-mdm.com\"")
@@ -128,8 +127,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
     }
 
     packagingOptions {
