@@ -1,5 +1,6 @@
 # Created by https://www.toptal.com/developers/gitignore/api/eclipse,gradle,java,androidstudio,intellij+all
 # Edit at https://www.toptal.com/developers/gitignore?templates=eclipse,gradle,java,androidstudio,intellij+all
+opensource
 .jdtls
 ### Eclipse ###
 .metadata
