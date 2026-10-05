@@ -197,6 +197,9 @@ public class MainActivity
     private static boolean configInitialized = false;
     // This flag is used to exit kiosk to avoid looping in onResume()
     private static boolean interruptResumeFlow = false;
+    // Set when the kiosk unlock button brings the launcher to the front: the password dialog
+    // is shown by the instance which actually comes up (see onResume() and showContent())
+    private static boolean kioskUnlockRequested = false;
     private static final int BOOT_DURATION_SEC = 120;
     private static final int PAUSE_BETWEEN_AUTORUNS_SEC = 5;
     private boolean sendDeviceInfoScheduled = false;
@@ -357,6 +360,12 @@ public class MainActivity
         if (intent != null && "android.app.action.PROVISIONING_SUCCESSFUL".equalsIgnoreCase(intent.getAction())) {
             firstStartAfterProvisioning = true;
         }
+
+        // The activity may be recreated while it is brought to the front from the kiosk app
+        // (a configuration change, e.g. the orientation, relaunches it). The interrupt flag is meant
+        // for an instance which is already running: a new one must go through its start-up,
+        // otherwise it stays on the loading screen forever
+        interruptResumeFlow = false;
 
         if (CrashLoopProtection.isCrashLoopDetected(this)) {
             Toast.makeText(MainActivity.this, R.string.fault_loop_detected, Toast.LENGTH_LONG).show();
@@ -566,6 +575,10 @@ public class MainActivity
 
         if (interruptResumeFlow) {
             interruptResumeFlow = false;
+            if (kioskUnlockRequested) {
+                kioskUnlockRequested = false;
+                createAndShowEnterPasswordDialog();
+            }
             return;
         }
 
@@ -1105,11 +1118,13 @@ public class MainActivity
                         kioskUnlockCounter++;
                         if (kioskUnlockCounter >= Const.KIOSK_UNLOCK_CLICK_COUNT) {
                             // We are in the main app: let's open launcher activity
+                            // The password dialog is shown by the instance which comes to the front:
+                            // this one in onResume(), or a recreated one once its content is shown
+                            kioskUnlockRequested = true;
                             interruptResumeFlow = true;
                             Intent restoreLauncherIntent = new Intent(MainActivity.this, MainActivity.class);
                             restoreLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                             startActivity(restoreLauncherIntent);
-                            createAndShowEnterPasswordDialog();
                             kioskUnlockCounter = 0;
                         }
                     }
@@ -1816,7 +1831,14 @@ public class MainActivity
 
         if (ProUtils.kioskModeRequired(this)) {
             String kioskApp = settingsHelper.getConfig().getMainApp();
-            if (kioskApp != null && kioskApp.trim().length() > 0 &&
+            if (kioskUnlockRequested) {
+                // Brought to the front by the kiosk unlock button and recreated on the way:
+                // the kiosk app stays behind until the password is checked, and the desktop
+                // is not drawn under the dialog, so nothing is shown to an unauthorized user
+                kioskUnlockRequested = false;
+                createAndShowEnterPasswordDialog();
+                return;
+            } else if (kioskApp != null && kioskApp.trim().length() > 0 &&
                     // If Headwind MDM itself is set as kiosk app, the kiosk mode is already turned on;
                     // So here we just proceed to drawing the content
                     (!kioskApp.equals(getPackageName()) || !ProUtils.isKioskModeRunning(this))) {
