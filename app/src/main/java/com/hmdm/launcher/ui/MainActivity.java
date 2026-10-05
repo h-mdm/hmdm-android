@@ -1833,9 +1833,11 @@ public class MainActivity
             String kioskApp = settingsHelper.getConfig().getMainApp();
             if (kioskUnlockRequested) {
                 // Brought to the front by the kiosk unlock button and recreated on the way:
-                // the kiosk app stays behind until the password is checked
+                // the kiosk app stays behind until the password is checked, and the desktop
+                // is not drawn under the dialog, so nothing is shown to an unauthorized user
                 kioskUnlockRequested = false;
                 createAndShowEnterPasswordDialog();
+                return;
             } else if (kioskApp != null && kioskApp.trim().length() > 0 &&
                     // If Headwind MDM itself is set as kiosk app, the kiosk mode is already turned on;
                     // So here we just proceed to drawing the content
