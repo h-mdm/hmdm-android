@@ -1,7 +1,10 @@
 package com.hmdm.launcher.ui;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.Application;
@@ -29,7 +32,8 @@ public class AppShortcutManager {
         Map<String, Application> requiredPackages = new HashMap();
         Map<String, Application> requiredLinks = new HashMap();
         getConfiguredApps(context, bottom, requiredPackages, requiredLinks);
-        List<ApplicationInfo> packs = context.getPackageManager().getInstalledApplications(0);
+        PackageManager pm = context.getPackageManager();
+        List<ApplicationInfo> packs = pm.getInstalledApplications(0);
         if (packs == null) {
             return requiredLinks.size();
         }
@@ -37,9 +41,13 @@ public class AppShortcutManager {
         int packageCount = 0;
         for(int i = 0; i < packs.size(); i++) {
             ApplicationInfo p = packs.get(i);
-            if (context.getPackageManager().getLaunchIntentForPackage(p.packageName) != null &&
+            if (pm.getLaunchIntentForPackage(p.packageName) != null &&
                     requiredPackages.containsKey(p.packageName)) {
-                packageCount++;
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.addCategory(Intent.CATEGORY_LAUNCHER);
+                intent.setPackage(p.packageName);
+                List<ResolveInfo> shortcuts = pm.queryIntentActivities(intent, 0);
+                packageCount += shortcuts.size();
             }
         }
         return requiredLinks.size() + packageCount;
@@ -56,20 +64,38 @@ public class AppShortcutManager {
             return new ArrayList<AppInfo>();
         }
         // First we display app icons
+        PackageManager pm = context.getPackageManager();
         for(int i = 0; i < packs.size(); i++) {
             ApplicationInfo p = packs.get(i);
-            if ( context.getPackageManager().getLaunchIntentForPackage(p.packageName) != null &&
-                    requiredPackages.containsKey( p.packageName ) ) {
+            if (pm.getLaunchIntentForPackage(p.packageName) != null &&
+                    requiredPackages.containsKey( p.packageName) ) {
                 Application app = requiredPackages.get(p.packageName);
                 AppInfo newInfo = new AppInfo();
                 newInfo.type = AppInfo.TYPE_APP;
                 newInfo.keyCode = app.getKeyCode();
-                newInfo.name = app.getIconText() != null ? app.getIconText() : p.loadLabel(context.getPackageManager()).toString();
+                newInfo.name = app.getIconText() != null ? app.getIconText() : p.loadLabel(pm).toString();
                 newInfo.packageName = p.packageName;
                 newInfo.iconUrl = app.getIcon();
                 newInfo.screenOrder = app.getScreenOrder();
                 newInfo.longTap = app.isLongTap() ? 1 : 0;
-                appInfos.add(newInfo);
+
+                // Duplicate shortcuts for apps with multiple intent activities
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.addCategory(Intent.CATEGORY_LAUNCHER);
+                intent.setPackage(p.packageName);
+                List<ResolveInfo> shortcuts = pm.queryIntentActivities(intent, 0);
+                if (shortcuts.size() > 1) {
+                    for (int j = 0; j < shortcuts.size(); j++) {
+                        AppInfo appInfo = new AppInfo(newInfo);
+                        appInfo.multiIcon = true;
+                        appInfo.iconIndex = j;
+                        appInfo.name = shortcuts.get(j).loadLabel(pm).toString();
+                        // Icon is loaded in BaseAppListAdapter because here's just a custom URL
+                        appInfos.add(appInfo);
+                    }
+                } else {
+                    appInfos.add(newInfo);
+                }
             }
         }
 

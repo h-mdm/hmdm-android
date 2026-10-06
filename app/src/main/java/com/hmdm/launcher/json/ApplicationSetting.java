@@ -30,8 +30,19 @@ public class ApplicationSetting {
     private String value;
     private boolean readOnly;
     private long lastUpdate;
+    private boolean variable;
 
     public ApplicationSetting() {}
+
+    public ApplicationSetting(ApplicationSetting copy) {
+        packageId = copy.packageId;
+        name = copy.name;
+        type = copy.type;
+        value = copy.value;
+        readOnly = copy.readOnly;
+        lastUpdate = copy.lastUpdate;
+        variable = copy.variable;
+    }
 
     public String getName() {
         return name;
@@ -71,6 +82,14 @@ public class ApplicationSetting {
 
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
+    }
+
+    public boolean isVariable() {
+        return variable;
+    }
+
+    public void setVariable(boolean variable) {
+        this.variable = variable;
     }
 
     public long getLastUpdate() {

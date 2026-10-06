@@ -12,7 +12,6 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -92,7 +91,8 @@ public class ConfigUpdater {
     private List< Application > applicationsForRun = new LinkedList();
     private Map<String, File> pendingInstallations = new HashMap<String,File>();
     private BroadcastReceiver appInstallReceiver;
-    private boolean retry = true;
+    private int retryCount;
+    private int retryDelay;
     private boolean loadOnly = false;
     private boolean userInteraction;
 
@@ -107,7 +107,7 @@ public class ConfigUpdater {
                     sendBroadcast(new Intent(Const.ACTION_UPDATE_CONFIGURATION));
         } else {
             Log.d(Const.LOG_TAG, "Main activity is not running, creating a new ConfigUpdater");
-            new ConfigUpdater().updateConfig(context, null, false);
+            new ConfigUpdater(context).updateConfig(context, null, false);
         }
     }
 
@@ -116,7 +116,12 @@ public class ConfigUpdater {
     }
 
     public static void forceConfigUpdate(final Context context, final UINotifier notifier, final boolean userInteraction) {
-        new ConfigUpdater().updateConfig(context, notifier, userInteraction);
+        new ConfigUpdater(context).updateConfig(context, notifier, userInteraction);
+    }
+
+    public ConfigUpdater(Context context) {
+        retryCount = SettingsHelper.getInstance(context).getConnRetryCount();
+        retryDelay = SettingsHelper.getInstance(context).getConnRetryDelay() * 1000;
     }
 
     public void setLoadOnly(boolean loadOnly) {
@@ -168,15 +173,10 @@ public class ConfigUpdater {
                         break;
                     case Const.TASK_NETWORK_ERROR:
                         RemoteLogger.log(context, Const.LOG_WARN, "Failed to update config: network error");
-                        if (retry) {
-                            // Retry the request once because WiFi may not yet be initialized
-                            retry = false;
-                            handler.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    updateConfig(context, uiNotifier, userInteraction);
-                                }
-                            }, 15000);
+                        if (retryCount > 0) {
+                            // Retry the request because WiFi may not yet be initialized
+                            retryCount--;
+                            handler.postDelayed(() -> updateConfig(context, uiNotifier, userInteraction), retryDelay);
                         } else {
                             if (settingsHelper.getConfig() != null && !userInteraction) {
                                 if (uiNotifier != null && settingsHelper.getConfig().isShowWifi()) {
@@ -286,7 +286,7 @@ public class ConfigUpdater {
                 keepaliveTime = newKeepaliveTime;
             }
         }
-        if (BuildConfig.ENABLE_PUSH && pushOptions != null) {
+        if (pushOptions != null) {
             if (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER)
                     || pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM)) {
                 try {
@@ -496,6 +496,7 @@ public class ConfigUpdater {
 
             new AsyncTask<RemoteFile, Void, RemoteFileStatus>() {
 
+                @SuppressLint("StaticFieldLeak")
                 @Override
                 protected RemoteFileStatus doInBackground(RemoteFile... remoteFiles) {
                     final RemoteFile remoteFile = remoteFiles[0];
@@ -503,7 +504,7 @@ public class ConfigUpdater {
 
                     if (remoteFile.isRemove()) {
                         RemoteLogger.log(context, Const.LOG_DEBUG, "Removing file: " + remoteFile.getPath());
-                        File file = new File(Environment.getExternalStorageDirectory(), remoteFile.getPath());
+                        File file = InstallUtils.getFileByPath(remoteFile.getPath());
                         try {
                             if (file.exists()) {
                                 file.delete();
@@ -565,10 +566,14 @@ public class ConfigUpdater {
 
                         if (file != null) {
                             remoteFileStatus.downloaded = true;
-                            File finalFile = new File(Environment.getExternalStorageDirectory(), remoteFile.getPath());
+                            File finalFile = InstallUtils.getFileByPath(remoteFile.getPath());
                             try {
                                 if (finalFile.exists()) {
                                     finalFile.delete();
+                                }
+                                File parent = finalFile.getParentFile();
+                                if (!parent.exists()) {
+                                    parent.mkdirs(); // create missing directories
                                 }
                                 if (!remoteFile.isVarContent()) {
                                     FileUtils.moveFile(file, finalFile);
@@ -579,6 +584,7 @@ public class ConfigUpdater {
                                     }
                                     createFileFromTemplate(file, finalFile, settingsHelper.getDeviceId(), imei, settingsHelper.getConfig());
                                 }
+                                postProcessFile(finalFile);
                                 RemoteFileTable.insert(dbHelper.getWritableDatabase(), remoteFile);
                                 remoteFileStatus.installed = true;
                                 if (lastDownload != null) {
@@ -666,6 +672,22 @@ public class ConfigUpdater {
         DownloadTable.insert(dbHelper.getWritableDatabase(), lastDownload);
     }
 
+    // Vendor-specific post-processing of config files
+    private void postProcessFile(File file) {
+        if (file.getAbsolutePath().startsWith("/enterprise/device/settings/datawedge/autoimport")) {
+            // By default, access to all is disabled, and Datawedge fails with "Access denied",
+            // so we should grant access manually
+            String[] cmdArray = {"chmod", "666", file.getAbsolutePath()};
+            Log.d(Const.LOG_TAG, "Post-processing: run command: chmod 666 " + file.getAbsolutePath());
+            String res = SystemUtils.executeShellCommand(cmdArray);
+            if (!"".equals(res)) {
+                Log.d(Const.LOG_TAG, "Execution failed: " + res);
+            } else {
+                Log.d(Const.LOG_TAG, "Command successfully executed");
+            }
+        }
+    }
+
     // In background mode, we do not attempt to download files or apps in two cases:
     // 1. Installation failed
     // 2. Downloading in a mobile network is limited
@@ -697,11 +719,17 @@ public class ConfigUpdater {
 
     private void installCertificates() {
         final String certPaths = settingsHelper.getAppPreference(context.getPackageName(), "certificates");
-        if (certPaths != null) {
+        final String clientCertPaths = settingsHelper.getAppPreference(context.getPackageName(), "client-certificates");
+        if (certPaths != null || clientCertPaths != null) {
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... voids) {
-                    CertInstaller.installCertificatesFromFiles(context, certPaths.trim());
+                    if (certPaths != null) {
+                        CertInstaller.installCertificatesFromFiles(context, certPaths.trim());
+                    }
+                    if (clientCertPaths != null) {
+                        CertInstaller.installClientCertificatesFromFiles(context, clientCertPaths.trim());
+                    }
                     return null;
                 }
 
@@ -924,6 +952,10 @@ public class ConfigUpdater {
         if (settingsHelper.getConfig() != null && settingsHelper.getConfig().getRestrictions() != null) {
             Utils.lockUserRestrictions(context, settingsHelper.getConfig().getRestrictions());
         }
+        String lockedPackages = settingsHelper.getAppPreference(context.getPackageName(), "locked_packages");
+        Utils.lockPackages(context, lockedPackages, true);
+        String unlockedPackages = settingsHelper.getAppPreference(context.getPackageName(), "unlocked_packages");
+        Utils.lockPackages(context, unlockedPackages, false);
         notifyThreads();
     }
 
@@ -1068,6 +1100,27 @@ public class ConfigUpdater {
                                             }
                                         }
                                     }
+                                    // Launch app immediately only for background updates.
+                                    // In foreground updates, MainActivity handles delayed autorun via applicationsForRun.
+                                    ServerConfig config = settingsHelper.getConfig();
+                                    if (uiNotifier == null && config != null && config.getApplications() != null) {
+                                        for (Application app : config.getApplications()) {
+                                            if (app.getPkg() != null && app.getPkg().equals(packageName) && app.isRunAfterInstall()) {
+                                                Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(packageName);
+                                                if (launchIntent != null) {
+                                                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                                                    try {
+                                                        context.startActivity(launchIntent);
+                                                        RemoteLogger.log(context, Const.LOG_INFO, "Launched app after install: " + packageName);
+                                                    } catch (Exception e) {
+                                                        RemoteLogger.log(context, Const.LOG_WARN, "Failed to launch app after install: " + e.getMessage());
+                                                        e.printStackTrace();
+                                                    }
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
                                     if (uiNotifier != null) {
                                         uiNotifier.onAppInstallComplete(packageName);
                                     }
@@ -1105,8 +1158,11 @@ public class ConfigUpdater {
                 }
             };
         } else {
-            // Renewed the configuration multiple times?
-            unregisterAppInstallReceiver();
+            // A previous update flow is still waiting for its installation to complete:
+            // keep its receiver, otherwise the completion is never heard and the package
+            // stays in pendingInstallations until the process restarts
+            Log.d(Const.LOG_TAG, "Install completion receiver already registered");
+            return;
         }
 
         try {

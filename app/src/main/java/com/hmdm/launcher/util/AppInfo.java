@@ -37,8 +37,25 @@ public class AppInfo implements Parcelable {
     public int useKiosk;
     public int longTap;
     public String intent;
+    public boolean multiIcon = false;
+    public int iconIndex = 0;
 
     public AppInfo(){}
+
+    public AppInfo(AppInfo appInfo) {
+        type = appInfo.type;
+        keyCode = appInfo.keyCode;
+        name = appInfo.name;
+        packageName = appInfo.packageName;
+        url = appInfo.url;
+        iconUrl = appInfo.iconUrl;
+        screenOrder = appInfo.screenOrder;
+        useKiosk = appInfo.useKiosk;
+        longTap = appInfo.longTap;
+        intent = appInfo.intent;
+        multiIcon = appInfo.multiIcon;
+        iconIndex = appInfo.iconIndex;
+    }
 
     protected AppInfo(Parcel in) {
         type = in.readInt();
@@ -51,6 +68,8 @@ public class AppInfo implements Parcelable {
         useKiosk = in.readInt();
         longTap = in.readInt();
         intent = in.readString();
+        multiIcon = in.readInt() == 1;
+        iconIndex = in.readInt();
     }
 
     @Override
@@ -65,6 +84,8 @@ public class AppInfo implements Parcelable {
         dest.writeInt(useKiosk);
         dest.writeInt(longTap);
         dest.writeString(intent);
+        dest.writeInt(multiIcon ? 1 : 0);
+        dest.writeInt(iconIndex);
     }
 
     @Override

@@ -146,6 +146,7 @@ public class AdminActivity extends BaseActivity {
             restrictions = "," + settingsHelper.getConfig().getRestrictions();
         }
         Utils.unlockUserRestrictions(this, restrictions);
+        Utils.disableScreenshots(false, this);
         LocalBroadcastManager.getInstance( this ).sendBroadcast( new Intent( Const.ACTION_PERMISSIVE_MODE ) );
         LocalBroadcastManager.getInstance( this ).sendBroadcast( new Intent( Const.ACTION_STOP_CONTROL ) );
         Toast.makeText(this, R.string.permissive_mode_enabled, Toast.LENGTH_LONG).show();
@@ -166,7 +167,7 @@ public class AdminActivity extends BaseActivity {
             if (settingsHelper != null && settingsHelper.getConfig() != null) {
                 pushOptions = settingsHelper.getConfig().getPushOptions();
             }
-            if (BuildConfig.ENABLE_PUSH && pushOptions != null && (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER)
+            if (pushOptions != null && (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER)
                     || pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM))) {
                 PushNotificationMqttWrapper.getInstance().disconnect(this);
             }

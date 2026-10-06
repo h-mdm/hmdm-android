@@ -2,11 +2,14 @@ package com.hmdm.launcher.helper;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.hmdm.launcher.BuildConfig;
@@ -22,6 +25,7 @@ import com.hmdm.launcher.pro.worker.DetailedInfoWorker;
 import com.hmdm.launcher.service.PushLongPollingService;
 import com.hmdm.launcher.service.StatusControlService;
 import com.hmdm.launcher.task.SendDeviceInfoTask;
+import com.hmdm.launcher.util.ConnectionWaiter;
 import com.hmdm.launcher.util.DeviceInfoProvider;
 import com.hmdm.launcher.util.InstallUtils;
 import com.hmdm.launcher.util.RemoteLogger;
@@ -33,36 +37,45 @@ import com.hmdm.launcher.worker.SendDeviceInfoWorker;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 // Shared initialization code which should run either by MainActivity (in foreground mode)
 // or by InitialSetupActivity (in background mode)
 public class Initializer {
-    public static void init(Context context) {
+    private static ExecutorService executor = Executors.newSingleThreadExecutor();
+    private static Handler uiHandler = new Handler(Looper.getMainLooper());
 
-        // Crashlytics is not included in the open-source version
-        ProUtils.initCrashlytics(context);
+    public static void init(Context context, Runnable completion) {
+        // Background work
+        executor.execute(() -> {
+            // Crashlytics is not included in the open-source version
+            ProUtils.initCrashlytics(context);
 
-        if (BuildConfig.TRUST_ANY_CERTIFICATE) {
-            InstallUtils.initUnsafeTrustManager();
-        }
+            if (BuildConfig.TRUST_ANY_CERTIFICATE) {
+                InstallUtils.initUnsafeTrustManager();
+            }
 
-        Utils.lockSafeBoot(context);
-        Utils.initPasswordReset(context);
+            Utils.lockSafeBoot(context);
+            Utils.initPasswordReset(context);
 
-        RemoteLogger.log(context, Const.LOG_INFO, "MDM Launcher " + BuildConfig.VERSION_NAME + "-" + Utils.getLauncherVariant() + " started");
+            RemoteLogger.log(context, Const.LOG_INFO, "MDM Launcher " + BuildConfig.VERSION_NAME + "-" + Utils.getLauncherVariant() + " started");
 
-        InstallUtils.clearTempFiles(context);
+            InstallUtils.clearTempFiles(context);
 
-        // Install the certificates (repeat the action from InitialSetupActivity because
-        // the customer may wish to install new certificates without re-enrolling the device
-        CertInstaller.installCertificatesFromAssets(context);
+            // Install the certificates (repeat the action from InitialSetupActivity because
+            // the customer may wish to install new certificates without re-enrolling the device
+            CertInstaller.installCertificatesFromAssets(context);
 
-        DetailedInfoWorker.schedule(context);
-        if (BuildConfig.ENABLE_PUSH) {
-            PushNotificationWorker.schedule(context);
-        }
-        ScheduledAppUpdateWorker.schedule(context);
+            ConnectionWaiter.waitForConnect(context, () -> {
+                DetailedInfoWorker.schedule(context);
+                PushNotificationWorker.schedule(context);
+                ScheduledAppUpdateWorker.schedule(context);
 
+                // Run completion in the UI thread
+                uiHandler.post(completion);
+            });
+        });
     }
 
     public static void startServicesAndLoadConfig(Context context) {
@@ -77,7 +90,7 @@ public class Initializer {
                 keepaliveTime = newKeepaliveTime;
             }
         }
-        if (BuildConfig.MQTT_SERVICE_FOREGROUND && BuildConfig.ENABLE_PUSH && pushOptions != null) {
+        if (BuildConfig.MQTT_SERVICE_FOREGROUND && pushOptions != null) {
             if (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER)
                     || pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM)) {
                 try {
@@ -227,6 +240,7 @@ public class Initializer {
     }
 
     // Used by InitialSetupActivity
+    @SuppressLint("MissingPermission")
     public static void applyEarlyNonInteractivePolicies(Context context, ServerConfig config) {
         if (config.getSystemUpdateType() != null &&
                 config.getSystemUpdateType() != ServerConfig.SYSTEM_UPDATE_DEFAULT &&
@@ -260,10 +274,7 @@ public class Initializer {
 
         // Null value is processed here, it means unlock brightness
         Utils.setBrightnessPolicy(config.getAutoBrightness(), config.getBrightness(), context);
-
-        if (config.getManageTimeout() != null) {
-            Utils.setScreenTimeoutPolicy(config.getManageTimeout(), config.getTimeout(), context);
-        }
+        Utils.setScreenTimeoutPolicy(config.getManageTimeout(), config.getTimeout(), context);
 
         if (config.getManageVolume() != null && config.getManageVolume() && config.getVolume() != null) {
             Utils.lockVolume(false, context);

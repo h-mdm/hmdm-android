@@ -1,0 +1,132 @@
+<!--
+  ~ Headwind MDM: Open Source Android MDM Software
+  ~ https://h-mdm.com
+  ~
+  ~ Copyright (C) 2019 Headwind Solutions LLC (http://h-sms.com)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resources>
+    <string name="admin_title">Adminisztrátor</string>
+    <string name="install_error">Telepítési hiba</string>
+    <string name="file_create_error">Hiba a fájl létrehozásakor</string>
+    <string name="dialog_enter_device_id_error">Ez az azonosító nincs regisztrálva itt: %s. Az azonosítót a vezérlőpult \"Eszközök\" lapján találja.</string>
+    <string name="dialog_enter_device_id_qrcode">QR-kód</string>
+    <string name="dialog_enter_device_id_variants">Változatok</string>
+    <string name="dialog_enter_device_id_save">Mentés</string>
+    <string name="dialog_enter_device_id_exit">Kilépés</string>
+    <string name="dialog_enter_device_id_title">Adja meg az eszközazonosítót itt: %s</string>
+    <string name="main_start_preparations">Indítás előkészítése</string>
+    <string name="main_downloading_configuration">Konfigurációs fájl frissítése</string>
+    <string name="main_downloading_content">Adatok frissítése</string>
+    <string name="main_update_applications">Alkalmazások telepítése és frissítése</string>
+    <string name="dialog_root_message">ROOT-hozzáférés szükséges</string>
+    <string name="main_application_start">Alkalmazás indítása</string>
+    <string name="main_app_installing">Alkalmazás telepítése</string>
+    <string name="main_app_downloading">Alkalmazás letöltése</string>
+    <string name="main_app_downloading_error">A csomag letöltése sikertelen</string>
+    <string name="main_app_removing">Alkalmazás eltávolítása</string>
+    <string name="main_file_downloading">Fájl letöltése</string>
+    <string name="main_file_downloading_error">A fájl letöltése sikertelen</string>
+    <string name="main_activity_repeat">Újra</string>
+    <string name="main_activity_reset">Visszaállítás</string>
+    <string name="main_activity_wifi">WiFi</string>
+    <string name="main_activity_cancel">Mégse</string>
+    <string name="main_activity_details">Részletek</string>
+    <string name="select_system_launcher">Válassza a(z) %s alkalmazást alapértelmezett indítóként, majd jelölje be a \"Mindig\" lehetőséget:</string>
+    <string name="dialog_network_error_title">Nem sikerült kapcsolódni ehhez: %s. Ellenőrizze az internetkapcsolatot, majd próbálja újra.</string>
+    <string name="main_activity_update_config">Konfigurációs fájl lekérése a szerverről</string>
+    <string name="main_activity_applications_update">Alkalmazások frissítése</string>
+    <string name="dialog_overlay_settings_title">Engedélyezze, hogy az alkalmazás más ablakok felett jelenjen meg.\n\nEz segít a nem kívánt alkalmazások blokkolásában, és lehetővé teszi a kioszk mód vészhelyzeti feloldását.\n\nA beállítások megnyitásához koppintson a \"Folytatás\" gombra. Keresse meg a(z) \"%s\" elemet, adja meg az engedélyt, majd koppintson a \"Vissza\" gombra.</string>
+    <string name="dialog_manage_storage_title">Engedélyezze az alkalmazásnak a tárhely kezelését.\n\nEzzel a Headwind MDM kezelheti az eszközön található fájlokat.</string>
+    <string name="dialog_history_settings_title">Engedélyezze az alkalmazásnak a használati adatok elérését.\n\nEz lehetővé teszi az alkalmazások és beállítások felügyeletét.\n\nA beállítás növelheti az akkumulátor fogyasztását. Energiatakarékosság érdekében kihagyható, ha helyette kisegítő lehetőségeket vagy kioszk módot használ.\n\nA beállítások megnyitásához koppintson a \"Folytatás\" gombra. Keresse meg a(z) \"%s\" elemet, adja meg az engedélyt, majd koppintson a \"Vissza\" gombra.</string>
+    <string name="dialog_history_settings_continue">Folytatás</string>
+    <string name="dialog_history_settings_skip">Kihagyás</string>
+    <string name="dialog_unknown_sources_title">Engedélyezze az ismeretlen forrásból származó alkalmazások telepítését. A megnyíló beállításokban keresse meg az \"Ismeretlen források\" lehetőséget, engedélyezze a telepítést, majd koppintson a \"Vissza\" gombra.</string>
+    <string name="dialog_unknown_sources_continue">Folytatás</string>
+    <string name="dialog_miui_permissions_title">A MIUI rendszerben az egyéni engedélyeket kézzel kell beállítani. A megnyíló alkalmazásengedélyeknél koppintson az \"Egyéb engedélyek\" elemre, engedélyezze az \"Előugró ablakok megjelenítése a háttérben való futás közben\" lehetőséget, majd koppintson a \"Vissza\" gombra.</string>
+    <string name="dialog_miui_developer_title">A MIUI rendszerben az eszközt kézzel kell beállítani. Az információs képernyőn KOPPINTSON HÉTSZER A \"BUILD NUMBER\" ELEMRE. Ezzel engedélyezi a fejlesztői beállításokat.</string>
+    <string name="dialog_miui_optimization_title">A MIUI rendszerben az eszközt kézzel kell beállítani. A megnyíló fejlesztői beállításokban görgessen lefelé, majd kapcsolja ki a \"MIUI-optimalizálás\" lehetőséget.</string>
+    <string name="dialog_administrator_mode_message">Engedélyezze, hogy az alkalmazás eszközadminisztrátori módban működjön. A megnyíló beállításokban válassza az \"Eszközadminisztrátorok\" lehetőséget, keresse meg a(z) \"%s\" elemet, aktiválja, majd koppintson a \"Vissza\" gombra.</string>
+    <string name="dialog_administrator_mode_continue">Folytatás</string>
+    <string name="dialog_administrator_mode_skip">Kihagyás</string>
+    <string name="accessibility_service_description">Aktív alkalmazások felügyelete az MDM-alkalmazással</string>
+    <string name="dialog_accessibility_service_message">Engedélyezze az alkalmazásnak a kisegítő lehetőségek használatát. A megnyíló beállításokban keresse meg a(z) \"%s\" elemet, engedélyezze a kisegítő szolgáltatás használatát, majd koppintson a \"Vissza\" gombra.</string>
+    <string name="dialog_accessibility_service_continue">Folytatás</string>
+    <string name="dialog_accessibility_service_skip">Kihagyás</string>
+    <string name="access_to_app_denied">A csomag nincs engedélyezve:</string>
+    <string name="access_to_app_denied_2">Kérje meg az adminisztrátort, hogy engedélyezze ezt a csomagot a konfigurációban.\n\nA folytatáshoz koppintson a \"Bezárás\" vagy a Kezdőképernyő gombra.</string>
+    <string name="package_id_copied">A csomagazonosító a vágólapra került</string>
+    <string name="dialog_app_not_allowed_close">Bezárás</string>
+    <string name="dialog_app_not_allowed_admin">Adminisztrátor</string>
+    <string name="device_id">Eszközazonosító</string>
+    <string name="imei">IMEI</string>
+    <string name="serial_number">Sorozatszám</string>
+    <string name="phone_number">Telefonszám</string>
+    <string name="launcher_version">Indító verziója</string>
+    <string name="close">Bezárás</string>
+    <string name="admin_change_device_id">Eszközazonosító módosítása</string>
+    <string name="admin_change_server_url">Szerver URL-címének módosítása</string>
+    <string name="admin_allow_settings">Beállítások megnyitása</string>
+    <string name="settings_allowed">A beállítások 3 percig módosíthatók.</string>
+    <string name="admin_clear_restrictions">Korlátozások feloldása</string>
+    <string name="permissive_mode_enabled">3 percig minden alkalmazás futtatása engedélyezett.</string>
+    <string name="admin_refresh">Konfiguráció frissítése</string>
+    <string name="admin_exit">Kilépés a rendszerindítóba</string>
+    <string name="admin_reset_permissions">Engedélyek ellenőrzése</string>
+    <string name="admin_reset_network">Hálózati házirend visszaállítása</string>
+    <string name="admin_reset_network_hint">A hálózati házirendek törölve. Most már engedélyezheti a hálózatot, és újratöltheti a konfigurációt.</string>
+    <string name="reboot">Eszköz újraindítása</string>
+    <string name="reboot_failed">Nincs elegendő jogosultság az eszköz újraindításához.</string>
+    <string name="message_turn_on_gps">Megnyílik a beállítások képernyője. Kapcsolja be a GPS-helymeghatározást, majd koppintson a Vissza gombra.</string>
+    <string name="message_turn_off_gps">Megnyílik a beállítások képernyője. KAPCSOLJA KI a GPS-helymeghatározást, majd koppintson a Vissza gombra.</string>
+    <string name="message_turn_on_mobile_data">A mobiladat ki van kapcsolva. Nyissa meg az állapotsávot, és kapcsolja be a mobiladatot.</string>
+    <string name="message_turn_off_mobile_data">A mobiladat be van kapcsolva. Nyissa meg az állapotsávot, és KAPCSOLJA KI a mobiladatot.</string>
+    <string name="message_set_password">A jelszó nem elég biztonságos. A megnyíló beállításokban módosítsa a jelszót, majd koppintson a Vissza gombra.</string>
+    <string name="switch_off_blockings">Korlátozások kikapcsolása...</string>
+    <string name="kiosk_mode_requires_overlays">A kioszk mód kikapcsolva: nincs engedély más ablakok feletti megjelenítésre. Engedélyezze, hogy a(z) %s más ablakok felett jelenjen meg.</string>
+    <string name="enter_admin_password">Adja meg az adminisztrátori jelszót</string>
+    <string name="wrong_password">Hibás jelszó</string>
+    <string name="dialog_enter_password_login">Bejelentkezés</string>
+    <string name="dialog_enter_password_cancel">Mégse</string>
+    <string name="internal_error">Az alkalmazás belső hibát észlelt. Indítsa újra az eszközt, majd próbálja meg ismét a műveletet.</string>
+    <string name="empty_configuration">Nincs beállítva konfiguráció, ismételt lekérés a szerverről.</string>
+    <string name="permissions_reset_hint">Az engedélyek ellenőrzéséhez és kéréséhez zárja be az adminisztrációs panelt.</string>
+    <string name="dialog_enter_server_error">Adjon meg érvényes szerver URL-címet.</string>
+    <string name="dialog_enter_server_ok">OK</string>
+    <string name="dialog_enter_server_title">Adja meg a szerver URL-címét</string>
+    <string name="critical_server_failure">Kilépés szerverhiba miatt. Javítsa a hibát, majd indítsa újra a(z) %s alkalmazást, vagy távolítsa el teljesen, és telepítse újra.</string>
+    <string name="dialog_permission_title">Az alkalmazás futásához engedélyek szükségesek. Adja meg a kért engedélyeket.</string>
+    <string name="main_activity_exit">Kilépés</string>
+    <string name="browser_not_found">A weboldal nem nyitható meg, mert nem található böngésző. Adjon böngészőalkalmazást az eszköz konfigurációjához.</string>
+    <string name="invalid_web_link">A webhivatkozás hibás formátuma miatt nem nyitható meg. További információért forduljon az adminisztrátorhoz.</string>
+    <string name="activity_not_found">A(z) %s művelet nem hajtható végre, mert a tevékenység nem található.</string>
+    <string name="location_service_text">Az eszköz helyzetét figyelik</string>
+    <string name="qrcode_contents_error">Érvénytelen QR-kód-tartalom. Hozza létre az üzembe helyezési QR-kódot a(z) %s webpanelen.</string>
+    <string name="device_locked">Az adminisztrátor zárolta ezt az eszközt (%s).</string>
+    <string name="fault_loop_detected">Az indító nem helyreállítható hibát észlelt. Forduljon a rendszergazdához.</string>
+    <string name="mqtt_service_text">A push értesítések aktívak</string>
+    <string name="background_location">A(z) %s alkalmazásnak háttérbeli helyhozzáférésre van szüksége. Az engedélyek megnyitásához koppintson a \"Folytatás\", majd a \"Hely\" lehetőségre, és engedélyezze az állandó helymeghatározást.</string>
+    <string name="location_disable">Helymeghatározás kikapcsolása</string>
+    <string name="background_location_continue">Folytatás</string>
+    <string name="initializing_mdm">A mobileszköz-kezelő alkalmazás inicializálása...</string>
+    <string name="dialog_server_error_title">A(z) %s MDM-szerver érvénytelen választ adott. Forduljon az adminisztrátorhoz.</string>
+    <string name="mdm_choice_message">Ezt az eszközt teljes mértékben a szervezet kezeli. Az adatok nem maradnak magánjellegűek, és az IT-adminisztrátor bármikor törölheti vagy áttekintheti őket.</string>
+    <string name="work_profile_message">Az eszköz a szervezethez tartozó felügyelt munkaprofilt kap. A munkaprofil elkülönül a személyes profiltól, és bármikor válthat a profilok között.</string>
+    <string name="overlays_not_supported">Az eszköz nem támogatja a más ablakok feletti megjelenítést.</string>
+    <string name="admin_not_supported">Az eszközön nincs eszközadminisztrátori lehetőség. A folytatáshoz koppintson a Kihagyás gombra.</string>
+    <string name="manage_storage_not_supported">Az eszközön nincs lehetőség a külső tárhely kezelésére.</string>
+    <string name="certificate_install_failed">A(z) %1$s tanúsítvány telepítése sikertelen: %2$s</string>
+    <string name="reboot_required">A kiépítés befejezéséhez újra kell indítani az eszközt.</string>
+</resources>

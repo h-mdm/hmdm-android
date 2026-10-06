@@ -1,5 +1,6 @@
 package com.hmdm.launcher.service;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
@@ -115,6 +116,7 @@ public class StatusControlService extends Service {
         Log.i(Const.LOG_TAG, "StatusControlService: control disabled for 60 sec");
     }
 
+    @SuppressLint("MissingPermission")
     private void controlStatus() {
         ServerConfig config = settingsHelper.getConfig();
         if (config == null || controlDisabled) {

@@ -34,8 +34,6 @@ import org.eclipse.paho.android.service.MqttService;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
 
 import retrofit2.Response;
 
@@ -144,16 +142,17 @@ public class PushLongPollingService extends Service {
 
                 if ( response.isSuccessful() ) {
                     if ( Const.STATUS_OK.equals( response.body().getStatus() ) && response.body().getData() != null ) {
-                        Map<String, PushMessage> filteredMessages = new HashMap<String, PushMessage>();
+                        boolean hasConfigUpdated = false;
                         for (PushMessage message : response.body().getData()) {
                             // Filter out multiple configuration update requests
-                            if (!message.getMessageType().equals(PushMessage.TYPE_CONFIG_UPDATED) ||
-                                    !filteredMessages.containsKey(PushMessage.TYPE_CONFIG_UPDATED)) {
-                                filteredMessages.put(message.getMessageType(), message);
+                            if (message.getMessageType().equals(PushMessage.TYPE_CONFIG_UPDATED)) {
+                                if (!hasConfigUpdated) {
+                                    hasConfigUpdated = true;
+                                    PushNotificationProcessor.process(message, context);
+                                }
+                            } else {
+                                PushNotificationProcessor.process(message, context);
                             }
-                        }
-                        for (Map.Entry<String, PushMessage> entry : filteredMessages.entrySet()) {
-                            PushNotificationProcessor.process(entry.getValue(), context);
                         }
                     }
                 } else if (response.code() >= 400 && response.code() < 500) {

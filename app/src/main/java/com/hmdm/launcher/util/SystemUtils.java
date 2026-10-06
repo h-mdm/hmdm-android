@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.provider.Settings;
 import android.util.Log;
 
 import com.hmdm.launcher.BuildConfig;
@@ -48,16 +47,15 @@ public class SystemUtils {
         return result.startsWith("Active admin component set");
     }
 
-    public static String executeShellCommand(String command, boolean useShell) {
+    public static String executeShellCommand(String[] cmdArray) {
         StringBuffer output = new StringBuffer();
 
         Process p;
         try {
-            if (useShell) {
-                String[] cmdArray = {"sh", "-c", command};
-                p = Runtime.getRuntime().exec(cmdArray);
+            if (cmdArray.length == 1) {
+                p = Runtime.getRuntime().exec(cmdArray[0]);
             } else {
-                p = Runtime.getRuntime().exec(command);
+                p = Runtime.getRuntime().exec(cmdArray);
             }
             p.waitFor();
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -81,6 +79,16 @@ public class SystemUtils {
         return response;
     }
 
+    public static String executeShellCommand(String command, boolean useShell) {
+        if (useShell) {
+            String[] cmdArray = {"sh", "-c", command};
+            return executeShellCommand(cmdArray);
+        } else {
+            String[] cmdArray = {command};
+            return executeShellCommand(cmdArray);
+        }
+    }
+
     public static boolean autoSetDeviceId(Context context) {
         String deviceIdUse = SettingsHelper.getInstance(context).getDeviceIdUse();
         String deviceId = null;
@@ -92,8 +100,8 @@ public class SystemUtils {
             if (deviceId.equals(Build.UNKNOWN)) {
                 deviceId = null;
             }
-        } else if (BuildConfig.DEVICE_ID_CHOICE.equals("mac")) {
-            deviceId = DeviceInfoProvider.getMacAddress();
+        } else if (BuildConfig.DEVICE_ID_CHOICE.equals("mac") || "mac".equals(deviceIdUse)) {
+            deviceId = DeviceInfoProvider.getMacAddress(context);
         }
 
         if (deviceId == null || deviceId.length() == 0) {
@@ -145,10 +153,10 @@ public class SystemUtils {
 
     // https://stackoverflow.com/questions/10061154/how-to-programmatically-enable-disable-accessibility-service-in-android
     public static void autoSetAccessibilityPermission(Context context, String packageName, String className) {
-        Settings.Secure.putString(context.getContentResolver(),
+/*        Settings.Secure.putString(context.getContentResolver(),
                 Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, packageName + "/" + className);
         Settings.Secure.putString(context.getContentResolver(),
-                Settings.Secure.ACCESSIBILITY_ENABLED, "1");
+                Settings.Secure.ACCESSIBILITY_ENABLED, "1"); */
     }
 
     static final int OP_WRITE_SETTINGS = 23;

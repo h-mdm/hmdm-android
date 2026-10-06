@@ -19,11 +19,13 @@
 
 package com.hmdm.launcher.worker;
 
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
-import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
@@ -40,6 +42,7 @@ import com.hmdm.launcher.json.Download;
 import com.hmdm.launcher.json.PushMessage;
 import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.util.InstallUtils;
+import com.hmdm.launcher.util.LegacyUtils;
 import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.SystemUtils;
 import com.hmdm.launcher.util.Utils;
@@ -51,8 +54,18 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class PushNotificationProcessor {
+    static ThreadPoolExecutor executor = new ThreadPoolExecutor(
+            1, 4,
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>()
+    );
+
     public static void process(PushMessage message, Context context) {
         RemoteLogger.log(context, Const.LOG_INFO, "Got Push Message, type " + message.getMessageType());
         if (message.getMessageType().equals(PushMessage.TYPE_CONFIG_UPDATED)) {
@@ -65,21 +78,25 @@ public class PushNotificationProcessor {
             runApplication(context, message.getPayloadJSON());
             // Do not broadcast this message to other apps
             return;
+        } else if (message.getMessageType().equals(PushMessage.TYPE_BROADCAST)) {
+            // Send broadcast
+            sendBroadcast(context, message.getPayloadJSON());
+            return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_UNINSTALL_APP)) {
             // Uninstall application
-            AsyncTask.execute(() -> uninstallApplication(context, message.getPayloadJSON()));
+            executor.execute(() -> uninstallApplication(context, message.getPayloadJSON()));
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_DELETE_FILE)) {
             // Delete file
-            AsyncTask.execute(() -> deleteFile(context, message.getPayloadJSON()));
+            executor.execute(() -> deleteFile(context, message.getPayloadJSON()));
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_DELETE_DIR)) {
             // Delete directory recursively
-            AsyncTask.execute(() -> deleteDir(context, message.getPayloadJSON()));
+            executor.execute(() -> deleteDir(context, message.getPayloadJSON()));
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_PURGE_DIR)) {
             // Purge directory (delete all files recursively)
-            AsyncTask.execute(() -> purgeDir(context, message.getPayloadJSON()));
+            executor.execute(() -> purgeDir(context, message.getPayloadJSON()));
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_PERMISSIVE_MODE)) {
             // Turn on permissive mode
@@ -88,28 +105,36 @@ public class PushNotificationProcessor {
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_RUN_COMMAND)) {
             // Run a command-line script
-            AsyncTask.execute(() -> runCommand(context, message.getPayloadJSON()));
+            executor.execute(() -> runCommand(context, message.getPayloadJSON()));
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_REBOOT)) {
             // Reboot a device
-            AsyncTask.execute(() -> reboot(context));
+            executor.execute(() -> reboot(context));
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_EXIT_KIOSK)) {
             // Temporarily exit kiosk mode
             LocalBroadcastManager.getInstance(context).
                 sendBroadcast(new Intent(Const.ACTION_EXIT_KIOSK));
             return;
+        } else if (message.getMessageType().equals(PushMessage.TYPE_ADMIN_PANEL)) {
+            LocalBroadcastManager.getInstance(context).
+                    sendBroadcast(new Intent(Const.ACTION_ADMIN_PANEL));
+            return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_CLEAR_DOWNLOADS)) {
             // Clear download history
-            AsyncTask.execute(() -> clearDownloads(context));
+            executor.execute(() -> clearDownloads(context));
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_INTENT)) {
             // Run a system intent (like settings or ACTION_VIEW)
-            AsyncTask.execute(() -> callIntent(context, message.getPayloadJSON()));
+            executor.execute(() -> callIntent(context, message.getPayloadJSON()));
             return;
         } else if (message.getMessageType().equals(PushMessage.TYPE_GRANT_PERMISSIONS)) {
             // Grant permissions to apps
-            AsyncTask.execute(() -> grantPermissions(context, message.getPayloadJSON()));
+            executor.execute(() -> grantPermissions(context, message.getPayloadJSON()));
+            return;
+        } else if (message.getMessageType().equals(PushMessage.TYPE_CLEAR_APP_DATA)) {
+            // Clear application data
+            executor.execute(() -> clearAppData(context, message.getPayloadJSON()));
             return;
         }
 
@@ -167,6 +192,53 @@ public class PushNotificationProcessor {
                         Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
                 context.startActivity(launchIntent);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void sendBroadcast(Context context, JSONObject payload) {
+        if (payload == null) {
+            return;
+        }
+        try {
+            String pkg = payload.optString("pkg", null);
+            String action = payload.optString("action", null);
+            JSONObject extras = payload.optJSONObject("extra");
+            String data = payload.optString("data", null);
+            Intent intent = new Intent();
+            if (pkg != null) {
+                intent.setPackage(pkg);
+            }
+            if (action != null) {
+                intent.setAction(action);
+            }
+            if (data != null) {
+                try {
+                    intent.setData(Uri.parse(data));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            if (extras != null) {
+                Iterator<String> keys = extras.keys();
+                String key;
+                while (keys.hasNext()) {
+                    key = keys.next();
+                    Object value = extras.get(key);
+                    if (value instanceof String) {
+                        intent.putExtra(key, (String) value);
+                    } else if (value instanceof Integer) {
+                        intent.putExtra(key, ((Integer) value).intValue());
+                    } else if (value instanceof Float) {
+                        intent.putExtra(key, ((Float) value).floatValue());
+                    } else if (value instanceof Boolean) {
+                        intent.putExtra(key, ((Boolean) value).booleanValue());
+                    }
+                }
+            }
+            context.sendBroadcast(intent);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -407,4 +479,34 @@ public class PushNotificationProcessor {
                     config.getAppPermissions(), false);
         }
     }
+
+    private static void clearAppData(Context context, JSONObject payload) {
+        if (payload == null) {
+            return;
+        }
+        try {
+            String pkg = payload.getString("pkg");
+            RemoteLogger.log(context, Const.LOG_INFO, "Clearing app data for " + pkg);
+            DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                dpm.clearApplicationUserData(
+                        adminComponentName,
+                        pkg,
+                        Executors.newSingleThreadExecutor(),
+                        (packageName, succeeded) -> {
+                            RemoteLogger.log(context, Const.LOG_INFO,
+                                    "App data for " + packageName + (succeeded ? " " : " not ") + "cleared");
+                        }
+                );
+            } else {
+                throw new Exception("Unsupported in SDK " + Build.VERSION.SDK_INT);
+            }
+
+        } catch (Exception e) {
+            RemoteLogger.log(context, Const.LOG_ERROR, "Failed to clear app data: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 }

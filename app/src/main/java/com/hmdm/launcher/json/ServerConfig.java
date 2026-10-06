@@ -86,6 +86,7 @@ public class ServerConfig {
     private Boolean kioskSystemInfo;
     private Boolean kioskKeyguard;
     private Boolean kioskLockButtons;
+    private Boolean kioskScreenOn;
     private String restrictions;
 
     private String description;
@@ -568,6 +569,14 @@ public class ServerConfig {
 
     public void setKioskLockButtons(Boolean kioskLockButtons) {
         this.kioskLockButtons = kioskLockButtons;
+    }
+
+    public Boolean getKioskScreenOn() {
+        return kioskScreenOn;
+    }
+
+    public void setKioskScreenOn(Boolean kioskScreenOn) {
+        this.kioskScreenOn = kioskScreenOn;
     }
 
     public Boolean getRunDefaultLauncher() {

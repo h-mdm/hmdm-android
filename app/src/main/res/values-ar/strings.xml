@@ -126,4 +126,7 @@
     <string name="work_profile_message">سيحصل هذا الجهاز على ملف شخصي للعمل مُدار ينتمي إلى مؤسستك. يتم فصل الملف الشخصي للعمل عن ملفك الشخصي الخاص ويمكنك التبديل بين الملفات الشخصية في أي وقت.</string>
     <string name="overlays_not_supported">للأسف لا يدعم جهازك التراكبات.</string>
     <string name="admin_not_supported">جهازك ليس لديه خيار مسؤول الجهاز. انقر فوق تخطي للمتابعة.</string>
+    <string name="manage_storage_not_supported">لا يتوفر لجهازك خيار لإدارة وحدة التخزين الخارجية.</string>
+    <string name="certificate_install_failed">فشل تثبيت الشهادة %1$s: %2$s</string>
+    <string name="reboot_required">لإكمال عملية الإعداد، يجب إعادة تشغيل الجهاز.</string>
 </resources>

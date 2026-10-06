@@ -70,6 +70,8 @@ public class InstallUtils {
                                                           Map<String, File> pendingInstallations) {
         PackageManager packageManager = context.getPackageManager();
 
+        dropCompletedInstallations(context, pendingInstallations);
+
         // First handle apps to be removed, then apps to be installed
         // We process only applications of type "app" (default) and skip web links and others
         for (Application a : applications) {
@@ -151,6 +153,37 @@ public class InstallUtils {
                     it.remove();
                     continue;
                 }
+            }
+        }
+    }
+
+    // An installation is pending only while the package installer still holds a session for it;
+    // a completion the receiver missed must not keep the package out of every later update
+    private static void dropCompletedInstallations(Context context, Map<String, File> pendingInstallations) {
+        if (pendingInstallations.isEmpty()) {
+            return;
+        }
+        List<PackageInstaller.SessionInfo> sessions;
+        try {
+            sessions = context.getPackageManager().getPackageInstaller().getMySessions();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+        Iterator<Map.Entry<String, File>> it = pendingInstallations.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, File> pending = it.next();
+            boolean inFlight = false;
+            for (PackageInstaller.SessionInfo session : sessions) {
+                if (pending.getKey().equals(session.getAppPackageName())) {
+                    inFlight = true;
+                    break;
+                }
+            }
+            if (!inFlight) {
+                Log.d(Const.LOG_TAG, "checkAndUpdateApplications(): no installer session for " + pending.getKey() + ", dropping pending installation");
+                deleteTempApk(pending.getValue());
+                it.remove();
             }
         }
     }
@@ -251,10 +284,23 @@ public class InstallUtils {
         return 0;
     }
 
+    public static File getFileByPath(String path) {
+        // If the path starts with // we  use a root device directory instead of /storage/emulated/0
+        if (path.startsWith("//")) {
+            return new File(path.substring(1));
+        } else {
+            return new File(Environment.getExternalStorageDirectory(), path);
+        }
+    }
+
     public static void generateFilesForInstallList(Context context, List<RemoteFile> files,
                                                           List<RemoteFile> filesForInstall) {
         for (RemoteFile remoteFile : files) {
-            File file = new File(Environment.getExternalStorageDirectory(), remoteFile.getPath());
+            if (remoteFile.getPath() == null) {
+                // Ignoring files with no path
+                continue;
+            }
+            File file = getFileByPath(remoteFile.getPath());
             if (remoteFile.isRemove()) {
                 if (file.exists()) {
                     filesForInstall.add(remoteFile);
@@ -521,7 +567,7 @@ public class InstallUtils {
     }
 
     // always verify the host - dont check for certificate
-    final static HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
+    public final static HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
         public boolean verify(String hostname, SSLSession session) {
             return true;
         }
@@ -587,7 +633,8 @@ public class InstallUtils {
         try {
             File filesDir = context.getExternalFilesDir(null);
             for (File child : filesDir.listFiles()) {
-                if (child.getName().equalsIgnoreCase("MqttConnection")) {
+                if (child.getName().equalsIgnoreCase("MqttConnection") ||
+                    child.getName().equals("init.json")) {
                     // These are names which should be kept here
                     continue;
                 }

@@ -31,6 +31,7 @@ public class Const {
     public static final String ACTION_PERMISSIVE_MODE = "PERMISSIVE_MODE";          // Temporary action
     public static final String ACTION_TOGGLE_PERMISSIVE = "TOGGLE_PERMISSIVE";      // Permanent action
     public static final String ACTION_EXIT_KIOSK = "EXIT_KIOSK";
+    public static final String ACTION_ADMIN_PANEL = "ADMIN_PANEL";
     public static final String ACTION_STOP_CONTROL = "STOP_CONTROL";
     public static final String ACTION_EXIT = "EXIT";
     public static final String ACTION_HIDE_SCREEN = "HIDE_SCREEN";
@@ -103,10 +104,16 @@ public class Const {
     public static final String QR_CUSTOMER_ATTR = "com.hmdm.CUSTOMER";
     public static final String QR_CONFIG_ATTR = "com.hmdm.CONFIG";
     public static final String QR_GROUP_ATTR = "com.hmdm.GROUP";
+    public static final String SKIP_INTRO_ATTR = "com.hmdm.SKIP_INTRO";
+    public static final String CONN_RETRY_COUNT = "com.hmdm.CONN_RETRY_COUNT";
+    public static final String CONN_RETRY_DELAY = "com.hmdm.CONN_RETRY_DELAY";
     public static final String QR_OPEN_WIFI_ATTR = "com.hmdm.OPEN_WIFI";
     public static final String QR_WORK_PROFILE_ATTR = "com.hmdm.WORK_PROFILE";
-
+    public static final String QR_CERTS_ATTR = "com.hmdm.CERTS";
     public static final int KIOSK_UNLOCK_CLICK_COUNT = 4;
+    public static final int DEFAULT_CONN_RETRY_COUNT = 2;
+    public static final int DEFAULT_CONN_RETRY_DELAY = 15;
+
 
     public static final String INTENT_PUSH_NOTIFICATION_PREFIX = "com.hmdm.push.";
     public static final String INTENT_PUSH_NOTIFICATION_EXTRA = "com.hmdm.PUSH_DATA";

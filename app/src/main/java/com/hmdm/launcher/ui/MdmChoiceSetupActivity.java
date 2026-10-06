@@ -35,6 +35,7 @@ public class MdmChoiceSetupActivity extends AppCompatActivity {
 
     protected Dialog enterDeviceIdDialog;
     protected DialogEnterDeviceIdBinding enterDeviceIdDialogBinding;
+        protected PersistableBundle provisioningExtrasBundle;
 
     @Override
     protected void onCreate( Bundle savedInstanceState ) {
@@ -45,9 +46,11 @@ public class MdmChoiceSetupActivity extends AppCompatActivity {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_mdm_choice);
 
         Intent intent = getIntent();
-        PersistableBundle bundle = intent.getParcelableExtra(DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (bundle != null && bundle.getString(Const.QR_OPEN_WIFI_ATTR) != null) {
+        provisioningExtrasBundle = intent.getParcelableExtra(DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            if (provisioningExtrasBundle != null &&
+                    (provisioningExtrasBundle.getString(Const.QR_OPEN_WIFI_ATTR) != null ||
+                     provisioningExtrasBundle.getBoolean(Const.QR_OPEN_WIFI_ATTR))) {
                 try {
                     startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
                 } catch (Exception e) {
@@ -55,7 +58,7 @@ public class MdmChoiceSetupActivity extends AppCompatActivity {
                     Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             }
-            AdminReceiver.updateSettings(this, bundle);
+            AdminReceiver.updateSettings(this, provisioningExtrasBundle);
         }
 
         SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
@@ -70,11 +73,30 @@ public class MdmChoiceSetupActivity extends AppCompatActivity {
             } else if (BuildConfig.DEVICE_ID_CHOICE.equals("serial") || "serial".equals(deviceIdUse)) {
                 deviceId = intent.getStringExtra(DevicePolicyManager.EXTRA_PROVISIONING_SERIAL_NUMBER);
             } else {
+                // MAC address is not available here, because the app isn't a device owner yet
                 displayEnterDeviceIdDialog(intent.getStringExtra(DevicePolicyManager.EXTRA_PROVISIONING_IMEI),
                         intent.getStringExtra(DevicePolicyManager.EXTRA_PROVISIONING_SERIAL_NUMBER));
                 return;
             }
             settingsHelper.setDeviceId(deviceId);
+            settingsHelper.setImei(DevicePolicyManager.EXTRA_PROVISIONING_IMEI);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1 &&
+                provisioningExtrasBundle != null) {
+            SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
+            settingsHelper.setConnRetryCount(provisioningExtrasBundle.getInt(Const.CONN_RETRY_COUNT, Const.DEFAULT_CONN_RETRY_COUNT));
+            settingsHelper.setConnRetryDelay(provisioningExtrasBundle.getInt(Const.CONN_RETRY_DELAY, Const.DEFAULT_CONN_RETRY_DELAY));
+            if (provisioningExtrasBundle.getString(Const.SKIP_INTRO_ATTR) != null ||
+                    provisioningExtrasBundle.getBoolean(Const.SKIP_INTRO_ATTR)) {
+                continueSetup(null);
+
+            }
         }
     }
 

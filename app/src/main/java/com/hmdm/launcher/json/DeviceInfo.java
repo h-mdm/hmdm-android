@@ -54,6 +54,7 @@ public class DeviceInfo {
     private String imsi2;
     private String cpu;
     private String serial;
+    private String mac;
 
     // These fields are reserved for custom builds of Headwind MDM
     private String custom1;
@@ -290,6 +291,14 @@ public class DeviceInfo {
 
     public void setSerial(String serial) {
         this.serial = serial;
+    }
+
+    public String getMac() {
+        return mac;
+    }
+
+    public void setMac(String mac) {
+        this.mac = mac;
     }
 
     public String getCustom1() {

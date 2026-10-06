@@ -24,7 +24,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.RemoteException;
 
 public class MDMService {
@@ -44,9 +46,21 @@ public class MDMService {
 
     public static final int INITIAL_VERSION = 112;
 
+    // Minimal launcher API version that supports forceConfigUpdate() with a progress callback.
+    // This MUST stay in sync with PluginApiService.getVersion() in the launcher that introduced
+    // forceConfigUpdateWithCallback() - both are bumped together. If the launcher's reported
+    // version is renumbered upstream, update this value to match.
+    public static final int CALLBACK_VERSION = 119;
+
     private Context context;
     private IMdmApi mdmApi;
     private RemoteServiceConnection serviceConnection;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
+    // The launcher only holds a remote (proxy) reference to the progress callback.
+    // We must keep a strong reference on this side, otherwise the local Binder may be
+    // garbage-collected mid-update and the launcher's callbacks would silently stop.
+    private IMdmApiCallback activeConfigUpdateCallback;
 
     private static MDMService instance;
 
@@ -146,6 +160,125 @@ public class MDMService {
     }
 
     /**
+     * Live progress events of a forced configuration update.
+     * All callbacks are delivered on the main (UI) thread.
+     * Error codes: SERVER = 1, NETWORK = 2 (config); DOWNLOAD = 1, INSTALL = 2 (file/app).
+     */
+    public interface ConfigUpdateListener {
+        void onConfigUpdateStart();
+        void onConfigUpdateError(int type, String errorText);
+        void onConfigLoaded();
+        void onPoliciesUpdated();
+        void onFileDownloading(String path);
+        void onDownloadProgress(int progress, long total, long current);
+        void onFileError(int type, String path);
+        void onAppUpdateStart();
+        void onAppRemoving(String pkg, String name);
+        void onAppDownloading(String pkg, String name);
+        void onAppInstalling(String pkg, String name);
+        void onAppError(int type, String pkg);
+        void onAppInstallComplete(String pkg);
+        void onConfigUpdateComplete();
+        void onAllAppInstallComplete();
+    }
+
+    /**
+     * Force the configuration update and receive live progress events.
+     * Requires the installed launcher to be version 1.1.9 (119) or newer;
+     * otherwise throws MDMException(ERROR_VERSION).
+     *
+     * @param listener receives progress events on the main thread (may be null,
+     *                 in which case this behaves like {@link #forceConfigUpdate()})
+     */
+    public void forceConfigUpdate(final ConfigUpdateListener listener) throws MDMException {
+        if (mdmApi == null) {
+            throw new MDMException(MDMError.ERROR_DISCONNECTED);
+        }
+
+        if (getVersion() < CALLBACK_VERSION) {
+            throw new MDMException(MDMError.ERROR_VERSION);
+        }
+
+        try {
+            // Retain a strong reference to the callback Binder for the whole update
+            // (see field declaration) so it isn't garbage-collected mid-update.
+            activeConfigUpdateCallback = (listener == null) ? null : wrapListener(listener);
+            mdmApi.forceConfigUpdateWithCallback(activeConfigUpdateCallback);
+        } catch (RemoteException e) {
+            // Defensive: if the version check above let us through but the launcher
+            // doesn't actually implement this method (e.g. CALLBACK_VERSION drifted out
+            // of sync with the launcher's reported version), surface it as a version
+            // error so callers can fall back to plain forceConfigUpdate().
+            throw new MDMException(MDMError.ERROR_VERSION);
+        }
+    }
+
+    private IMdmApiCallback wrapListener(final ConfigUpdateListener listener) {
+        return new IMdmApiCallback.Stub() {
+            @Override
+            public void onConfigUpdateStart() {
+                mainHandler.post(() -> listener.onConfigUpdateStart());
+            }
+            @Override
+            public void onConfigUpdateError(int type, String errorText) {
+                mainHandler.post(() -> listener.onConfigUpdateError(type, errorText));
+            }
+            @Override
+            public void onConfigLoaded() {
+                mainHandler.post(() -> listener.onConfigLoaded());
+            }
+            @Override
+            public void onPoliciesUpdated() {
+                mainHandler.post(() -> listener.onPoliciesUpdated());
+            }
+            @Override
+            public void onFileDownloading(String path) {
+                mainHandler.post(() -> listener.onFileDownloading(path));
+            }
+            @Override
+            public void onDownloadProgress(int progress, long total, long current) {
+                mainHandler.post(() -> listener.onDownloadProgress(progress, total, current));
+            }
+            @Override
+            public void onFileError(int type, String path) {
+                mainHandler.post(() -> listener.onFileError(type, path));
+            }
+            @Override
+            public void onAppUpdateStart() {
+                mainHandler.post(() -> listener.onAppUpdateStart());
+            }
+            @Override
+            public void onAppRemoving(String pkg, String name) {
+                mainHandler.post(() -> listener.onAppRemoving(pkg, name));
+            }
+            @Override
+            public void onAppDownloading(String pkg, String name) {
+                mainHandler.post(() -> listener.onAppDownloading(pkg, name));
+            }
+            @Override
+            public void onAppInstalling(String pkg, String name) {
+                mainHandler.post(() -> listener.onAppInstalling(pkg, name));
+            }
+            @Override
+            public void onAppError(int type, String pkg) {
+                mainHandler.post(() -> listener.onAppError(type, pkg));
+            }
+            @Override
+            public void onAppInstallComplete(String pkg) {
+                mainHandler.post(() -> listener.onAppInstallComplete(pkg));
+            }
+            @Override
+            public void onConfigUpdateComplete() {
+                mainHandler.post(() -> listener.onConfigUpdateComplete());
+            }
+            @Override
+            public void onAllAppInstallComplete() {
+                mainHandler.post(() -> listener.onAllAppInstallComplete());
+            }
+        };
+    }
+
+    /**
      * Query configuration
      */
     public Bundle queryConfig() throws MDMException {
@@ -202,6 +335,25 @@ public class MDMService {
 
         try {
             mdmApi.setCustom(number, value);
+        } catch (RemoteException e) {
+            throw new MDMException(MDMError.ERROR_INTERNAL);
+        }
+    }
+
+    /**
+     * Send a push command
+     */
+    public boolean sendPush(String apiKey, String type, String payload) throws MDMException {
+        if (mdmApi == null) {
+            throw new MDMException(MDMError.ERROR_DISCONNECTED);
+        }
+
+        if (getVersion() < 118) {
+            throw new MDMException(MDMError.ERROR_VERSION);
+        }
+
+        try {
+            return mdmApi.sendPush(apiKey, type, payload);
         } catch (RemoteException e) {
             throw new MDMException(MDMError.ERROR_INTERNAL);
         }

@@ -126,4 +126,7 @@
 	<string name="work_profile_message">此设备将获得属于您的组织的受管理工作配置文件。 工作资料与您的私人资料分开，您可以随时在资料之间切换。</string>
 	<string name="overlays_not_supported">不幸的是，您的设备不支持覆盖。</string>
 	<string name="admin_not_supported">您的设备没有设备管理员选项。 单击跳过以继续。</string>
+	<string name="manage_storage_not_supported">您的设备没有管理外部存储的选项。</string>
+    <string name="certificate_install_failed">安装证书 %1$s 失败：%2$s</string>
+    <string name="reboot_required">要完成配置，需要重启设备。</string>
 </resources>

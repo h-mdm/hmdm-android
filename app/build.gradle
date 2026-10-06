@@ -33,10 +33,16 @@ android {
     compileSdkVersion 34
     defaultConfig {
         applicationId "com.hmdm.launcher"
-        minSdkVersion 16
+        //minSdkVersion 16
+        // Starting with version 6.33, we use newer version of com.fasterxml.jackson
+        // which is only compatible with API 26 (Android 8+).
+        // To avoid failures after the upgrade, the minimal SDK version increased here.
+        // If it is required to maintain the backward compatibility with Android 5-7,
+        // downgrade the dependency to com.fasterxml.jackson to 2.13.5
+        minSdkVersion 26
         targetSdkVersion 34
-        versionCode 15210
-        versionName "6.21"
+        versionCode 15390
+        versionName "6.39"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true
@@ -60,14 +66,21 @@ android {
         // "suggest" - user can select among few predefined values (IMEI, serial, MAC)
         // "imei", "serial", "mac" - set the selected parameter as device ID without user interaction
         buildConfigField("String", "DEVICE_ID_CHOICE", "\"user\"")
-        // Enables Push notifications. Setting it to false will stop automatic configuration updates after changing it on the server.
-        buildConfigField("Boolean", "ENABLE_PUSH", "true")
+        // Configuration key from the enrollment JSON (String)
+        buildConfigField("String", "ENROLLMENT_CONFIG_KEY", "null")
+        // ID of the customer enrolling devices (in multi-tenant setup only)
+        buildConfigField("String", "ENROLLMENT_CUSTOMER", "null")
+        // Device group IDs (optional, comma-separated ids)
+        buildConfigField("String", "ENROLLMENT_GROUPS", "null")
         // MQTT port for Push notifications
         buildConfigField("Integer", "MQTT_PORT", "31000")
         // Set this parameter to true if you'll grant system privileges to Headwind MDM (signing it by system keys).
         // This will enable silent installation and the launcher will try to get the device owner rights by updating system files.
         // This may be useful, for example, when your device doesn't have QR code provisioning capability.
         buildConfigField("Boolean", "SYSTEM_PRIVILEGES", "false")
+        // If set to true, Headwind MDM prompts the user to reboot a device if failed to set the
+        // device owner. This could be used together with the SYSTEM_PRIVILEGES option
+        buildConfigField("Boolean", "REBOOT_ON_DEVICE_OWNER_FAIL", "false")
         // Set this parameter to true if you'd like to trust every certificate, for example, self-signed
         // Not recommended for security purposes!
         buildConfigField("Boolean", "TRUST_ANY_CERTIFICATE", "false")
@@ -159,13 +172,13 @@ dependencies {
     implementation 'com.jakewharton.picasso:picasso2-okhttp3-downloader:1.1.0'
 
     // Retrofit
-    implementation 'com.squareup.retrofit2:retrofit:2.3.0'
-    implementation 'com.squareup.retrofit2:converter-jackson:2.3.0'
+    implementation 'com.squareup.retrofit2:retrofit:3.0.0'
+    implementation 'com.squareup.retrofit2:converter-jackson:3.0.0'
 
     // Jackson
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.9.4'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.9.4'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.21.1'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.21'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.21.1'
 
     // Worker
     implementation 'androidx.work:work-runtime:2.9.1'

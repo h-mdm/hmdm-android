@@ -31,6 +31,7 @@ public class PushMessage {
     public static final String TYPE_CONFIG_UPDATING = "configUpdating";
     public static final String TYPE_CONFIG_UPDATED = "configUpdated";
     public static final String TYPE_RUN_APP = "runApp";
+    public static final String TYPE_BROADCAST = "broadcast";
     public static final String TYPE_UNINSTALL_APP = "uninstallApp";
     public static final String TYPE_DELETE_FILE = "deleteFile";
     public static final String TYPE_PURGE_DIR = "purgeDir";
@@ -42,6 +43,8 @@ public class PushMessage {
     public static final String TYPE_CLEAR_DOWNLOADS = "clearDownloadHistory";
     public static final String TYPE_INTENT = "intent";
     public static final String TYPE_GRANT_PERMISSIONS = "grantPermissions";
+    public static final String TYPE_ADMIN_PANEL = "adminPanel";
+    public static final String TYPE_CLEAR_APP_DATA = "clearAppData";
 
     public String getMessageType() {
         return messageType;

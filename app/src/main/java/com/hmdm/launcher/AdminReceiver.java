@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Environment;
 import android.os.PersistableBundle;
 
 import androidx.annotation.RequiresApi;
@@ -34,6 +35,12 @@ import androidx.annotation.RequiresApi;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.DeviceEnrollOptions;
 import com.hmdm.launcher.util.PreferenceLogger;
+import com.hmdm.launcher.util.Utils;
+
+import org.json.JSONObject;
+
+import java.io.File;
+import java.util.Iterator;
 
 /**
  * Created by Ivan Lozenko on 21.02.2017.
@@ -61,6 +68,36 @@ public class AdminReceiver extends DeviceAdminReceiver {
 
         PersistableBundle bundle = intent.getParcelableExtra(EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
         updateSettings(context, bundle);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public static void updateSettingsFromFile(Context context) {
+        try {
+            File file = new File(context.getExternalFilesDir(null), "init.json");
+            if (!file.exists()) {
+                file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                        "hmdm_init.json");
+                if (!file.exists()) {
+                    return;
+                }
+            }
+            String contents = Utils.loadFileAsString(file.getAbsolutePath());
+            PersistableBundle bundle = new PersistableBundle();
+            JSONObject obj = new JSONObject(contents);
+            // We assume that obj has a linear structure and all items are strings
+            // If things change in the future, this must be reflected here
+            Iterator<String> keys = obj.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                Object value = obj.opt(key);
+                if (value instanceof String) {
+                    bundle.putString(key, (String)value);
+                }
+            }
+            updateSettings(context, bundle);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -95,14 +132,25 @@ public class AdminReceiver extends DeviceAdminReceiver {
             String baseUrl = null;
             String secondaryBaseUrl = null;
             String serverProject = null;
+            String certUrls = null;
             DeviceEnrollOptions createOptions = new DeviceEnrollOptions();
             if (bundle != null) {
                 baseUrl = bundle.getString(Const.QR_BASE_URL_ATTR, null);
                 secondaryBaseUrl = bundle.getString(Const.QR_SECONDARY_BASE_URL_ATTR, null);
                 serverProject = bundle.getString(Const.QR_SERVER_PROJECT_ATTR, null);
+                certUrls = bundle.getString(Const.QR_CERTS_ATTR, null);
                 createOptions.setCustomer(bundle.getString(Const.QR_CUSTOMER_ATTR, null));
+                if (createOptions.getCustomer() == null) {
+                    createOptions.setCustomer(BuildConfig.ENROLLMENT_CUSTOMER);
+                }
                 createOptions.setConfiguration(bundle.getString(Const.QR_CONFIG_ATTR, null));
+                if (createOptions.getConfiguration() == null) {
+                    createOptions.setConfiguration(BuildConfig.ENROLLMENT_CONFIG_KEY);
+                }
                 createOptions.setGroups(bundle.getString(Const.QR_GROUP_ATTR, null));
+                if (createOptions.getGroups() == null) {
+                    createOptions.setGroups(BuildConfig.ENROLLMENT_GROUPS);
+                }
                 if (baseUrl != null) {
                     PreferenceLogger.log(preferences, "BaseURL: " + baseUrl);
                     settingsHelper.setBaseUrl(baseUrl);
@@ -118,6 +166,10 @@ public class AdminReceiver extends DeviceAdminReceiver {
                 if (serverProject != null) {
                     PreferenceLogger.log(preferences, "ServerPath: " + serverProject);
                     settingsHelper.setServerProject(serverProject);
+                }
+                if (certUrls != null) {
+                    PreferenceLogger.log(preferences, "CertUrls: " + certUrls);
+                    settingsHelper.setCertUrls(certUrls);
                 }
                 if (createOptions.getCustomer() != null) {
                     PreferenceLogger.log(preferences, "Customer: " + createOptions.getCustomer());

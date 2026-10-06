@@ -23,4 +23,5 @@
         <wipe-data />
         <limit-password />
     </uses-policies>
+    <support-transfer-ownership />
 </device-admin>

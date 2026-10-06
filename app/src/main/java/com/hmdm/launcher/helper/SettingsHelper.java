@@ -47,8 +47,12 @@ public class SettingsHelper {
     private static final String PREF_KEY_CONFIG_NAME = ".helpers.CONFIG_NAME";
     private static final String PREF_KEY_GROUP = ".helpers.GROUP";
     private static final String PREF_KEY_DEVICE_ID_USE = ".helpers.DEVICE_ID_USE";
+    private static final String PREF_KEY_CERT_URLS = ".helpers.CERT_URLS";
     private static final String PREF_KEY_CONFIG = ".helpers.CONFIG";
     private static final String PREF_KEY_IP_ADDRESS = ".helpers.IP_ADDRESS";
+    private static final String PREF_KEY_IMEI = ".helpers.IMEI";
+    private static final String PREF_KEY_CONN_RETRY_COUNT = ".helpers.CONN_RETRY_COUNT";
+    private static final String PREF_KEY_CONN_RETRY_DELAY = ".helpers.CONN_RETRY_DELAY";
     private static final String PREF_QR_PROVISIONING = ".helpers.QR_PROVISIONING";
     private static final String PREF_CFG_UPDATE_TIMESTAMP = ".helpers.CFG_UPDATE_TIMESTAMP";
     private static final String PREF_KEY_ACTIVITY_RUNNING = ".helpers.ACTIVITY_RUNNING";
@@ -57,6 +61,10 @@ public class SettingsHelper {
     private static final String PREF_KEY_LAST_APP_UPDATE_STATE = ".helpers.LAST_APP_UPDATE_STATE";
     private static final String PREF_KEY_APP_START_TIME = ".helpers.APP_START_TIME";
     private static final String PREF_KEY_SATELLITE_COUNT = ".helpers.APP_SATELLITE_COUNT";
+    private static final String PREF_KEY_REBOOTED_AFTER_ENROLLMENT = ".helpers.REBOOTED_AFTER_ENROLLMENT";
+    private static final String PREF_KEY_USER_CUSTOM_1 = ".helpers.USER_CUSTOM_1";
+    private static final String PREF_KEY_USER_CUSTOM_2 = ".helpers.USER_CUSTOM_2";
+    private static final String PREF_KEY_USER_CUSTOM_3 = ".helpers.USER_CUSTOM_3";
     // This prefix is for the compatibility with a legacy package name
     private static String PACKAGE_NAME;
 
@@ -149,12 +157,44 @@ public class SettingsHelper {
         return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_SERVER_PROJECT, serverProject ).commit();
     }
 
+    public String getCertUrls() {
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_CERT_URLS, null );
+    }
+
+    public boolean setCertUrls( String certUrls ) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_CERT_URLS, certUrls ).commit();
+    }
+
     public String getDeviceId() {
         return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_DEVICE_ID,"" );
     }
 
     public boolean setDeviceId( String deviceId ) {
         return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_DEVICE_ID, deviceId ).commit();
+    }
+
+    public String getImei() {
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_IMEI,"" );
+    }
+
+    public boolean setImei( String imei ) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_IMEI, imei ).commit();
+    }
+
+    public int getConnRetryCount() {
+        return sharedPreferences.getInt(PACKAGE_NAME + PREF_KEY_CONN_RETRY_COUNT, 1);
+    }
+
+    public boolean setConnRetryCount(int count) {
+        return sharedPreferences.edit().putInt(PACKAGE_NAME + PREF_KEY_CONN_RETRY_COUNT, count).commit();
+    }
+
+    public int getConnRetryDelay() {
+        return sharedPreferences.getInt(PACKAGE_NAME + PREF_KEY_CONN_RETRY_DELAY, 15);
+    }
+
+    public boolean setConnRetryDelay(int delay) {
+        return sharedPreferences.edit().putInt(PACKAGE_NAME + PREF_KEY_CONN_RETRY_DELAY, delay).commit();
     }
 
     public String getExternalIp() {
@@ -265,6 +305,38 @@ public class SettingsHelper {
         return sharedPreferences.getStringSet(PACKAGE_NAME + PREF_KEY_GROUP, null);
     }
 
+    public boolean isRebootedAfterEnrollment() {
+        return sharedPreferences.getBoolean(PACKAGE_NAME + PREF_KEY_REBOOTED_AFTER_ENROLLMENT, false);
+    }
+
+    public boolean setRebootedAfterEnrollment(boolean value) {
+        return sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_KEY_REBOOTED_AFTER_ENROLLMENT, value ).commit();
+    }
+
+    public boolean setUserCustom1(String userCustom) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_USER_CUSTOM_1, userCustom).commit();
+    }
+
+    public String getUserCustom1() {
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_USER_CUSTOM_1, null);
+    }
+
+    public boolean setUserCustom2(String userCustom) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_USER_CUSTOM_2, userCustom).commit();
+    }
+
+    public String getUserCustom2() {
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_USER_CUSTOM_2, null);
+    }
+
+    public boolean setUserCustom3(String userCustom) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_USER_CUSTOM_3, userCustom).commit();
+    }
+
+    public String getUserCustom3() {
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_USER_CUSTOM_3, null);
+    }
+
     public void updateConfig( ServerConfig config ) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -327,7 +399,17 @@ public class SettingsHelper {
         appSettings.clear();
         for (ApplicationSetting setting : config.getApplicationSettings()) {
             String key = setting.getPackageId() + "." + setting.getName();
-            appSettings.put(key, setting);
+            ApplicationSetting copy = new ApplicationSetting(setting);
+            if (setting.isVariable()) {
+                String newValue = copy.getValue()
+                        .replace("DEVICE_NUMBER", getDeviceId())
+                        .replace("IMEI", getImei())
+                        .replace("CUSTOM1", config.getCustom1() != null ? config.getCustom1() : "")
+                        .replace("CUSTOM2", config.getCustom2() != null ? config.getCustom2() : "")
+                        .replace("CUSTOM3", config.getCustom3() != null ? config.getCustom3() : "");
+                copy.setValue(newValue);
+            }
+            appSettings.put(key, copy);
         }
     }
 
@@ -373,6 +455,10 @@ public class SettingsHelper {
 
     public void commitAppPreferences(String packageId) {
         // TODO: send new preferences to server
+    }
+
+    public Map<String,ApplicationSetting> getProcessedAppSettings() {
+        return appSettings;
     }
 
     public Set<String> getAllowedClasses() {

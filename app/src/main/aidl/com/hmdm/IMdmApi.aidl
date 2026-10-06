@@ -2,6 +2,7 @@
 package com.hmdm;
 
 // Declare any non-default types here with import statements
+import com.hmdm.IMdmApiCallback;
 
 interface IMdmApi {
     /**
@@ -52,4 +53,18 @@ interface IMdmApi {
      * Force the configuration update
      */
     void forceConfigUpdate();
+
+    // Added in library version 1.1.8
+    /**
+     * Send a Push notification to initiate an action from the app
+     * Returns true on success and false if the api key is invalid
+     */
+    boolean sendPush(String apiKey, String type, String payload);
+
+    // Added in library version 1.1.9
+    /**
+     * Force the configuration update and report live progress events
+     * to the supplied callback. Pass null to behave like forceConfigUpdate().
+     */
+    void forceConfigUpdateWithCallback(IMdmApiCallback callback);
 }

@@ -129,6 +129,46 @@ public class Utils {
         return true;
     }
 
+    // Automatically grant storage permission to get external config JSON
+    @TargetApi(Build.VERSION_CODES.M)
+    public static boolean autoGrantStoragePermission(Context context) {
+        try {
+            DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(
+                    Context.DEVICE_POLICY_SERVICE);
+            ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                if (devicePolicyManager.getPermissionGrantState(adminComponentName,
+                        context.getPackageName(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED) {
+                    boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
+                            context.getPackageName(), Manifest.permission.WRITE_EXTERNAL_STORAGE, DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
+                    if (!success) {
+                        return false;
+                    }
+                }
+            } else {
+                if (devicePolicyManager.getPermissionGrantState(adminComponentName,
+                        context.getPackageName(), Manifest.permission.MANAGE_EXTERNAL_STORAGE) != DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED) {
+                    boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
+                            context.getPackageName(), Manifest.permission.MANAGE_EXTERNAL_STORAGE, DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
+                    if (!success) {
+                        return false;
+                    }
+                }
+            }
+        } catch (NoSuchMethodError e) {
+            // This exception is raised on Android 5.1
+            e.printStackTrace();
+            return false;
+        } catch (/* SecurityException */ Exception e) {
+            // No active admin ComponentInfo (not sure why could that happen)
+            e.printStackTrace();
+            return false;
+        }
+        Log.i(Const.LOG_TAG, "MANAGE_EXTERNAL_STORAGE automatically granted");
+        return true;
+    }
+
     // Automatically get dangerous permissions
     // Notice: default (null) app permission strategy is "Grant all"
     @TargetApi(Build.VERSION_CODES.M)
@@ -422,9 +462,24 @@ public class Utils {
     public static void initPasswordReset(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
-                String token = getDataToken(context);
                 DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
                 ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+
+                // Prevent accumulation of pending tokens
+                // as per the solution suggested in https://github.com/h-mdm/hmdm-android/issues/53
+
+                // Nothing to do if a token is already registered and active.
+                if (dpm.isResetPasswordTokenActive(adminComponentName)) {
+                    return;
+                }
+                // Release any previously registered token so its Weaver slot is freed
+                // before a new one is allocated.
+                try {
+                    dpm.clearResetPasswordToken(adminComponentName);
+                } catch (Exception ignored) {
+                }
+
+                String token = getDataToken(context);
                 if (dpm.setResetPasswordToken(adminComponentName, token.getBytes())) {
                     if (!dpm.isResetPasswordTokenActive(adminComponentName)) {
                         RemoteLogger.log(context, Const.LOG_WARN, "Password reset token will be activated once the user enters the current password next time.");
@@ -1100,6 +1155,30 @@ public class Utils {
             }
         } else {
             service.startForeground(notificationId, notification);
+        }
+    }
+
+    /**
+     * Lock or unlock packages
+     */
+    public static void lockPackages(Context context, String packages, boolean lock) {
+        if (packages != null &&
+                Utils.isDeviceOwner(context) &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ComponentName deviceAdmin = LegacyUtils.getAdminComponentName(context);
+            DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            packages.replace(" ", "");
+            String[] pkgs = packages.split(",");
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    devicePolicyManager.setPackagesSuspended(deviceAdmin, pkgs, lock);
+                }
+                for (String pkg : pkgs) {
+                    devicePolicyManager.setApplicationHidden(deviceAdmin, pkg, lock);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }

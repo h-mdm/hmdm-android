@@ -23,11 +23,12 @@ import com.hmdm.launcher.json.ServerConfig;
 import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.Utils;
 
-public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.UINotifier {
+public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.UINotifier, CertInstaller.Listener {
     private ActivityInitialSetupBinding binding;
     private ConfigUpdater configUpdater;
     private SettingsHelper settingsHelper;
     private boolean configuring = false;
+    private String certUrls = null;
 
     @Override
     protected void onCreate( Bundle savedInstanceState ) {
@@ -53,9 +54,42 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
 
         if (!configuring) {
             configuring = true;
-            configUpdater = new ConfigUpdater();
+            configUpdater = new ConfigUpdater(this);
             configUpdater.setLoadOnly(true);
-            updateConfig();
+            certUrls = settingsHelper.getCertUrls();
+            if (certUrls != null) {
+                installCerts();
+            } else {
+                updateConfig();
+            }
+        }
+    }
+
+    private void installCerts() {
+        CertInstaller.downloadAndInstallCerts(this, certUrls, this);
+    }
+
+    @Override
+    public void onCertInstallSuccess() {
+        configUpdater.updateConfig(this, this, true);
+    }
+
+    @Override
+    public void onCertInstallError(String url, String message) {
+        try {
+            String alertText = getResources().getString(R.string.certificate_install_failed, url, message);
+            new AlertDialog.Builder(this)
+                    .setMessage(alertText)
+                    .setNeutralButton(R.string.main_activity_repeat, (dialogInterface, i) -> installCerts())
+                    .setNegativeButton(R.string.main_activity_wifi, (dialogInterface, i) -> openWiFiSettings())
+                    .setPositiveButton(R.string.dialog_administrator_mode_skip, (dialogInterface, i) -> updateConfig())
+                    .create()
+                    .show();
+        } catch (/*BadToken*/Exception e) {
+            // Fatal Exception: android.view.WindowManager$BadTokenException
+            // Unable to add window -- token android.os.BinderProxy@4a95f1c is not valid; is your activity running?
+            // Shouldn't we reset the device here to avoid hanging up?
+            e.printStackTrace();
         }
     }
 
@@ -117,8 +151,9 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
                 // so watchdog services are not being started at this point.
                 // Perhaps we need to request these permissions at this step?
                 Log.d(Const.LOG_TAG, "Working in background, starting services and installing apps");
-                Initializer.init(InitialSetupActivity.this);
-                Initializer.startServicesAndLoadConfig(InitialSetupActivity.this);
+                Initializer.init(InitialSetupActivity.this, () -> {
+                    Initializer.startServicesAndLoadConfig(InitialSetupActivity.this);
+                });
             }
         }
         completeConfig(settingsHelper);
