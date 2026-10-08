@@ -1429,6 +1429,21 @@ public class MainActivity
         return manageButton;
     }
 
+    // Manage buttons are created once, so refresh their icons when the background changes
+    private void updateManageButtonIcons() {
+        boolean dark = isDarkBackground();
+        selectedManageButtonBorder.setStroke(2, dark ? 0xa0ffffff : 0xa0000000);
+        if (exitView != null) {
+            exitView.setImageResource(dark ? R.drawable.ic_vpn_key_opaque_24dp : R.drawable.ic_vpn_key_black_24dp);
+        }
+        if (infoView != null) {
+            infoView.setImageResource(dark ? R.drawable.ic_info_opaque_24dp : R.drawable.ic_info_black_24dp);
+        }
+        if (updateView != null) {
+            updateView.setImageResource(dark ? R.drawable.ic_system_update_opaque_24dp : R.drawable.ic_system_update_black_24dp);
+        }
+    }
+
     private void createExitButton() {
         if ( exitView != null ) {
             return;
@@ -1886,6 +1901,7 @@ public class MainActivity
         updateTitle(config);
 
         statusBarUpdater.updateControlsState(config.isDisplayStatus(), isDarkBackground());
+        updateManageButtonIcons();
 
         if (mainAppListAdapter == null || needRedrawContentAfterReconfigure) {
             needRedrawContentAfterReconfigure = false;
