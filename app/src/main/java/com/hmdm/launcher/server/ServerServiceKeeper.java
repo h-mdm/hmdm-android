@@ -46,7 +46,7 @@ public class ServerServiceKeeper {
     public static ServerService getServerServiceInstance(Context context) {
         if ( serverServiceInstance == null ) {
             try {
-                serverServiceInstance = createServerService(SettingsHelper.getInstance(context).getBaseUrl());
+                serverServiceInstance = createServerService(SettingsHelper.getInstance().getBaseUrl());
             } catch (Exception e) {
                 // "Invalid URL" exception. We must not be here but in the case we are here,
                 // avoid crash loop by replacing the URL to the default one
@@ -60,7 +60,7 @@ public class ServerServiceKeeper {
     public static ServerService getSecondaryServerServiceInstance(Context context) {
         if ( secondaryServerServiceInstance == null ) {
             try {
-                secondaryServerServiceInstance = createServerService(SettingsHelper.getInstance(context).getSecondaryBaseUrl());
+                secondaryServerServiceInstance = createServerService(SettingsHelper.getInstance().getSecondaryBaseUrl());
             } catch (Exception e) {
                 // Here we can go if the secondary base URL is invalid
                 // In this case, just return a copy of the primary instance

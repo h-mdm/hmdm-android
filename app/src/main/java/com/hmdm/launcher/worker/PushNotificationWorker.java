@@ -19,14 +19,9 @@
 
 package com.hmdm.launcher.worker;
 
+import android.app.PendingIntent;
 import android.content.Context;
-
-import androidx.annotation.NonNull;
-import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
-import androidx.work.Worker;
-import androidx.work.WorkerParameters;
+import android.content.Intent;
 
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
@@ -36,8 +31,10 @@ import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.PushMessage;
 import com.hmdm.launcher.json.PushResponse;
 import com.hmdm.launcher.json.ServerConfig;
+import com.hmdm.launcher.receiver.WakefulAlarmReceiver;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
+import com.hmdm.launcher.util.AlarmUtils;
 import com.hmdm.launcher.util.PushNotificationMqttWrapper;
 import com.hmdm.launcher.util.RemoteLogger;
 
@@ -50,64 +47,68 @@ import java.util.concurrent.TimeUnit;
 
 import retrofit2.Response;
 
-public class PushNotificationWorker extends Worker {
+// Periodically checks for incoming push notifications / keeps MQTT alive / triggers a
+// configuration update as a fallback. Runs on an AlarmManager alarm which reschedules itself
+// after every firing (previously a WorkManager PeriodicWorkRequest, see WakefulAlarmReceiver
+// for why this had to change).
+public class PushNotificationWorker extends WakefulAlarmReceiver {
 
-    // Minimal interval is 15 minutes as per docs
+    // Minimal interval is 15 minutes as per WorkManager docs; we keep the same cadence
     public static final int FIRE_PERIOD_MINS = 15;
 
     // Interval to update configuration to avoid losing device due to push failure
     public static final long CONFIG_UPDATE_INTERVAL = 3600000l;
 
-    private static final String WORK_TAG_PERIODIC = "com.hmdm.launcher.WORK_TAG_PUSH_PERIODIC";
+    private static final String ACTION_FIRE = "com.hmdm.launcher.action.PUSH_NOTIFICATION_ALARM";
 
     public static void schedule(Context context) {
-        RemoteLogger.log(context, Const.LOG_DEBUG, "Push notifications enqueued: " + FIRE_PERIOD_MINS + " mins");
-        PeriodicWorkRequest queryRequest =
-                new PeriodicWorkRequest.Builder(PushNotificationWorker.class, FIRE_PERIOD_MINS, TimeUnit.MINUTES)
-                        .addTag(Const.WORK_TAG_COMMON)
-                        .build();
-        WorkManager.getInstance(context.getApplicationContext()).enqueueUniquePeriodicWork(WORK_TAG_PERIODIC, ExistingPeriodicWorkPolicy.REPLACE, queryRequest);
+        RemoteLogger.log(context, Const.LOG_DEBUG, "Push notifications scheduled: " + FIRE_PERIOD_MINS + " mins");
+        AlarmUtils.scheduleAlarm(context, createPendingIntent(context), TimeUnit.MINUTES.toMillis(FIRE_PERIOD_MINS));
     }
 
-    private Context context;
-    private SettingsHelper settingsHelper;
-
-    public PushNotificationWorker(
-            @NonNull final Context context,
-            @NonNull WorkerParameters params) {
-        super(context, params);
-        this.context = context;
-        settingsHelper = SettingsHelper.getInstance(context);
+    private static PendingIntent createPendingIntent(Context context) {
+        Intent intent = new Intent(context, PushNotificationWorker.class);
+        intent.setAction(ACTION_FIRE);
+        return PendingIntent.getBroadcast(context, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
     @Override
-    // This is running in a background thread by WorkManager
-    public Result doWork() {
-        if (settingsHelper == null || settingsHelper.getConfig() == null) {
-            return Result.failure();
-        }
+    protected String getWakeLockTag() {
+        return "hmdm:PushNotificationWorker";
+    }
 
-        String pushOptions = settingsHelper.getConfig().getPushOptions();
+    @Override
+    protected void doWork(Context context, Intent intent) {
+        SettingsHelper settingsHelper = SettingsHelper.getInstance();
+        try {
+            if (settingsHelper != null && settingsHelper.getConfig() != null) {
+                String pushOptions = settingsHelper.getConfig().getPushOptions();
 
-        if (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER) ||
-                pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM)) {
-            // Note: MQTT client is automatically reconnected if connection is broken during launcher running,
-            // and re-initializing it may cause looped errors
-            // In particular, MQTT client is reconnected after turning Wi-Fi off and back on.
-            // Re-connection of MQTT client at Headwind MDM startup is implemented in MainActivity
-            // So by now, just request configuration update some times per day to avoid "device lost" issues
-            return doMqttWork();
-        } else {
-            // PUSH_OPTIONS_POLLING by default
-            //return doPollingWork();
-            // Long polling is done in a related service
-            // This is just a reserve task to prevent devices from being lost just in case
-            return doLongPollingWork();
+                if (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER) ||
+                        pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM)) {
+                    // Note: MQTT client is automatically reconnected if connection is broken during launcher running,
+                    // and re-initializing it may cause looped errors
+                    // In particular, MQTT client is reconnected after turning Wi-Fi off and back on.
+                    // Re-connection of MQTT client at Headwind MDM startup is implemented in MainActivity
+                    // So by now, just request configuration update some times per day to avoid "device lost" issues
+                    doMqttWork(context, settingsHelper);
+                } else {
+                    // PUSH_OPTIONS_POLLING by default
+                    //doPollingWork(context, settingsHelper);
+                    // Long polling is done in a related service
+                    // This is just a reserve task to prevent devices from being lost just in case
+                    doLongPollingWork(context, settingsHelper);
+                }
+            }
+        } finally {
+            // Reschedule the next firing regardless of the outcome of this one
+            schedule(context);
         }
     }
 
     // Query server for incoming messages each 15 minutes
-    private Result doPollingWork() {
+    private void doPollingWork(Context context, SettingsHelper settingsHelper) {
         ServerService serverService = ServerServiceKeeper.getServerServiceInstance(context);
         ServerService secondaryServerService = ServerServiceKeeper.getSecondaryServerServiceInstance(context);
         Response<PushResponse> response = null;
@@ -153,53 +154,44 @@ public class PushNotificationWorker extends Worker {
                     for (Map.Entry<String, PushMessage> entry : filteredMessages.entrySet()) {
                         PushNotificationProcessor.process(entry.getValue(), context);
                     }
-                    return Result.success();
-                } else {
-                    return Result.failure();
                 }
             }
         } catch ( Exception e ) {
             e.printStackTrace();
         }
-
-        return Result.failure();
     }
 
     // Periodic configuration update requests
-    private Result doLongPollingWork() {
-        return forceConfigUpdateWork();
+    private void doLongPollingWork(Context context, SettingsHelper settingsHelper) {
+        forceConfigUpdateWork(context, settingsHelper);
     }
 
     // Periodic configuration update requests
-    private Result doMqttWork() {
-
+    private void doMqttWork(Context context, SettingsHelper settingsHelper) {
         if (PushNotificationMqttWrapper.getInstance().checkPingDeath(context)) {
             RemoteLogger.log(context, Const.LOG_INFO, "MQTT ping death detected, reconnecting!");
-            mqttReconnect();
+            mqttReconnect(context, settingsHelper);
         }
 
-        return forceConfigUpdateWork();
+        forceConfigUpdateWork(context, settingsHelper);
     }
 
-    private Result forceConfigUpdateWork() {
+    private void forceConfigUpdateWork(Context context, SettingsHelper settingsHelper) {
         long lastConfigUpdateTimestamp = settingsHelper.getConfigUpdateTimestamp();
         long now = System.currentTimeMillis();
         if (lastConfigUpdateTimestamp == 0) {
             settingsHelper.setConfigUpdateTimestamp(now);
-            return Result.success();
+            return;
         }
         if (lastConfigUpdateTimestamp + CONFIG_UPDATE_INTERVAL > now) {
-            return Result.success();
+            return;
         }
         RemoteLogger.log(context, Const.LOG_DEBUG, "Forcing configuration update");
         settingsHelper.setConfigUpdateTimestamp(now);
         ConfigUpdater.forceConfigUpdate(context);
-        return Result.success();
     }
 
-    // We assume we're running in the background!
-    // https://stackoverflow.com/questions/57552955/is-possible-backgroundworker-dowork-in-main-thread
-    private void mqttReconnect() {
+    private void mqttReconnect(Context context, SettingsHelper settingsHelper) {
         int keepaliveTime = Const.DEFAULT_PUSH_ALARM_KEEPALIVE_TIME_SEC;
         String pushOptions = settingsHelper.getConfig().getPushOptions();
         Integer newKeepaliveTime = settingsHelper.getConfig().getKeepaliveTime();

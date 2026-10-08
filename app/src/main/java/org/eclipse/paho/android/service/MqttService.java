@@ -646,7 +646,7 @@ public class MqttService extends Service implements MqttTraceHandler {
 
     // create somewhere to buffer received messages until
     // we know that they have been passed to the application
-    messageStore = new DatabaseMessageStore(this, this);
+    messageStore = new DatabaseMessageStore(this, getApplicationContext());
 	}
 
 
@@ -702,7 +702,7 @@ public class MqttService extends Service implements MqttTraceHandler {
         started = true;
     }
 
-      SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
+      SettingsHelper settingsHelper = SettingsHelper.getInstance();
       if (intent != null && intent.getBooleanExtra(MqttAndroidClient.EXTRA_START_AT_BOOT, false)) {
           try {
               String domain = intent.getStringExtra(MqttAndroidClient.EXTRA_DOMAIN);

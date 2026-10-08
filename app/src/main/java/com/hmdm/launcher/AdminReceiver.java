@@ -100,7 +100,7 @@ public class AdminReceiver extends DeviceAdminReceiver {
     public static void updateSettings(Context context, PersistableBundle bundle) {
         SharedPreferences preferences = context.getApplicationContext().getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
         try {
-            SettingsHelper settingsHelper = SettingsHelper.getInstance(context.getApplicationContext());
+            SettingsHelper settingsHelper = SettingsHelper.getInstance();
             String deviceId = null;
             PreferenceLogger.log(preferences, "Bundle != null: " + (bundle != null));
             if (bundle != null) {

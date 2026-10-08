@@ -38,7 +38,7 @@ public class ConfirmDeviceResetTask extends AsyncTask< DeviceInfo, Integer, Inte
 
     public ConfirmDeviceResetTask(Context context ) {
         this.context = context;
-        this.settingsHelper = SettingsHelper.getInstance( context );
+        this.settingsHelper = SettingsHelper.getInstance();
     }
 
     @Override

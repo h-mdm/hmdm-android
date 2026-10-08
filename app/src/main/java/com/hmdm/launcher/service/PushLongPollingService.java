@@ -99,8 +99,8 @@ public class PushLongPollingService extends Service {
     }
 
     private Runnable pollingRunnable = () -> {
-        Context context = PushLongPollingService.this;
-        SettingsHelper settingsHelper = SettingsHelper.getInstance(context);
+        Context context = PushLongPollingService.this.getApplicationContext();
+        SettingsHelper settingsHelper = SettingsHelper.getInstance();
         if (serverService == null) {
             serverService = ServerServiceKeeper.createServerService(settingsHelper.getBaseUrl(), Const.LONG_POLLING_READ_TIMEOUT);
         }

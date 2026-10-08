@@ -81,7 +81,7 @@ public class PluginApiService extends Service {
 
         @Override
         public Bundle queryPrivilegedConfig(String apiKey) {
-            SettingsHelper settingsHelper = SettingsHelper.getInstance(PluginApiService.this);
+            SettingsHelper settingsHelper = SettingsHelper.getInstance();
             if ( settingsHelper.getConfig() == null ) {
                 // This shouldn't happen!
                 return null;
@@ -129,7 +129,7 @@ public class PluginApiService extends Service {
 
         @Override
         public String queryAppPreference(String packageId, String attr) {
-            SettingsHelper settingsHelper = SettingsHelper.getInstance(PluginApiService.this);
+            SettingsHelper settingsHelper = SettingsHelper.getInstance();
             if ( settingsHelper.getConfig() == null ) {
                 // This shouldn't happen!
                 return null;
@@ -139,7 +139,7 @@ public class PluginApiService extends Service {
 
         @Override
         public boolean setAppPreference(String packageId, String attr, String value) {
-            SettingsHelper settingsHelper = SettingsHelper.getInstance(PluginApiService.this);
+            SettingsHelper settingsHelper = SettingsHelper.getInstance();
             if ( settingsHelper.getConfig() == null ) {
                 // This shouldn't happen!
                 return false;
@@ -149,7 +149,7 @@ public class PluginApiService extends Service {
 
         @Override
         public void commitAppPreferences(String packageId) {
-            SettingsHelper settingsHelper = SettingsHelper.getInstance(PluginApiService.this);
+            SettingsHelper settingsHelper = SettingsHelper.getInstance();
             if ( settingsHelper.getConfig() == null ) {
                 // This shouldn't happen!
                 return;
@@ -159,7 +159,7 @@ public class PluginApiService extends Service {
 
         @Override
         public void setCustom(int number, String value) {
-            SettingsHelper settingsHelper = SettingsHelper.getInstance(PluginApiService.this);
+            SettingsHelper settingsHelper = SettingsHelper.getInstance();
             if ( settingsHelper.getConfig() == null ) {
                 // This shouldn't happen!
                 return;

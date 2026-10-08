@@ -101,7 +101,7 @@ public class ConfigUpdater {
     }
 
     public static void notifyConfigUpdate(final Context context) {
-        if (SettingsHelper.getInstance(context).isMainActivityRunning()) {
+        if (SettingsHelper.getInstance().isMainActivityRunning()) {
             Log.d(Const.LOG_TAG, "Main activity is running, using activity updater");
             LocalBroadcastManager.getInstance(context).
                     sendBroadcast(new Intent(Const.ACTION_UPDATE_CONFIGURATION));
@@ -120,8 +120,8 @@ public class ConfigUpdater {
     }
 
     public ConfigUpdater(Context context) {
-        retryCount = SettingsHelper.getInstance(context).getConnRetryCount();
-        retryDelay = SettingsHelper.getInstance(context).getConnRetryDelay() * 1000;
+        retryCount = SettingsHelper.getInstance().getConnRetryCount();
+        retryDelay = SettingsHelper.getInstance().getConnRetryDelay() * 1000;
     }
 
     public void setLoadOnly(boolean loadOnly) {
@@ -142,7 +142,7 @@ public class ConfigUpdater {
         this.userInteraction = userInteraction;
 
         // Work around a strange bug with stale SettingsHelper instance: re-read its value
-        settingsHelper = SettingsHelper.getInstance(context.getApplicationContext());
+        settingsHelper = SettingsHelper.getInstance();
 
         if (settingsHelper.getConfig() != null && settingsHelper.getConfig().getRestrictions() != null) {
             Utils.releaseUserRestrictions(context, settingsHelper.getConfig().getRestrictions());
@@ -442,7 +442,7 @@ public class ConfigUpdater {
         // Update miscellaneous device policies here
 
         // Set up a proxy server
-        SettingsHelper settingsHelper = SettingsHelper.getInstance(context);
+        SettingsHelper settingsHelper = SettingsHelper.getInstance();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && Utils.isDeviceOwner(context)) {
             String proxyUrl = settingsHelper.getAppPreference(context.getPackageName(), "proxy");
             if (proxyUrl != null) {
@@ -682,7 +682,7 @@ public class ConfigUpdater {
             RemoteLogger.log(context, Const.LOG_INFO, "Skip download due to previous install failure: " + objectId);
             return false;
         }
-        ServerConfig config = SettingsHelper.getInstance(context).getConfig();
+        ServerConfig config = SettingsHelper.getInstance().getConfig();
         if ("limited".equals(config.getDownloadUpdates())) {
             ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo activeNetwork = cm.getActiveNetworkInfo();

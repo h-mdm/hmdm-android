@@ -27,20 +27,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.work.Data;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkManager;
-import androidx.work.Worker;
-import androidx.work.WorkerParameters;
 
 import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.helper.CryptoHelper;
 import com.hmdm.launcher.json.PushMessageJson;
 import com.hmdm.launcher.json.ServerConfig;
+import com.hmdm.launcher.receiver.MqttReconnectAlarmReceiver;
 import com.hmdm.launcher.worker.PushNotificationProcessor;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
@@ -69,7 +63,6 @@ public class PushNotificationMqttWrapper {
     private Context context;
     private boolean needProcessConnectExtended;
 
-    private static final String WORKER_TAG_MQTT_RECONNECT = "com.hmdm.launcher.WORK_TAG_MQTT_RECONNECT";
     private static final int MQTT_RECONNECT_INTERVAL_SEC = 900;
 
     // If more than 20 connections per minute, we are stopping:
@@ -286,50 +279,14 @@ public class PushNotificationMqttWrapper {
     }
 
     private void cancelReconnectionAfterFailure(Context context) {
-        WorkManager.getInstance(context.getApplicationContext()).cancelUniqueWork(WORKER_TAG_MQTT_RECONNECT);
+        MqttReconnectAlarmReceiver.cancel(context.getApplicationContext());
     }
 
     private void scheduleReconnectionAfterFailure(Context context, String host, int port,
                                                   String pushType, int keepaliveTime, final String deviceId) {
         RemoteLogger.log(context, Const.LOG_INFO, "Scheduling MQTT reconnection in " + MQTT_RECONNECT_INTERVAL_SEC + " sec");
-        Data data = new Data.Builder()
-                .putString("host", host)
-                .putInt("port", port)
-                .putString("pushType", pushType)
-                .putInt("keepalive", keepaliveTime)
-                .putString("deviceId", deviceId)
-                .build();
-        OneTimeWorkRequest queryRequest =
-                new OneTimeWorkRequest.Builder(PushNotificationMqttWrapper.ReconnectAfterFailureWorker.class)
-                        .addTag(Const.WORK_TAG_COMMON)
-                        .setInitialDelay(MQTT_RECONNECT_INTERVAL_SEC, TimeUnit.SECONDS)
-                        .setInputData(data)
-                        .build();
-        WorkManager.getInstance(context.getApplicationContext()).enqueueUniqueWork(WORKER_TAG_MQTT_RECONNECT,
-                ExistingWorkPolicy.REPLACE, queryRequest);
-    }
-
-    public static class ReconnectAfterFailureWorker extends Worker {
-
-        private Context context;
-
-        public ReconnectAfterFailureWorker(
-                @NonNull final Context context,
-                @NonNull WorkerParameters params) {
-            super(context, params);
-            this.context = context;
-        }
-
-        @NonNull
-        @Override
-        public Result doWork() {
-            Data data = getInputData();
-            PushNotificationMqttWrapper.getInstance().connect(context, data.getString("host"),
-                    data.getInt("port", 0), data.getString("pushType"),
-                    data.getInt("keepalive", Const.DEFAULT_PUSH_ALARM_KEEPALIVE_TIME_SEC),
-                    data.getString("deviceId"), null, null);
-            return Result.success();
-        }
+        MqttReconnectAlarmReceiver.schedule(context.getApplicationContext(), host, port, pushType, keepaliveTime, deviceId,
+                TimeUnit.SECONDS.toMillis(MQTT_RECONNECT_INTERVAL_SEC));
     }
 
     public boolean checkPingDeath(Context context) {

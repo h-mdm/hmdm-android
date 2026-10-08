@@ -19,23 +19,20 @@
 
 package com.hmdm.launcher.worker;
 
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
-
-import androidx.annotation.NonNull;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkManager;
-import androidx.work.Worker;
-import androidx.work.WorkerParameters;
 
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.db.DatabaseHelper;
 import com.hmdm.launcher.db.LogTable;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.RemoteLogItem;
+import com.hmdm.launcher.receiver.WakefulAlarmReceiver;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
+import com.hmdm.launcher.util.AlarmUtils;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +40,9 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 
-public class RemoteLogWorker extends Worker {
+// Uploads pending remote log entries to the server. Runs on an AlarmManager one-shot alarm
+// instead of a WorkManager OneTimeWorkRequest (see WakefulAlarmReceiver for why).
+public class RemoteLogWorker extends WakefulAlarmReceiver {
 
     // Amount of log messages sent to server at once
     public static final int MAX_UPLOADED_MESSAGES = 10;
@@ -54,12 +53,9 @@ public class RemoteLogWorker extends Worker {
     // If there's no Internet, retry in 15 minutes
     public static final int FIRE_PERIOD_RETRY_MINS = 15;
 
-    private static final String WORK_TAG_REMOTE_LOG = "com.hmdm.launcher.WORK_TAG_REMOTE_LOG";
+    private static final String ACTION_FIRE = "com.hmdm.launcher.action.REMOTE_LOG_ALARM";
 
     private static boolean uploadScheduled = false;
-
-    private Context context;
-    private SettingsHelper settingsHelper;
 
     public static void resetState() {
         uploadScheduled = false;
@@ -69,31 +65,29 @@ public class RemoteLogWorker extends Worker {
         scheduleUpload(context, 0);
     }
 
-    public static void scheduleUpload(Context context, int delayMins) {
+    public static synchronized void scheduleUpload(Context context, int delayMins) {
         Log.i(Const.LOG_TAG, "RemoteLogWorker scheduled");
-        OneTimeWorkRequest.Builder builder = new OneTimeWorkRequest.Builder(RemoteLogWorker.class);
-        builder.addTag(Const.WORK_TAG_COMMON);
-        if (delayMins > 0) {
-            builder.setInitialDelay(delayMins, TimeUnit.MINUTES);
-        }
-        OneTimeWorkRequest uploadWorkRequest = builder.build();
         if (!uploadScheduled) {
             uploadScheduled = true;
-            WorkManager.getInstance(context).enqueueUniqueWork(WORK_TAG_REMOTE_LOG, ExistingWorkPolicy.REPLACE, uploadWorkRequest);
+            AlarmUtils.scheduleAlarm(context, createPendingIntent(context), TimeUnit.MINUTES.toMillis(delayMins));
         }
     }
 
-    public RemoteLogWorker(
-            @NonNull Context context,
-            @NonNull WorkerParameters params) {
-        super(context, params);
-        this.context = context;
-        settingsHelper = SettingsHelper.getInstance(context);
+    private static PendingIntent createPendingIntent(Context context) {
+        Intent intent = new Intent(context, RemoteLogWorker.class);
+        intent.setAction(ACTION_FIRE);
+        return PendingIntent.getBroadcast(context, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
     @Override
-    // This is running in a background thread by WorkManager
-    public Result doWork() {
+    protected String getWakeLockTag() {
+        return "hmdm:RemoteLogWorker";
+    }
+
+    @Override
+    protected void doWork(Context context, Intent intent) {
+        SettingsHelper settingsHelper = SettingsHelper.getInstance();
         try {
             DatabaseHelper dbHelper = DatabaseHelper.instance(context);
 
@@ -102,15 +96,14 @@ public class RemoteLogWorker extends Worker {
                 Log.i(Const.LOG_TAG, "Remote logger: unsent items: " + unsentItems.size());
                 if (unsentItems.size() == 0) {
                     uploadScheduled = false;
-                    return Result.success();
+                    return;
                 }
-                if (!upload(unsentItems)) {
+                if (!upload(context, settingsHelper, unsentItems)) {
                     // There was an error: retry!
-                    // XXX: we do not use Result.retry() here because new logs may come
                     Log.i(Const.LOG_TAG, "Failed to upload logs: retry in " + FIRE_PERIOD_RETRY_MINS + " mins");
                     uploadScheduled = false;
                     scheduleUpload(context, FIRE_PERIOD_RETRY_MINS);
-                    return Result.failure();
+                    return;
                 } else {
                     Log.i(Const.LOG_TAG, "Logs are uploaded");
                     // Mark items as sent and query next items
@@ -122,12 +115,11 @@ public class RemoteLogWorker extends Worker {
             e.printStackTrace();
             uploadScheduled = false;
             scheduleUpload(context, FIRE_PERIOD_MINS);
-            return Result.failure();
         }
     }
 
     // Returns true on success and false on failure
-    public boolean upload(List<RemoteLogItem> logItems) {
+    public boolean upload(Context context, SettingsHelper settingsHelper, List<RemoteLogItem> logItems) {
         ServerService serverService = ServerServiceKeeper.getServerServiceInstance(context);
         ServerService secondaryServerService = ServerServiceKeeper.getSecondaryServerServiceInstance(context);
         Response<ResponseBody> response = null;

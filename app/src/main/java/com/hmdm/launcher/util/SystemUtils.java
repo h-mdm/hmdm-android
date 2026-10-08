@@ -81,7 +81,7 @@ public class SystemUtils {
     }
 
     public static boolean autoSetDeviceId(Context context) {
-        String deviceIdUse = SettingsHelper.getInstance(context).getDeviceIdUse();
+        String deviceIdUse = SettingsHelper.getInstance().getDeviceIdUse();
         String deviceId = null;
         Log.d(Const.LOG_TAG, "Device ID choice: " + deviceIdUse);
         if (BuildConfig.DEVICE_ID_CHOICE.equals("imei") || "imei".equals(deviceIdUse)) {
@@ -99,7 +99,7 @@ public class SystemUtils {
             return false;
         }
 
-        return SettingsHelper.getInstance(context.getApplicationContext()).setDeviceId(deviceId);
+        return SettingsHelper.getInstance().setDeviceId(deviceId);
     }
 
     public static boolean becomeDeviceOwnerByXmlFile(Context context) {

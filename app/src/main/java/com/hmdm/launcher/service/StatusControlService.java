@@ -74,7 +74,7 @@ public class StatusControlService extends Service {
 
     @Override
     public int onStartCommand( Intent intent, int flags, int startId) {
-        settingsHelper = SettingsHelper.getInstance(this);
+        settingsHelper = SettingsHelper.getInstance();
 
         Log.i(Const.LOG_TAG, "StatusControlService: service started.");
 

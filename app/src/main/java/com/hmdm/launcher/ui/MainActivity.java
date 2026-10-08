@@ -232,7 +232,7 @@ public class MainActivity
                     break;
                 case Const.ACTION_HIDE_SCREEN:
                     RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Received ACTION_HIDE_SCREEN for package: " + intent.getStringExtra(Const.PACKAGE_NAME));
-                    ServerConfig serverConfig = SettingsHelper.getInstance(MainActivity.this).getConfig();
+                    ServerConfig serverConfig = SettingsHelper.getInstance().getConfig();
                     if (serverConfig.getLock() != null && serverConfig.getLock()) {
                         // Device is locked by the server administrator!
                         RemoteLogger.log(MainActivity.this, Const.LOG_DEBUG, "Showing lock screen due to server lock");
@@ -400,8 +400,8 @@ public class MainActivity
         binding.setMessage(getString( R.string.main_start_preparations));
         binding.loading.setVisibility(View.VISIBLE);
 
-        settingsHelper = SettingsHelper.getInstance(this);
-        preferences = getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE);
+        settingsHelper = SettingsHelper.getInstance();
+        preferences = getApplicationContext().getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE);
 
         configUpdater = new ConfigUpdater(this);
 
@@ -473,10 +473,10 @@ public class MainActivity
         }
 
         if (settingsHelper == null) {
-            settingsHelper = SettingsHelper.getInstance(this);
+            settingsHelper = SettingsHelper.getInstance();
         }
         if (preferences == null) {
-            preferences = getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE);
+            preferences = getApplicationContext().getSharedPreferences(Const.PREFERENCES, MODE_PRIVATE);
         }
     }
 
@@ -746,7 +746,7 @@ public class MainActivity
     }
 
     private void setDefaultLauncherEarly() {
-        ServerConfig config = SettingsHelper.getInstance(this).getConfig();
+        ServerConfig config = SettingsHelper.getInstance().getConfig();
         if (BuildConfig.SET_DEFAULT_LAUNCHER_EARLY && config == null && Utils.isDeviceOwner(this)) {
             // At first start, temporarily set Headwind MDM as a default launcher
             // to prevent the user from clicking Home to stop running Headwind MDM
@@ -1077,7 +1077,7 @@ public class MainActivity
     }
 
     private boolean needRequestUsageStats() {
-        ServerConfig config = SettingsHelper.getInstance(this).getConfig();
+        ServerConfig config = SettingsHelper.getInstance().getConfig();
         if (config == null) {
             // The app hasn't been properly provisioned because
             // config should be initialized in a setup activity.
@@ -1120,7 +1120,7 @@ public class MainActivity
     }
 
     private boolean needRequestOverlay() {
-        ServerConfig config = SettingsHelper.getInstance(this).getConfig();
+        ServerConfig config = SettingsHelper.getInstance().getConfig();
         if (config == null) {
             // The app hasn't been properly provisioned because
             // config should be initialized in a setup activity.
@@ -1251,7 +1251,7 @@ public class MainActivity
         lockScreen.findViewById( R.id.package_id ).setVisibility(View.GONE);
         lockScreen.findViewById( R.id.message2 ).setVisibility(View.GONE);
         TextView textView = lockScreen.findViewById( R.id.message );
-        textView.setText(getString(R.string.device_locked, SettingsHelper.getInstance(this).getDeviceId()));
+        textView.setText(getString(R.string.device_locked, SettingsHelper.getInstance().getDeviceId()));
 
         lockScreen.setVisibility( View.GONE );
 
@@ -1580,14 +1580,14 @@ public class MainActivity
             PreferenceLogger.clearLogString(preferences);
         }
         Log.i(Const.LOG_TAG, "Showing content from setActions()");
-        settingsHelper.refreshConfig(this);         // Avoid NPE in showContent()
+        settingsHelper.refreshConfig();         // Avoid NPE in showContent()
         showContent(settingsHelper.getConfig());
     }
 
     @Override
     public void onAllAppInstallComplete() {
         Log.i(Const.LOG_TAG, "Refreshing content - new apps installed");
-        settingsHelper.refreshConfig(this);         // Avoid NPE in showContent()
+        settingsHelper.refreshConfig();         // Avoid NPE in showContent()
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -1884,7 +1884,7 @@ public class MainActivity
             }
         }
         String lockAdminMessage = settingsHelper.getConfig().getLockMessage();
-        String lockMessage = getString(R.string.device_locked, SettingsHelper.getInstance(this).getDeviceId());
+        String lockMessage = getString(R.string.device_locked, SettingsHelper.getInstance().getDeviceId());
         if (lockAdminMessage != null) {
             lockMessage += " " + lockAdminMessage;
         }
@@ -1991,12 +1991,12 @@ public class MainActivity
             if (serial == null) {
                 serial = "";
             }
-            String ip = SettingsHelper.getInstance(this).getExternalIp();
+            String ip = SettingsHelper.getInstance().getExternalIp();
             if (ip == null) {
                 ip = "";
             }
             String titleText = titleType
-                    .replace(ServerConfig.TITLE_DEVICE_ID, SettingsHelper.getInstance(this).getDeviceId())
+                    .replace(ServerConfig.TITLE_DEVICE_ID, SettingsHelper.getInstance().getDeviceId())
                     .replace(ServerConfig.TITLE_DESCRIPTION, config.getDescription() != null ? config.getDescription() : "")
                     .replace(ServerConfig.TITLE_CUSTOM1, config.getCustom1() != null ? config.getCustom1() : "")
                     .replace(ServerConfig.TITLE_CUSTOM2, config.getCustom2() != null ? config.getCustom2() : "")

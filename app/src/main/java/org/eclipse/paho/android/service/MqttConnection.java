@@ -14,6 +14,7 @@ package org.eclipse.paho.android.service;
 
 import android.app.Service;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
@@ -223,9 +224,14 @@ class MqttConnection implements MqttCallbackExtended {
 				File myDir = service.getExternalFilesDir(TAG);
 
 				if (myDir == null) {
-					// No external storage, use internal storage instead.
-					myDir = service.getDir(TAG, Context.MODE_PRIVATE);
-					
+					// No external storage (always true before the device's first unlock, since
+					// external/emulated storage isn't available pre-unlock either): fall back to
+					// internal storage, but via device-protected storage rather than the
+					// service's own (credential-encrypted) context, so this also works pre-unlock.
+					Context storageContext = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+							? service.createDeviceProtectedStorageContext() : service;
+					myDir = storageContext.getDir(TAG, Context.MODE_PRIVATE);
+
 					if(myDir == null){
 						//Shouldn't happen.
 						resultBundle.putString(
@@ -306,14 +312,9 @@ class MqttConnection implements MqttCallbackExtended {
 	}
 
 	private MqttPingSender instantiatePingSender(MqttService service) {
-	    if (connectOptions instanceof MqttAndroidConnectOptions) {
-            MqttAndroidConnectOptions extendedOptions = (MqttAndroidConnectOptions) connectOptions;
-            switch (extendedOptions.getPingType()) {
-                case MqttAndroidConnectOptions.PING_WORKER:
-                    return WorkerPingSender.getInstance(service);
-            }
-        }
-	    // Default is Alarm sender
+	    // AlarmManager-backed ping sender for all push types (a WorkManager-backed alternative
+	    // used to exist here, but WorkManager never runs before the device's first unlock, which
+	    // is unacceptable for an MDM launcher).
         return new AlarmPingSender(service);
     }
 

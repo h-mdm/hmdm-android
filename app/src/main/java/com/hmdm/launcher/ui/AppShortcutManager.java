@@ -120,9 +120,9 @@ public class AppShortcutManager {
     }
 
     private void getConfiguredApps(Context context, boolean bottom, Map<String, Application> requiredPackages, Map<String, Application> requiredLinks) {
-        SettingsHelper config = SettingsHelper.getInstance( context );
+        SettingsHelper config = SettingsHelper.getInstance();
         if ( config.getConfig() != null ) {
-            List< Application > applications = SettingsHelper.getInstance( context ).getConfig().getApplications();
+            List< Application > applications = SettingsHelper.getInstance().getConfig().getApplications();
             for ( Application application : applications ) {
                 if (application.isShowIcon() && !application.isRemove() && (bottom == application.isBottom())) {
                     if (application.getType() == null || application.getType().equals(Application.TYPE_APP)) {
