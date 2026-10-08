@@ -64,7 +64,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
 
     public GetServerConfigTask( Context context ) {
         this.context = context;
-        this.settingsHelper = SettingsHelper.getInstance( context );
+        this.settingsHelper = SettingsHelper.getInstance();
     }
 
     public String getErrorText() {
@@ -180,7 +180,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         }
 
         if (response.isSuccessful() && Const.STATUS_OK.equals(response.body().getStatus()) && response.body().getData() != null) {
-            SettingsHelper.getInstance(context).setExternalIp(response.headers().get(Const.HEADER_IP_ADDRESS));
+            SettingsHelper.getInstance().setExternalIp(response.headers().get(Const.HEADER_IP_ADDRESS));
             return response.body().getData();
         } else {
             isDeviceNotFound = response.body() != null && notFoundError.equals(response.body().getMessage());
@@ -282,7 +282,7 @@ public class GetServerConfigTask extends AsyncTask< Void, Integer, Integer > {
         }
 
         if (response.isSuccessful() && Const.STATUS_OK.equals(response.body().getStatus()) && response.body().getData() != null) {
-            SettingsHelper.getInstance(context).setExternalIp(response.headers().get(Const.HEADER_IP_ADDRESS));
+            SettingsHelper.getInstance().setExternalIp(response.headers().get(Const.HEADER_IP_ADDRESS));
             return response.body().getData();
         } else {
             isDeviceNotFound = response.body() != null && notFoundError.equals(response.body().getMessage());

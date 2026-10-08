@@ -38,7 +38,7 @@ public class ConfirmRebootTask extends AsyncTask< DeviceInfo, Integer, Integer >
 
     public ConfirmRebootTask(Context context ) {
         this.context = context;
-        this.settingsHelper = SettingsHelper.getInstance( context );
+        this.settingsHelper = SettingsHelper.getInstance();
     }
 
     @Override

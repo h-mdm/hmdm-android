@@ -333,25 +333,32 @@ public class InstallUtils {
         void onDownloadProgress(final int progress, final long total, final long current);
     }
 
+    // Cache dir for in-progress downloads. Device-protected storage is used (on API 24+) so this
+    // directory stays usable even before the device's first unlock (see App.attachBaseContext()),
+    // unlike the external storage this used to live in. It also replaces the old fallback of
+    // File.createTempFile(prefix, suffix) with no directory, which silently landed in the regular
+    // (credential-encrypted) cache dir and was never swept by clearTempFiles() below - a slow
+    // leak that could itself eventually exhaust storage and start failing the same way.
+    public static File getDownloadCacheDir(Context context) {
+        context = context.getApplicationContext();
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+                ? context.createDeviceProtectedStorageContext().getCacheDir()
+                : context.getCacheDir();
+    }
+
     public static String getAppTempPath(Context context, String strUrl) {
-        File tempFile = new File(context.getExternalFilesDir(null), getFileName(strUrl));
+        File tempFile = new File(getDownloadCacheDir(context), getFileName(strUrl));
         return tempFile.getAbsolutePath();
     }
 
     public static File downloadFile(Context context, String strUrl, DownloadProgress progressHandler ) throws Exception {
-        File tempFile = new File(context.getExternalFilesDir(null), getFileName(strUrl));
+        File tempFile = new File(getDownloadCacheDir(context), getFileName(strUrl));
         if (tempFile.exists()) {
             tempFile.delete();
         }
 
         try {
-            try {
-                tempFile.createNewFile();
-            } catch (Exception e) {
-                e.printStackTrace();
-
-                tempFile = File.createTempFile(getFileName(strUrl), "temp");
-            }
+            tempFile.createNewFile();
 
             URL url = new URL(strUrl);
 
@@ -631,8 +638,11 @@ public class InstallUtils {
 
     public static void clearTempFiles(Context context) {
         try {
+            // Returns null when external storage isn't available, which is always true before
+            // the device's first unlock (and possible at other times too, e.g. no SD card)
             File filesDir = context.getExternalFilesDir(null);
-            for (File child : filesDir.listFiles()) {
+            File[] files = filesDir != null ? filesDir.listFiles() : null;
+            for (File child : files != null ? files : new File[0]) {
                 if (child.getName().equalsIgnoreCase("MqttConnection") ||
                     child.getName().equals("init.json")) {
                     // These are names which should be kept here
@@ -643,6 +653,18 @@ public class InstallUtils {
                 } else {
                     child.delete();
                 }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            // getDownloadCacheDir() is used exclusively for in-progress app/file downloads,
+            // so it's safe to clear unconditionally (no names to preserve, unlike filesDir above)
+            File downloadCacheDir = getDownloadCacheDir(context);
+            File[] downloadCacheFiles = downloadCacheDir.listFiles();
+            for (File child : downloadCacheFiles != null ? downloadCacheFiles : new File[0]) {
+                child.delete();
             }
         } catch (Exception e) {
             e.printStackTrace();

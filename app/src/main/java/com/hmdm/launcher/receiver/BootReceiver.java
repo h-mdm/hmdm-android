@@ -1,5 +1,6 @@
 package com.hmdm.launcher.receiver;
 
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,14 +11,24 @@ import com.hmdm.launcher.helper.Initializer;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.util.RemoteLogger;
+import com.hmdm.launcher.util.Utils;
 
 public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.i(Const.LOG_TAG, "Got the BOOT_RECEIVER broadcast");
-        RemoteLogger.log(context, Const.LOG_DEBUG, "Got the BOOT_RECEIVER broadcast");
+        // The context the system hands to a BroadcastReceiver is receiver-restricted: it cannot
+        // bindService() (ReceiverCallNotAllowedException), and that restriction stays attached to
+        // this exact Context object even when it's passed into async work below, not just for the
+        // duration of this call. Everything downstream (Initializer, ConfigUpdater, MQTT connect)
+        // needs a Context that can bind services, so switch to the Application context up front.
+        // (A separate final variable, rather than reassigning the parameter, because the lambda
+        // below captures it, and a captured variable must be effectively final.)
+        final Context appContext = context.getApplicationContext();
 
-        SettingsHelper settingsHelper = SettingsHelper.getInstance(context.getApplicationContext());
+        Log.i(Const.LOG_TAG, "Got the BOOT_RECEIVER broadcast");
+        RemoteLogger.log(appContext, Const.LOG_DEBUG, "Got the BOOT_RECEIVER broadcast");
+
+        SettingsHelper settingsHelper = SettingsHelper.getInstance();
         if (!settingsHelper.isBaseUrlSet()) {
             // We're here before initializing after the factory reset! Let's ignore this call
             return;
@@ -33,17 +44,17 @@ public class BootReceiver extends BroadcastReceiver {
             return;
         }
 
-        Initializer.init(context, () -> {
-            Initializer.startServicesAndLoadConfig(context);
+        Initializer.init(appContext, () -> {
+            Initializer.startServicesAndLoadConfig(appContext);
 
-            SettingsHelper.getInstance(context).setMainActivityRunning(false);
-            if (ProUtils.kioskModeRequired(context)) {
+            SettingsHelper.getInstance().setMainActivityRunning(false);
+            if (Utils.isUserUnlocked(appContext) && ProUtils.kioskModeRequired(appContext)) {
                 Log.i(Const.LOG_TAG, "Kiosk mode required, forcing Headwind MDM to run in the foreground");
                 // If kiosk mode is required, then we just simulate clicking Home and starting MainActivity
                 Intent homeIntent = new Intent(Intent.ACTION_MAIN);
                 homeIntent.addCategory(Intent.CATEGORY_HOME);
                 homeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(homeIntent);
+                appContext.startActivity(homeIntent);
             }
         });
     }

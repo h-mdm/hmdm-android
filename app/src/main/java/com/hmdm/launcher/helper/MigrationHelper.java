@@ -37,8 +37,8 @@ public class MigrationHelper {
     }
 
     public boolean needMigrating(Context context) {
-        return !serverUrl.baseUrl.equalsIgnoreCase(SettingsHelper.getInstance(context).getBaseUrl()) ||
-               !serverUrl.serverProject.equalsIgnoreCase(SettingsHelper.getInstance(context).getServerProject());
+        return !serverUrl.baseUrl.equalsIgnoreCase(SettingsHelper.getInstance().getBaseUrl()) ||
+               !serverUrl.serverProject.equalsIgnoreCase(SettingsHelper.getInstance().getServerProject());
     }
 
     // Before migration, test that URL is working well
@@ -54,7 +54,7 @@ public class MigrationHelper {
                 }
 
                 Response<ServerConfigResponse> response = null;
-                SettingsHelper settingsHelper = SettingsHelper.getInstance(context);
+                SettingsHelper settingsHelper = SettingsHelper.getInstance();
 
                 String deviceId = settingsHelper.getDeviceId();
                 String signature = "";

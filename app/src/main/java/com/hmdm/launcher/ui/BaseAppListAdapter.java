@@ -69,7 +69,7 @@ public abstract class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppLis
         this.appChooseListener = appChooseListener;
         this.switchAdapterListener = switchAdapterListener;
         this.parentActivity = parentActivity;
-        this.settingsHelper = SettingsHelper.getInstance(parentActivity);
+        this.settingsHelper = SettingsHelper.getInstance();
 
         boolean isDarkBackground = true;
         ServerConfig config = settingsHelper.getConfig();

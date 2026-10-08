@@ -38,7 +38,7 @@ public class ConfirmPasswordResetTask extends AsyncTask< DeviceInfo, Integer, In
 
     public ConfirmPasswordResetTask(Context context ) {
         this.context = context;
-        this.settingsHelper = SettingsHelper.getInstance( context );
+        this.settingsHelper = SettingsHelper.getInstance();
     }
 
     @Override

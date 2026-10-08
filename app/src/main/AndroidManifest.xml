@@ -142,9 +142,9 @@
                 <category android:name="android.intent.category.HOME" />
             </intent-filter>
         </activity>
-        <activity 
+        <activity
             android:name=".ui.AdminActivity"
-            android:excludeFromRecents="true" 
+            android:excludeFromRecents="true"
             android:exported="false"
         />
         <activity
@@ -156,7 +156,7 @@
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
             android:screenOrientation="fullSensor"
-            tools:replace="screenOrientation" 
+            tools:replace="screenOrientation"
             android:exported="false"/>
 
         <activity
@@ -183,7 +183,7 @@
 
         <activity
             android:name=".ui.ErrorDetailsActivity"
-            android:theme="@style/SetupWizardTheme" 
+            android:theme="@style/SetupWizardTheme"
             android:exported="false"/>
 
         <receiver
@@ -220,15 +220,46 @@
             android:name="com.hmdm.launcher.receiver.BootReceiver"
             android:label="BootReceiver"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            android:directBootAware="true">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED"/>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
                 <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
                 <!--For HTC devices-->
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
             </intent-filter>
         </receiver>
+
+        <!-- AlarmManager-triggered receivers replacing WorkManager background jobs.
+             WorkManager's own state store lives in credential-encrypted storage and never
+             fires before the device's first unlock after boot, which is unacceptable for
+             an MDM launcher; these are directBootAware so they keep working while locked. -->
+        <receiver
+            android:name="com.hmdm.launcher.worker.PushNotificationWorker"
+            android:exported="false"
+            android:directBootAware="true"/>
+
+        <receiver
+            android:name="com.hmdm.launcher.worker.RemoteLogWorker"
+            android:exported="false"
+            android:directBootAware="true"/>
+
+        <receiver
+            android:name="com.hmdm.launcher.worker.ScheduledAppUpdateWorker"
+            android:exported="false"
+            android:directBootAware="true"/>
+
+        <receiver
+            android:name="com.hmdm.launcher.worker.SendDeviceInfoWorker"
+            android:exported="false"
+            android:directBootAware="true"/>
+
+        <receiver
+            android:name="com.hmdm.launcher.receiver.MqttReconnectAlarmReceiver"
+            android:exported="false"
+            android:directBootAware="true"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -241,9 +272,11 @@
         </provider>
 
         <service android:name=".pro.service.CheckForegroundApplicationService"
-            android:exported="true"/>
+            android:exported="true"
+            android:directBootAware="true"/>
 
-        <service android:name=".service.PluginApiService" android:enabled="true" android:exported="true">
+        <service android:name=".service.PluginApiService" android:enabled="true" android:exported="true"
+            android:directBootAware="true">
             <intent-filter>
                 <action android:name="com.hmdm.action.Connect" />
             </intent-filter>
@@ -251,25 +284,30 @@
 
         <!-- Stub -->
         <service android:name=".pro.service.CheckForegroundAppAccessibilityService"
-                 android:exported="false"/>
+                 android:exported="false"
+                 android:directBootAware="true"/>
 
         <service android:name="org.eclipse.paho.android.service.MqttService"
             android:foregroundServiceType="specialUse|systemExempted"
-            android:exported="false">
+            android:exported="false"
+            android:directBootAware="true">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Push notification service"/>
         </service>
 
         <service android:name=".service.LocationService"
             android:foregroundServiceType="location"
-            android:exported="false"/>
+            android:exported="false"
+            android:directBootAware="true"/>
 
         <service android:name=".service.StatusControlService"
-            android:exported="false"/>
+            android:exported="false"
+            android:directBootAware="true"/>
 
         <service android:name=".service.PushLongPollingService"
             android:foregroundServiceType="specialUse|systemExempted"
-            android:exported="false">
+            android:exported="false"
+            android:directBootAware="true">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Push notification service"/>
         </service>

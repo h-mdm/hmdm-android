@@ -87,7 +87,7 @@ public class AdminActivity extends BaseActivity {
             binding.rebootButton.setVisibility(View.GONE);
         }
 
-        settingsHelper = SettingsHelper.getInstance( this );
+        settingsHelper = SettingsHelper.getInstance();
         binding.deviceId.setText(settingsHelper.getDeviceId());
         binding.deviceId.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -198,7 +198,7 @@ public class AdminActivity extends BaseActivity {
 
     public void resetPermissions(View view) {
         LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Const.ACTION_ENABLE_SETTINGS));
-        SharedPreferences preferences = getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
+        SharedPreferences preferences = getApplicationContext().getSharedPreferences( Const.PREFERENCES, MODE_PRIVATE );
         SharedPreferences.Editor editor = preferences.edit();
         editor.remove(Const.PREFERENCES_UNKNOWN_SOURCES);
         editor.remove(Const.PREFERENCES_ADMINISTRATOR);
