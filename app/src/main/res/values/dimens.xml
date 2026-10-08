@@ -25,11 +25,11 @@
     <dimen name="dialog_enter_device_id_width">280dp</dimen>
     <dimen name="activity_main_stacktrace_height">400dp</dimen>
     <dimen name="activity_main_stacktrace_text_size">6pt</dimen>
-    <dimen name="activity_main_exit_button_size">24dp</dimen>
+    <dimen name="activity_main_exit_button_size">48dp</dimen>
     <dimen name="app_list_item_size">100dp</dimen>
     <dimen name="status_bar_height">40dp</dimen>
     <dimen name="prevent_applications_list_width">8dp</dimen>
-    <dimen name="info_icon_margin">40dp</dimen>
+    <dimen name="info_icon_margin">64dp</dimen>
     <dimen name="block_window_button_width">150dp</dimen>
     <dimen name="button_text_size">12dp</dimen>
     <dimen name="button_text_size_small">12dp</dimen>

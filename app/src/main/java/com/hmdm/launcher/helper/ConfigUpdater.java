@@ -128,6 +128,7 @@ public class ConfigUpdater {
         this.loadOnly = loadOnly;
     }
 
+    @SuppressLint("StaticFieldLeak")
     public void updateConfig(final Context context, final UINotifier uiNotifier, final boolean userInteraction) {
         if ( configInitializing ) {
             Log.i(Const.LOG_TAG, "updateConfig(): configInitializing=true, exiting");
@@ -203,6 +204,7 @@ public class ConfigUpdater {
         updateRemoteLogConfig();
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void updateRemoteLogConfig() {
         Log.i(Const.LOG_TAG, "updateRemoteLogConfig(): get logging configuration");
 
@@ -319,6 +321,7 @@ public class ConfigUpdater {
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void checkFactoryReset() {
         Log.d(Const.LOG_TAG, "checkFactoryReset() called");
         ServerConfig config = settingsHelper != null ? settingsHelper.getConfig() : null;
@@ -354,6 +357,7 @@ public class ConfigUpdater {
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void checkRemoteReboot() {
         ServerConfig config = settingsHelper != null ? settingsHelper.getConfig() : null;
         if (config != null && config.getReboot() != null && config.getReboot()) {
@@ -384,6 +388,7 @@ public class ConfigUpdater {
 
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void checkPasswordReset() {
         ServerConfig config = settingsHelper != null ? settingsHelper.getConfig() : null;
         if (config != null && config.getPasswordReset() != null) {
@@ -408,6 +413,7 @@ public class ConfigUpdater {
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void setDefaultLauncher() {
         ServerConfig config = settingsHelper != null ? settingsHelper.getConfig() : null;
         if (Utils.isDeviceOwner(context) && config != null) {
@@ -463,6 +469,7 @@ public class ConfigUpdater {
         checkAndUpdateFiles();
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void checkAndUpdateFiles() {
         new AsyncTask<Void, Void, Void>() {
             @Override
@@ -486,6 +493,7 @@ public class ConfigUpdater {
         public boolean installed;
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void loadAndInstallFiles() {
         boolean isGoodNetworkForUpdate = userInteraction || checkUpdateNetworkRestriction(settingsHelper.getConfig(), context);
         if (filesForInstall.size() > 0 && !isGoodNetworkForUpdate) {
@@ -496,7 +504,6 @@ public class ConfigUpdater {
 
             new AsyncTask<RemoteFile, Void, RemoteFileStatus>() {
 
-                @SuppressLint("StaticFieldLeak")
                 @Override
                 protected RemoteFileStatus doInBackground(RemoteFile... remoteFiles) {
                     final RemoteFile remoteFile = remoteFiles[0];
@@ -717,6 +724,7 @@ public class ConfigUpdater {
         return true;
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void installCertificates() {
         final String certPaths = settingsHelper.getAppPreference(context.getPackageName(), "certificates");
         final String clientCertPaths = settingsHelper.getAppPreference(context.getPackageName(), "client-certificates");
@@ -770,6 +778,7 @@ public class ConfigUpdater {
     }
 
     // Here we avoid ConcurrentModificationException by executing all operations with applicationForInstall list in a main thread
+    @SuppressLint("StaticFieldLeak")
     private void loadAndInstallApplications() {
         boolean isGoodTimeForAppUpdate = userInteraction || checkAppUpdateTimeRestriction(settingsHelper.getConfig());
         if (applicationsForInstall.size() > 0 && !isGoodTimeForAppUpdate) {
@@ -969,6 +978,7 @@ public class ConfigUpdater {
         setActions();
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void setActions() {
         final ServerConfig config = settingsHelper.getConfig();
         // As per the documentation, setting the default preferred activity should not be done on the main thread
@@ -1016,6 +1026,7 @@ public class ConfigUpdater {
         }.execute();
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void waitForInstallComplete() {
         new AsyncTask<Void, Void, Void>() {
 

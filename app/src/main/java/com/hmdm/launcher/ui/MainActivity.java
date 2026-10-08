@@ -19,6 +19,7 @@
 
 package com.hmdm.launcher.ui;
 
+import android.annotation.SuppressLint;
 import android.Manifest;
 import android.app.Dialog;
 import android.app.admin.DevicePolicyManager;
@@ -651,6 +652,7 @@ public class MainActivity
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void startAppsAtBoot() {
         // Let's assume that we start within two minutes after boot
         // This should work even for slow devices
@@ -704,6 +706,7 @@ public class MainActivity
     }
 
     // Does not seem to work, though. See the comment to SystemUtils.becomeDeviceOwner()
+    @SuppressLint("StaticFieldLeak")
     private void setSelfAsDeviceOwner() {
         // We set self as device owner each time so we could trace errors if device owner setup fails
         if (Utils.isDeviceOwner(this)) {
@@ -716,7 +719,7 @@ public class MainActivity
             protected Void doInBackground(Void... voids) {
                 if (!SystemUtils.becomeDeviceOwnerByCommand(MainActivity.this)) {
                     SystemUtils.becomeDeviceOwnerByXmlFile(MainActivity.this);
-                };
+                }
                 return null;
             }
 
@@ -853,6 +856,7 @@ public class MainActivity
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void setDefaultLauncherEarly() {
         ServerConfig config = SettingsHelper.getInstance(this).getConfig();
         if (BuildConfig.SET_DEFAULT_LAUNCHER_EARLY && config == null && Utils.isDeviceOwner(this)) {
@@ -1408,7 +1412,9 @@ public class MainActivity
 
         ImageView manageButton = new ImageView( this );
         manageButton.setImageResource(isDarkBackground() ? imageResource : imageResourceBlack);
-        view.addView(manageButton);
+        manageButton.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        int buttonSize = getResources().getDimensionPixelSize(R.dimen.activity_main_exit_button_size);
+        view.addView(manageButton, new RelativeLayout.LayoutParams(buttonSize, buttonSize));
 
         selectedManageButtonBorder.setColor(0); // transparent background
         selectedManageButtonBorder.setStroke(2, isDarkBackground() ? 0xa0ffffff : 0xa0000000); // white or black border with some transparency
@@ -2646,6 +2652,7 @@ public class MainActivity
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     public void checkAdministratorPassword( View view ) {
         dialogEnterPasswordBinding.setLoading( true );
         GetServerConfigTask task = new GetServerConfigTask( this ) {
