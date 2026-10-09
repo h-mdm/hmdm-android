@@ -65,6 +65,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -1095,6 +1096,7 @@ public class MainActivity
         createExitButton();
         createInfoButton();
         createUpdateButton();
+        updateManageButtonIcons();
     }
 
     private void createButtons() {
@@ -1394,27 +1396,14 @@ public class MainActivity
         return true;
     }
 
-    private ImageView createManageButton(int imageResource, int imageResourceBlack, int offset) {
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
-        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-
-        int offsetRight = 0;
-        if (settingsHelper != null && settingsHelper.getConfig() != null && settingsHelper.getConfig().getLockStatusBar() != null && settingsHelper.getConfig().getLockStatusBar()) {
-            // If we lock the right bar, let's shift buttons to avoid overlapping
-            offsetRight = getResources().getDimensionPixelOffset(R.dimen.prevent_applications_list_width);
-        }
-
-        RelativeLayout view = new RelativeLayout(this);
-        // Offset is multiplied by 2 because the view is centered. Yeah I know its an Induism)
-        view.setPadding(0, offset * 2, offsetRight, 0);
-        view.setLayoutParams(layoutParams);
-
+    private ImageView createManageButton(int imageResource, int imageResourceBlack) {
         ImageView manageButton = new ImageView( this );
         manageButton.setImageResource(isDarkBackground() ? imageResource : imageResourceBlack);
         manageButton.setScaleType(ImageView.ScaleType.FIT_CENTER);
         int buttonSize = getResources().getDimensionPixelSize(R.dimen.activity_main_exit_button_size);
-        view.addView(manageButton, new RelativeLayout.LayoutParams(buttonSize, buttonSize));
+        int spacing = getResources().getDimensionPixelOffset(R.dimen.manage_dock_spacing);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(buttonSize, buttonSize);
+        layoutParams.setMargins(spacing / 2, 0, spacing / 2, 0);
 
         selectedManageButtonBorder.setColor(0); // transparent background
         selectedManageButtonBorder.setStroke(2, isDarkBackground() ? 0xa0ffffff : 0xa0000000); // white or black border with some transparency
@@ -1423,8 +1412,8 @@ public class MainActivity
         });
 
         try {
-            RelativeLayout root = findViewById(R.id.activity_main);
-            root.addView(view);
+            LinearLayout dock = findViewById(R.id.manage_buttons_dock);
+            dock.addView(manageButton, layoutParams);
         } catch ( Exception e ) { e.printStackTrace(); }
         return manageButton;
     }
@@ -1433,6 +1422,14 @@ public class MainActivity
     private void updateManageButtonIcons() {
         boolean dark = isDarkBackground();
         selectedManageButtonBorder.setStroke(2, dark ? 0xa0ffffff : 0xa0000000);
+        LinearLayout dock = findViewById(R.id.manage_buttons_dock);
+        if (dock != null) {
+            // Translucent rounded "dock" contrasting with the background
+            GradientDrawable dockBackground = new GradientDrawable();
+            dockBackground.setCornerRadius(getResources().getDimension(R.dimen.manage_dock_corner_radius));
+            dockBackground.setColor(dark ? 0x33ffffff : 0x33000000);
+            dock.setBackground(dockBackground);
+        }
         if (exitView != null) {
             exitView.setImageResource(dark ? R.drawable.ic_vpn_key_opaque_24dp : R.drawable.ic_vpn_key_black_24dp);
         }
@@ -1448,7 +1445,7 @@ public class MainActivity
         if ( exitView != null ) {
             return;
         }
-        exitView = createManageButton(R.drawable.ic_vpn_key_opaque_24dp, R.drawable.ic_vpn_key_black_24dp, 0);
+        exitView = createManageButton(R.drawable.ic_vpn_key_opaque_24dp, R.drawable.ic_vpn_key_black_24dp);
         exitView.setOnClickListener(view -> {
             if (view.hasFocus()) {
                 // 6 subsequent taps within 3 secs open the hidden password view
@@ -1473,8 +1470,7 @@ public class MainActivity
         if ( infoView != null ) {
             return;
         }
-        infoView = createManageButton(R.drawable.ic_info_opaque_24dp, R.drawable.ic_info_black_24dp,
-                getResources().getDimensionPixelOffset(R.dimen.info_icon_margin));
+        infoView = createManageButton(R.drawable.ic_info_opaque_24dp, R.drawable.ic_info_black_24dp);
         infoView.setOnClickListener(this);
     }
 
@@ -1482,8 +1478,7 @@ public class MainActivity
         if ( updateView != null ) {
             return;
         }
-        updateView = createManageButton(R.drawable.ic_system_update_opaque_24dp, R.drawable.ic_system_update_black_24dp,
-                (int)(2.05f * getResources().getDimensionPixelOffset(R.dimen.info_icon_margin)));
+        updateView = createManageButton(R.drawable.ic_system_update_opaque_24dp, R.drawable.ic_system_update_black_24dp);
         updateView.setOnClickListener(this);
     }
 
@@ -2135,7 +2130,7 @@ public class MainActivity
                 ip = "";
             }
             String titleText = titleType
-                    .replace(ServerConfig.TITLE_DEVICE_ID, SettingsHelper.getInstance(this).getDeviceId())
+                    .replace(ServerConfig.TITLE_DEVICE_ID, getString(R.string.robot_serial_number, SettingsHelper.getInstance(this).getDeviceId()))
                     .replace(ServerConfig.TITLE_DESCRIPTION, config.getDescription() != null ? config.getDescription() : "")
                     .replace(ServerConfig.TITLE_CUSTOM1, config.getCustom1() != null ? config.getCustom1() : "")
                     .replace(ServerConfig.TITLE_CUSTOM2, config.getCustom2() != null ? config.getCustom2() : "")

@@ -125,7 +125,8 @@
                     android:layout_weight="1"
                     android:id="@+id/activity_main_title"
                     android:gravity="center"
-                    android:textSize="@dimen/title_text_size"
+                    android:textSize="@dimen/main_title_text_size"
+                    android:textStyle="bold"
                     />
                 <com.hmdm.launcher.ui.custom.BatteryStateView
                     android:id="@+id/battery_state"
@@ -146,6 +147,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
+                android:layout_marginBottom="@dimen/manage_dock_reserved_height"
                 >
 
                 <androidx.recyclerview.widget.RecyclerView
@@ -156,6 +158,21 @@
             </RelativeLayout>
 
         </RelativeLayout>
+
+        <!-- Mac-like dock holding the manage buttons (exit, info, update) -->
+        <LinearLayout
+            android:id="@+id/manage_buttons_dock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="@dimen/manage_dock_margin"
+            android:paddingLeft="@dimen/manage_dock_padding"
+            android:paddingRight="@dimen/manage_dock_padding"
+            android:paddingTop="@dimen/manage_dock_padding"
+            android:paddingBottom="@dimen/manage_dock_padding"
+            android:gravity="center"
+            android:orientation="horizontal"/>
 
     </RelativeLayout>
 
