@@ -111,36 +111,83 @@
                 android:id="@+id/status_header"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:paddingTop="@dimen/header_vertical_padding"
+                android:paddingBottom="@dimen/header_vertical_padding"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
                 <TextView
                     android:id="@+id/clock"
                     android:layout_width="@dimen/status_bar_side_width"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
+                    android:layout_marginLeft="12dp"
                     android:textSize="@dimen/title_text_size"
+                    android:fontFamily="sans-serif-medium"
                     />
-                <TextView
+                <FrameLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:id="@+id/activity_main_title"
-                    android:gravity="center"
-                    android:textSize="@dimen/main_title_text_size"
-                    android:textStyle="bold"
-                    />
+                    android:layout_weight="1">
+                    <!-- Rounded chip holding the title; its background is set in code to suit the wallpaper -->
+                    <LinearLayout
+                        android:id="@+id/title_chip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:paddingLeft="@dimen/title_chip_horizontal_padding"
+                        android:paddingRight="@dimen/title_chip_horizontal_padding"
+                        android:paddingTop="@dimen/title_chip_vertical_padding"
+                        android:paddingBottom="@dimen/title_chip_vertical_padding"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <View
+                            android:id="@+id/serial_marker"
+                            android:layout_width="@dimen/serial_marker_size"
+                            android:layout_height="@dimen/serial_marker_size"
+                            android:layout_marginRight="10dp"
+                            android:background="@drawable/bg_serial_marker"
+                            android:visibility="gone"/>
+                        <TextView
+                            android:id="@+id/serial_label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="8dp"
+                            android:text="@string/robot_serial_label"
+                            android:textSize="@dimen/main_title_text_size"
+                            android:fontFamily="sans-serif"
+                            android:visibility="gone"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/activity_main_title"
+                            android:gravity="center"
+                            android:textSize="@dimen/main_title_text_size"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.03"
+                            />
+                    </LinearLayout>
+                </FrameLayout>
                 <com.hmdm.launcher.ui.custom.BatteryStateView
                     android:id="@+id/battery_state"
                     android:layout_width="@dimen/status_bar_side_width"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="5dp"/>
+                    android:layout_marginRight="12dp"/>
             </LinearLayout>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/activity_main_content"
+            <!-- The app grid is centered vertically in the space between the header and the bottom line -->
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_above="@+id/activity_bottom_layout"
-                android:layout_below="@+id/status_header" />
+                android:layout_below="@+id/status_header">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/activity_main_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:clipToPadding="false" />
+
+            </FrameLayout>
 
             <RelativeLayout
                 android:id="@+id/activity_bottom_layout"
@@ -167,10 +214,12 @@
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="@dimen/manage_dock_margin"
-            android:paddingLeft="@dimen/manage_dock_padding"
-            android:paddingRight="@dimen/manage_dock_padding"
-            android:paddingTop="@dimen/manage_dock_padding"
-            android:paddingBottom="@dimen/manage_dock_padding"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="8dp"
+            android:background="@drawable/bg_manage_dock"
+            android:elevation="4dp"
             android:gravity="center"
             android:orientation="horizontal"/>
 

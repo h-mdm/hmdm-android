@@ -35,11 +35,14 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.LauncherApps;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -55,6 +58,7 @@ import android.os.SystemClock;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -340,7 +344,6 @@ public class MainActivity
     private LauncherApps appChangeService;
     private LauncherApps.Callback appChangeCallback = null;
 
-    private GradientDrawable selectedManageButtonBorder = new GradientDrawable();
     private ImageView exitView;
     private long exitFirstTapTime = 0;
     private int exitTapCount = 0;
@@ -1096,7 +1099,6 @@ public class MainActivity
         createExitButton();
         createInfoButton();
         createUpdateButton();
-        updateManageButtonIcons();
     }
 
     private void createButtons() {
@@ -1396,56 +1398,84 @@ public class MainActivity
         return true;
     }
 
-    private ImageView createManageButton(int imageResource, int imageResourceBlack) {
-        ImageView manageButton = new ImageView( this );
-        manageButton.setImageResource(isDarkBackground() ? imageResource : imageResourceBlack);
-        manageButton.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        int buttonSize = getResources().getDimensionPixelSize(R.dimen.activity_main_exit_button_size);
-        int spacing = getResources().getDimensionPixelOffset(R.dimen.manage_dock_spacing);
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(buttonSize, buttonSize);
-        layoutParams.setMargins(spacing / 2, 0, spacing / 2, 0);
+    // Adds a dock item (rounded icon tile + label) and returns the clickable tile
+    private ImageView createManageButton(int iconResource, int labelResource, boolean accent) {
+        int tileSize = getResources().getDimensionPixelSize(R.dimen.manage_dock_tile_size);
+        int iconPadding = (tileSize - getResources().getDimensionPixelSize(R.dimen.manage_dock_icon_size)) / 2;
 
-        selectedManageButtonBorder.setColor(0); // transparent background
-        selectedManageButtonBorder.setStroke(2, isDarkBackground() ? 0xa0ffffff : 0xa0000000); // white or black border with some transparency
+        ImageView manageButton = new ImageView( this );
+        manageButton.setImageResource(iconResource);
+        manageButton.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        manageButton.setPadding(iconPadding, iconPadding, iconPadding, iconPadding);
+        Drawable tile = createManageButtonTile(accent, false);
+        Drawable focusedTile = createManageButtonTile(accent, true);
+        manageButton.setBackground(tile);
         manageButton.setOnFocusChangeListener((v, hasFocus) -> {
-            v.setBackground(hasFocus ? selectedManageButtonBorder : null);
+            v.setBackground(hasFocus ? focusedTile : tile);
         });
+
+        TextView label = new TextView(this);
+        label.setText(labelResource);
+        label.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.manage_dock_label_size));
+        label.setTextColor(getResources().getColor(R.color.dockLabel));
+        LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        labelParams.topMargin = getResources().getDimensionPixelOffset(R.dimen.manage_dock_label_gap);
+
+        LinearLayout item = new LinearLayout(this);
+        item.setOrientation(LinearLayout.VERTICAL);
+        item.setGravity(Gravity.CENTER_HORIZONTAL);
+        item.addView(manageButton, new LinearLayout.LayoutParams(tileSize, tileSize));
+        item.addView(label, labelParams);
 
         try {
             LinearLayout dock = findViewById(R.id.manage_buttons_dock);
-            dock.addView(manageButton, layoutParams);
+            dock.addView(item, createDockItemParams(dock,
+                    getResources().getDimensionPixelSize(R.dimen.manage_dock_item_width), ViewGroup.LayoutParams.WRAP_CONTENT));
         } catch ( Exception e ) { e.printStackTrace(); }
         return manageButton;
     }
 
-    // Manage buttons are created once, so refresh their icons when the background changes
-    private void updateManageButtonIcons() {
-        boolean dark = isDarkBackground();
-        selectedManageButtonBorder.setStroke(2, dark ? 0xa0ffffff : 0xa0000000);
-        LinearLayout dock = findViewById(R.id.manage_buttons_dock);
-        if (dock != null) {
-            // Translucent rounded "dock" contrasting with the background
-            GradientDrawable dockBackground = new GradientDrawable();
-            dockBackground.setCornerRadius(getResources().getDimension(R.dimen.manage_dock_corner_radius));
-            dockBackground.setColor(dark ? 0x33ffffff : 0x33000000);
-            dock.setBackground(dockBackground);
+    // Tile with a ripple, matching the tap feedback of the app tiles
+    private Drawable createManageButtonTile(boolean accent, boolean focused) {
+        float density = getResources().getDisplayMetrics().density;
+        GradientDrawable tile = new GradientDrawable();
+        tile.setCornerRadius(getResources().getDimension(R.dimen.manage_dock_tile_radius));
+        tile.setColor(getResources().getColor(accent ? R.color.launcherAccent : R.color.dockTile));
+        if (focused) {
+            tile.setStroke(Math.round(2 * density), getResources().getColor(R.color.dockTileFocused));
+        } else if (!accent) {
+            tile.setStroke(Math.round(density), getResources().getColor(R.color.dockBorder));
         }
-        if (exitView != null) {
-            exitView.setImageResource(dark ? R.drawable.ic_vpn_key_opaque_24dp : R.drawable.ic_vpn_key_black_24dp);
+        return new RippleDrawable(ColorStateList.valueOf(getResources().getColor(R.color.appTilePressedLight)), tile, null);
+    }
+
+    // Vertical line separating the Update button from the others
+    private void addDockDivider() {
+        try {
+            LinearLayout dock = findViewById(R.id.manage_buttons_dock);
+            View divider = new View(this);
+            divider.setBackgroundColor(getResources().getColor(R.color.dockDivider));
+            LinearLayout.LayoutParams params = createDockItemParams(dock,
+                    Math.round(getResources().getDisplayMetrics().density),
+                    getResources().getDimensionPixelSize(R.dimen.manage_dock_tile_size));
+            params.gravity = Gravity.TOP;
+            dock.addView(divider, params);
+        } catch ( Exception e ) { e.printStackTrace(); }
+    }
+
+    private LinearLayout.LayoutParams createDockItemParams(LinearLayout dock, int width, int height) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
+        if (dock.getChildCount() > 0) {
+            params.leftMargin = getResources().getDimensionPixelOffset(R.dimen.manage_dock_spacing);
         }
-        if (infoView != null) {
-            infoView.setImageResource(dark ? R.drawable.ic_info_opaque_24dp : R.drawable.ic_info_black_24dp);
-        }
-        if (updateView != null) {
-            updateView.setImageResource(dark ? R.drawable.ic_system_update_opaque_24dp : R.drawable.ic_system_update_black_24dp);
-        }
+        return params;
     }
 
     private void createExitButton() {
         if ( exitView != null ) {
             return;
         }
-        exitView = createManageButton(R.drawable.ic_vpn_key_opaque_24dp, R.drawable.ic_vpn_key_black_24dp);
+        exitView = createManageButton(R.drawable.ic_dock_access, R.string.dock_access, false);
         exitView.setOnClickListener(view -> {
             if (view.hasFocus()) {
                 // 6 subsequent taps within 3 secs open the hidden password view
@@ -1470,7 +1500,7 @@ public class MainActivity
         if ( infoView != null ) {
             return;
         }
-        infoView = createManageButton(R.drawable.ic_info_opaque_24dp, R.drawable.ic_info_black_24dp);
+        infoView = createManageButton(R.drawable.ic_dock_info, R.string.dock_info, false);
         infoView.setOnClickListener(this);
     }
 
@@ -1478,7 +1508,8 @@ public class MainActivity
         if ( updateView != null ) {
             return;
         }
-        updateView = createManageButton(R.drawable.ic_system_update_opaque_24dp, R.drawable.ic_system_update_black_24dp);
+        addDockDivider();
+        updateView = createManageButton(R.drawable.ic_dock_update, R.string.dock_update, true);
         updateView.setOnClickListener(this);
     }
 
@@ -1896,7 +1927,6 @@ public class MainActivity
         updateTitle(config);
 
         statusBarUpdater.updateControlsState(config.isDisplayStatus(), isDarkBackground());
-        updateManageButtonIcons();
 
         if (mainAppListAdapter == null || needRedrawContentAfterReconfigure) {
             needRedrawContentAfterReconfigure = false;
@@ -1960,10 +1990,15 @@ public class MainActivity
             int itemWidth = getResources().getDimensionPixelSize(R.dimen.app_list_item_size);
 
             spanCount = (int) (width * 1.0f / itemWidth);
+            // When the apps fit in one row, use only as many columns as needed and center them
+            int mainAppCount = AppShortcutManager.getInstance().getInstalledAppCount(this, false);
+            int mainColumns = mainAppCount > 0 && mainAppCount < spanCount ? mainAppCount : spanCount;
+            int sidePadding = Math.max(0, (width - mainColumns * itemWidth) / 2);
+            binding.activityMainContent.setPadding(sidePadding, 0, sidePadding, 0);
             mainAppListAdapter = new MainAppListAdapter(this, this, this);
-            mainAppListAdapter.setSpanCount(spanCount);
+            mainAppListAdapter.setSpanCount(mainColumns);
 
-            binding.activityMainContent.setLayoutManager(new GridLayoutManager(this, spanCount));
+            binding.activityMainContent.setLayoutManager(new GridLayoutManager(this, mainColumns));
             binding.activityMainContent.setAdapter(mainAppListAdapter);
             mainAppListAdapter.notifyDataSetChanged();
 
@@ -2101,8 +2136,22 @@ public class MainActivity
         }
     }
 
+    // Soft translucent pill behind the title, light or dark depending on the background
+    private void updateTitleChip() {
+        boolean dark = isDarkBackground();
+        GradientDrawable chip = new GradientDrawable();
+        chip.setCornerRadius(getResources().getDisplayMetrics().density * 100);
+        chip.setColor(getResources().getColor(dark ? R.color.titleChipDark : R.color.titleChipLight));
+        chip.setStroke(Math.round(getResources().getDisplayMetrics().density),
+                getResources().getColor(dark ? R.color.titleChipDarkBorder : R.color.titleChipLightBorder));
+        binding.titleChip.setBackground(chip);
+    }
+
     private void updateTitle(ServerConfig config) {
         String titleType = config.getTitle();
+        binding.serialMarker.setVisibility(View.GONE);
+        binding.serialLabel.setVisibility(View.GONE);
+        binding.titleChip.setBackground(null);
         if (titleType != null) {
             if (titleType.equals(ServerConfig.TITLE_NONE)) {
                 binding.activityMainTitle.setVisibility(View.GONE);
@@ -2117,6 +2166,14 @@ public class MainActivity
                 }
             }
             binding.activityMainTitle.setVisibility(View.VISIBLE);
+            updateTitleChip();
+            if (titleType.contains(ServerConfig.TITLE_DEVICE_ID)) {
+                // "Robot Serial No:" in a softer shade of the title color, followed by the bold ID
+                int titleColor = binding.activityMainTitle.getCurrentTextColor();
+                binding.serialLabel.setTextColor((titleColor & 0x00ffffff) | 0xb3000000);
+                binding.serialMarker.setVisibility(View.VISIBLE);
+                binding.serialLabel.setVisibility(View.VISIBLE);
+            }
             String imei = DeviceInfoProvider.getImei(this);
             if (imei == null) {
                 imei = "";
@@ -2130,7 +2187,7 @@ public class MainActivity
                 ip = "";
             }
             String titleText = titleType
-                    .replace(ServerConfig.TITLE_DEVICE_ID, getString(R.string.robot_serial_number, SettingsHelper.getInstance(this).getDeviceId()))
+                    .replace(ServerConfig.TITLE_DEVICE_ID, SettingsHelper.getInstance(this).getDeviceId())
                     .replace(ServerConfig.TITLE_DESCRIPTION, config.getDescription() != null ? config.getDescription() : "")
                     .replace(ServerConfig.TITLE_CUSTOM1, config.getCustom1() != null ? config.getCustom1() : "")
                     .replace(ServerConfig.TITLE_CUSTOM2, config.getCustom2() != null ? config.getCustom2() : "")
