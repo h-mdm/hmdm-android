@@ -170,6 +170,7 @@ public class ConfigUpdater {
                         if (uiNotifier != null) {
                             uiNotifier.onConfigUpdateServerError(getErrorText());
                         }
+                        lockBackOnFailure();
                         break;
                     case Const.TASK_NETWORK_ERROR:
                         RemoteLogger.log(context, Const.LOG_WARN, "Failed to update config: network error");
@@ -184,6 +185,7 @@ public class ConfigUpdater {
                                     // if it is required by the web panel
                                     // so the user can set up WiFi even in kiosk mode
                                     uiNotifier.onConfigUpdateNetworkError(getErrorText());
+                                    lockBackOnFailure();
                                 } else {
                                     updateRemoteLogConfig();
                                 }
@@ -191,12 +193,17 @@ public class ConfigUpdater {
                                 if (uiNotifier != null) {
                                     uiNotifier.onConfigUpdateNetworkError(getErrorText());
                                 }
+                                lockBackOnFailure();
                             }
                         }
                         break;
                 }
             }
         }.execute();
+    }
+
+    private void lockBackOnFailure() {
+        Utils.lockUserRestrictions(context, settingsHelper.getConfig().getRestrictions());
     }
 
     public void skipConfigLoad() {
@@ -619,13 +626,15 @@ public class ConfigUpdater {
                 protected void onPostExecute(RemoteFileStatus fileStatus) {
                     if (fileStatus != null) {
                         if (!fileStatus.installed) {
-                            filesForInstall.add( 0, fileStatus.remoteFile );
                             if (uiNotifier != null) {
                                 if (!fileStatus.downloaded) {
                                     uiNotifier.onFileDownloadError(fileStatus.remoteFile);
                                 } else {
                                     uiNotifier.onFileInstallError(fileStatus.remoteFile);
                                 }
+                            } else {
+                                Log.i(Const.LOG_TAG, "loadAndInstallFiles(): proceed to next file");
+                                loadAndInstallFiles();
                             }
                             // onFileDownloadError() method contents
                             /*

@@ -70,6 +70,8 @@ public class InstallUtils {
                                                           Map<String, File> pendingInstallations) {
         PackageManager packageManager = context.getPackageManager();
 
+        // If an installation is completed but the completion handler wasn't called, the package
+        // remains in pendingInstallations forever and won't be updated until the device reboot
         dropCompletedInstallations(context, pendingInstallations);
 
         // First handle apps to be removed, then apps to be installed

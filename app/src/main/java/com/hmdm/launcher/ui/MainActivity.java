@@ -228,6 +228,10 @@ public class MainActivity
 
     private Picasso picasso = null;
 
+    // Avoid race condition when an activity is re-created when kiosk mode is unlocked
+    // Is used together with PREF_KEY_ACTIVITY_RUNNING preference
+    private static MainActivity currentActivity;
+
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive( Context context, Intent intent ) {
@@ -463,6 +467,7 @@ public class MainActivity
                 startAppsAtBoot();
             }
 
+            currentActivity = this;
             settingsHelper.setMainActivityRunning(true);
         });
 
@@ -2133,7 +2138,10 @@ public class MainActivity
     protected void onDestroy() {
         super.onDestroy();
 
-        settingsHelper.setMainActivityRunning(false);
+        if (currentActivity == this) {
+            currentActivity = null;
+            settingsHelper.setMainActivityRunning(false);
+        }
 
         WindowManager manager = ((WindowManager)getApplicationContext().getSystemService(Context.WINDOW_SERVICE));
         if ( applicationNotAllowed != null ) {
