@@ -1,5 +1,6 @@
 package com.hmdm.launcher.helper;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -42,6 +43,7 @@ public class MigrationHelper {
     }
 
     // Before migration, test that URL is working well
+    @SuppressLint("StaticFieldLeak")
     public void tryNewServer(final Context context, final CompletionHandler completionHandler) {
         new AsyncTask<Void, Void, String>() {
             @Override

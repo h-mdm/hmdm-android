@@ -19,6 +19,7 @@
 
 package com.hmdm.launcher.ui;
 
+import android.annotation.SuppressLint;
 import android.Manifest;
 import android.app.Dialog;
 import android.app.admin.DevicePolicyManager;
@@ -34,11 +35,14 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.LauncherApps;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -54,6 +58,7 @@ import android.os.SystemClock;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -64,6 +69,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -342,7 +348,6 @@ public class MainActivity
     private LauncherApps appChangeService;
     private LauncherApps.Callback appChangeCallback = null;
 
-    private GradientDrawable selectedManageButtonBorder = new GradientDrawable();
     private ImageView exitView;
     private long exitFirstTapTime = 0;
     private int exitTapCount = 0;
@@ -656,6 +661,7 @@ public class MainActivity
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void startAppsAtBoot() {
         // Let's assume that we start within two minutes after boot
         // This should work even for slow devices
@@ -709,6 +715,7 @@ public class MainActivity
     }
 
     // Does not seem to work, though. See the comment to SystemUtils.becomeDeviceOwner()
+    @SuppressLint("StaticFieldLeak")
     private void setSelfAsDeviceOwner() {
         // We set self as device owner each time so we could trace errors if device owner setup fails
         if (Utils.isDeviceOwner(this)) {
@@ -721,7 +728,7 @@ public class MainActivity
             protected Void doInBackground(Void... voids) {
                 if (!SystemUtils.becomeDeviceOwnerByCommand(MainActivity.this)) {
                     SystemUtils.becomeDeviceOwnerByXmlFile(MainActivity.this);
-                };
+                }
                 return null;
             }
 
@@ -858,6 +865,7 @@ public class MainActivity
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void setDefaultLauncherEarly() {
         ServerConfig config = SettingsHelper.getInstance(this).getConfig();
         if (BuildConfig.SET_DEFAULT_LAUNCHER_EARLY && config == null && Utils.isDeviceOwner(this)) {
@@ -1395,44 +1403,84 @@ public class MainActivity
         return true;
     }
 
-    private ImageView createManageButton(int imageResource, int imageResourceBlack, int offset) {
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
-        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-
-        int offsetRight = 0;
-        if (settingsHelper != null && settingsHelper.getConfig() != null && settingsHelper.getConfig().getLockStatusBar() != null && settingsHelper.getConfig().getLockStatusBar()) {
-            // If we lock the right bar, let's shift buttons to avoid overlapping
-            offsetRight = getResources().getDimensionPixelOffset(R.dimen.prevent_applications_list_width);
-        }
-
-        RelativeLayout view = new RelativeLayout(this);
-        // Offset is multiplied by 2 because the view is centered. Yeah I know its an Induism)
-        view.setPadding(0, offset * 2, offsetRight, 0);
-        view.setLayoutParams(layoutParams);
+    // Adds a dock item (rounded icon tile + label) and returns the clickable tile
+    private ImageView createManageButton(int iconResource, int labelResource, boolean accent) {
+        int tileSize = getResources().getDimensionPixelSize(R.dimen.manage_dock_tile_size);
+        int iconPadding = (tileSize - getResources().getDimensionPixelSize(R.dimen.manage_dock_icon_size)) / 2;
 
         ImageView manageButton = new ImageView( this );
-        manageButton.setImageResource(isDarkBackground() ? imageResource : imageResourceBlack);
-        view.addView(manageButton);
-
-        selectedManageButtonBorder.setColor(0); // transparent background
-        selectedManageButtonBorder.setStroke(2, isDarkBackground() ? 0xa0ffffff : 0xa0000000); // white or black border with some transparency
+        manageButton.setImageResource(iconResource);
+        manageButton.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        manageButton.setPadding(iconPadding, iconPadding, iconPadding, iconPadding);
+        Drawable tile = createManageButtonTile(accent, false);
+        Drawable focusedTile = createManageButtonTile(accent, true);
+        manageButton.setBackground(tile);
         manageButton.setOnFocusChangeListener((v, hasFocus) -> {
-            v.setBackground(hasFocus ? selectedManageButtonBorder : null);
+            v.setBackground(hasFocus ? focusedTile : tile);
         });
 
+        TextView label = new TextView(this);
+        label.setText(labelResource);
+        label.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.manage_dock_label_size));
+        label.setTextColor(getResources().getColor(R.color.dockLabel));
+        LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        labelParams.topMargin = getResources().getDimensionPixelOffset(R.dimen.manage_dock_label_gap);
+
+        LinearLayout item = new LinearLayout(this);
+        item.setOrientation(LinearLayout.VERTICAL);
+        item.setGravity(Gravity.CENTER_HORIZONTAL);
+        item.addView(manageButton, new LinearLayout.LayoutParams(tileSize, tileSize));
+        item.addView(label, labelParams);
+
         try {
-            RelativeLayout root = findViewById(R.id.activity_main);
-            root.addView(view);
+            LinearLayout dock = findViewById(R.id.manage_buttons_dock);
+            dock.addView(item, createDockItemParams(dock,
+                    getResources().getDimensionPixelSize(R.dimen.manage_dock_item_width), ViewGroup.LayoutParams.WRAP_CONTENT));
         } catch ( Exception e ) { e.printStackTrace(); }
         return manageButton;
+    }
+
+    // Tile with a ripple, matching the tap feedback of the app tiles
+    private Drawable createManageButtonTile(boolean accent, boolean focused) {
+        float density = getResources().getDisplayMetrics().density;
+        GradientDrawable tile = new GradientDrawable();
+        tile.setCornerRadius(getResources().getDimension(R.dimen.manage_dock_tile_radius));
+        tile.setColor(getResources().getColor(accent ? R.color.launcherAccent : R.color.dockTile));
+        if (focused) {
+            tile.setStroke(Math.round(2 * density), getResources().getColor(R.color.dockTileFocused));
+        } else if (!accent) {
+            tile.setStroke(Math.round(density), getResources().getColor(R.color.dockBorder));
+        }
+        return new RippleDrawable(ColorStateList.valueOf(getResources().getColor(R.color.appTilePressedLight)), tile, null);
+    }
+
+    // Vertical line separating the Update button from the others
+    private void addDockDivider() {
+        try {
+            LinearLayout dock = findViewById(R.id.manage_buttons_dock);
+            View divider = new View(this);
+            divider.setBackgroundColor(getResources().getColor(R.color.dockDivider));
+            LinearLayout.LayoutParams params = createDockItemParams(dock,
+                    Math.round(getResources().getDisplayMetrics().density),
+                    getResources().getDimensionPixelSize(R.dimen.manage_dock_tile_size));
+            params.gravity = Gravity.TOP;
+            dock.addView(divider, params);
+        } catch ( Exception e ) { e.printStackTrace(); }
+    }
+
+    private LinearLayout.LayoutParams createDockItemParams(LinearLayout dock, int width, int height) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
+        if (dock.getChildCount() > 0) {
+            params.leftMargin = getResources().getDimensionPixelOffset(R.dimen.manage_dock_spacing);
+        }
+        return params;
     }
 
     private void createExitButton() {
         if ( exitView != null ) {
             return;
         }
-        exitView = createManageButton(R.drawable.ic_vpn_key_opaque_24dp, R.drawable.ic_vpn_key_black_24dp, 0);
+        exitView = createManageButton(R.drawable.ic_dock_access, R.string.dock_access, false);
         exitView.setOnClickListener(view -> {
             if (view.hasFocus()) {
                 // 6 subsequent taps within 3 secs open the hidden password view
@@ -1457,8 +1505,7 @@ public class MainActivity
         if ( infoView != null ) {
             return;
         }
-        infoView = createManageButton(R.drawable.ic_info_opaque_24dp, R.drawable.ic_info_black_24dp,
-                getResources().getDimensionPixelOffset(R.dimen.info_icon_margin));
+        infoView = createManageButton(R.drawable.ic_dock_info, R.string.dock_info, false);
         infoView.setOnClickListener(this);
     }
 
@@ -1466,8 +1513,8 @@ public class MainActivity
         if ( updateView != null ) {
             return;
         }
-        updateView = createManageButton(R.drawable.ic_system_update_opaque_24dp, R.drawable.ic_system_update_black_24dp,
-                (int)(2.05f * getResources().getDimensionPixelOffset(R.dimen.info_icon_margin)));
+        addDockDivider();
+        updateView = createManageButton(R.drawable.ic_dock_update, R.string.dock_update, true);
         updateView.setOnClickListener(this);
     }
 
@@ -1948,10 +1995,15 @@ public class MainActivity
             int itemWidth = getResources().getDimensionPixelSize(R.dimen.app_list_item_size);
 
             spanCount = (int) (width * 1.0f / itemWidth);
+            // When the apps fit in one row, use only as many columns as needed and center them
+            int mainAppCount = AppShortcutManager.getInstance().getInstalledAppCount(this, false);
+            int mainColumns = mainAppCount > 0 && mainAppCount < spanCount ? mainAppCount : spanCount;
+            int sidePadding = Math.max(0, (width - mainColumns * itemWidth) / 2);
+            binding.activityMainContent.setPadding(sidePadding, 0, sidePadding, 0);
             mainAppListAdapter = new MainAppListAdapter(this, this, this);
-            mainAppListAdapter.setSpanCount(spanCount);
+            mainAppListAdapter.setSpanCount(mainColumns);
 
-            binding.activityMainContent.setLayoutManager(new GridLayoutManager(this, spanCount));
+            binding.activityMainContent.setLayoutManager(new GridLayoutManager(this, mainColumns));
             binding.activityMainContent.setAdapter(mainAppListAdapter);
             mainAppListAdapter.notifyDataSetChanged();
 
@@ -2089,8 +2141,22 @@ public class MainActivity
         }
     }
 
+    // Soft translucent pill behind the title, light or dark depending on the background
+    private void updateTitleChip() {
+        boolean dark = isDarkBackground();
+        GradientDrawable chip = new GradientDrawable();
+        chip.setCornerRadius(getResources().getDisplayMetrics().density * 100);
+        chip.setColor(getResources().getColor(dark ? R.color.titleChipDark : R.color.titleChipLight));
+        chip.setStroke(Math.round(getResources().getDisplayMetrics().density),
+                getResources().getColor(dark ? R.color.titleChipDarkBorder : R.color.titleChipLightBorder));
+        binding.titleChip.setBackground(chip);
+    }
+
     private void updateTitle(ServerConfig config) {
         String titleType = config.getTitle();
+        binding.serialMarker.setVisibility(View.GONE);
+        binding.serialLabel.setVisibility(View.GONE);
+        binding.titleChip.setBackground(null);
         if (titleType != null) {
             if (titleType.equals(ServerConfig.TITLE_NONE)) {
                 binding.activityMainTitle.setVisibility(View.GONE);
@@ -2105,6 +2171,14 @@ public class MainActivity
                 }
             }
             binding.activityMainTitle.setVisibility(View.VISIBLE);
+            updateTitleChip();
+            if (titleType.contains(ServerConfig.TITLE_DEVICE_ID)) {
+                // "Robot Serial No:" in a softer shade of the title color, followed by the bold ID
+                int titleColor = binding.activityMainTitle.getCurrentTextColor();
+                binding.serialLabel.setTextColor((titleColor & 0x00ffffff) | 0xb3000000);
+                binding.serialMarker.setVisibility(View.VISIBLE);
+                binding.serialLabel.setVisibility(View.VISIBLE);
+            }
             String imei = DeviceInfoProvider.getImei(this);
             if (imei == null) {
                 imei = "";
@@ -2654,6 +2728,7 @@ public class MainActivity
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     public void checkAdministratorPassword( View view ) {
         dialogEnterPasswordBinding.setLoading( true );
         GetServerConfigTask task = new GetServerConfigTask( this ) {

@@ -31,4 +31,24 @@
 
     <color name="statusBarLight">#aaffffff</color>
     <color name="statusBarDark">#aa000000</color>
+
+    <!-- Launcher redesign -->
+    <color name="launcherAccent">#FF4A00</color>
+    <color name="launcherAccentHalo">#40FF4A00</color>
+    <color name="appTileLight">#FFFFFF</color>
+    <color name="appTileLightBorder">#1A000000</color>
+    <color name="appTileDark">#1AFFFFFF</color>
+    <color name="appTileDarkBorder">#26FFFFFF</color>
+    <color name="appTilePressedLight">#1F000000</color>
+    <color name="appTilePressedDark">#33FFFFFF</color>
+    <color name="titleChipLight">#14000000</color>
+    <color name="titleChipLightBorder">#1F000000</color>
+    <color name="titleChipDark">#1FFFFFFF</color>
+    <color name="titleChipDarkBorder">#33FFFFFF</color>
+    <color name="dockBackground">#F4F3EF</color>
+    <color name="dockBorder">#DEDDD6</color>
+    <color name="dockDivider">#C9C8C0</color>
+    <color name="dockTile">#FFFFFF</color>
+    <color name="dockTileFocused">#0A0A0B</color>
+    <color name="dockLabel">#45454D</color>
 </resources>
