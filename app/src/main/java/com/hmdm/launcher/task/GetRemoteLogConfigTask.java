@@ -37,7 +37,7 @@ public class GetRemoteLogConfigTask extends AsyncTask< Void, Integer, Integer > 
 
     public GetRemoteLogConfigTask( Context context ) {
         this.context = context;
-        this.settingsHelper = SettingsHelper.getInstance( context );
+        this.settingsHelper = SettingsHelper.getInstance();
     }
 
     @Override

@@ -1,19 +1,35 @@
+/*
+ * Headwind MDM: Open Source Android MDM Software
+ * https://h-mdm.com
+ *
+ * Copyright (C) 2019 Headwind Solutions LLC (http://h-sms.com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.hmdm.launcher.worker;
 
+import android.app.PendingIntent;
 import android.content.Context;
-
-import androidx.annotation.NonNull;
-import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
-import androidx.work.Worker;
-import androidx.work.WorkerParameters;
+import android.content.Intent;
 
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.DeviceInfo;
+import com.hmdm.launcher.receiver.WakefulAlarmReceiver;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
+import com.hmdm.launcher.util.AlarmUtils;
 import com.hmdm.launcher.util.DeviceInfoProvider;
 
 import java.util.concurrent.TimeUnit;
@@ -21,62 +37,62 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 
-public class SendDeviceInfoWorker extends Worker {
+// Periodically reports device info to the server. Runs on a self-rescheduling AlarmManager
+// alarm instead of a WorkManager PeriodicWorkRequest (see WakefulAlarmReceiver for why).
+public class SendDeviceInfoWorker extends WakefulAlarmReceiver {
 
     private static final int SEND_DEVICE_INFO_PERIOD_MINS = 15;
 
-    private static final String WORK_TAG_DEVICEINFO = "com.hmdm.launcher.WORK_TAG_DEVICEINFO";
+    private static final String ACTION_FIRE = "com.hmdm.launcher.action.SEND_DEVICE_INFO_ALARM";
 
-    private Context context;
-    private SettingsHelper settingsHelper;
+    public static void scheduleDeviceInfoSending(Context context) {
+        AlarmUtils.scheduleAlarm(context, createPendingIntent(context), TimeUnit.MINUTES.toMillis(SEND_DEVICE_INFO_PERIOD_MINS));
+    }
 
-    public SendDeviceInfoWorker(
-            @NonNull final Context context,
-            @NonNull WorkerParameters params) {
-        super(context, params);
-        this.context = context;
-        settingsHelper = SettingsHelper.getInstance(context);
+    private static PendingIntent createPendingIntent(Context context) {
+        Intent intent = new Intent(context, SendDeviceInfoWorker.class);
+        intent.setAction(ACTION_FIRE);
+        return PendingIntent.getBroadcast(context, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
     @Override
-    // This is running in a background thread by WorkManager
-    public Result doWork() {
-        if (settingsHelper == null || settingsHelper.getConfig() == null) {
-            return Result.failure();
-        }
-
-        DeviceInfo deviceInfo = DeviceInfoProvider.getDeviceInfo(context, true, true);
-
-        ServerService serverService = ServerServiceKeeper.getServerServiceInstance(context);
-        ServerService secondaryServerService = ServerServiceKeeper.getSecondaryServerServiceInstance(context);
-        Response<ResponseBody> response = null;
-
-        try {
-            response = serverService.sendDevice(settingsHelper.getServerProject(), deviceInfo).execute();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            if (response == null) {
-                response = secondaryServerService.sendDevice(settingsHelper.getServerProject(), deviceInfo).execute();
-            }
-            if ( response.isSuccessful() ) {
-                SettingsHelper.getInstance(context).setExternalIp(response.headers().get(Const.HEADER_IP_ADDRESS));
-                return Result.success();
-            }
-        }
-        catch ( Exception e ) { e.printStackTrace(); }
-
-        return Result.failure();
+    protected String getWakeLockTag() {
+        return "hmdm:SendDeviceInfoWorker";
     }
 
-    public static void scheduleDeviceInfoSending(Context context) {
-        PeriodicWorkRequest request =
-                new PeriodicWorkRequest.Builder(SendDeviceInfoWorker.class, SEND_DEVICE_INFO_PERIOD_MINS, TimeUnit.MINUTES)
-                        .addTag(Const.WORK_TAG_COMMON)
-                        .setInitialDelay(SEND_DEVICE_INFO_PERIOD_MINS, TimeUnit.MINUTES)
-                        .build();
-        WorkManager.getInstance(context.getApplicationContext()).enqueueUniquePeriodicWork(WORK_TAG_DEVICEINFO, ExistingPeriodicWorkPolicy.REPLACE, request);
+    @Override
+    protected void doWork(Context context, Intent intent) {
+        try {
+            SettingsHelper settingsHelper = SettingsHelper.getInstance();
+            if (settingsHelper == null || settingsHelper.getConfig() == null) {
+                return;
+            }
+
+            DeviceInfo deviceInfo = DeviceInfoProvider.getDeviceInfo(context, true, true);
+
+            ServerService serverService = ServerServiceKeeper.getServerServiceInstance(context);
+            ServerService secondaryServerService = ServerServiceKeeper.getSecondaryServerServiceInstance(context);
+            Response<ResponseBody> response = null;
+
+            try {
+                response = serverService.sendDevice(settingsHelper.getServerProject(), deviceInfo).execute();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                if (response == null) {
+                    response = secondaryServerService.sendDevice(settingsHelper.getServerProject(), deviceInfo).execute();
+                }
+                if ( response.isSuccessful() ) {
+                    SettingsHelper.getInstance().setExternalIp(response.headers().get(Const.HEADER_IP_ADDRESS));
+                }
+            }
+            catch ( Exception e ) { e.printStackTrace(); }
+        } finally {
+            // Reschedule the next firing regardless of the outcome of this one
+            scheduleDeviceInfoSending(context);
+        }
     }
 }

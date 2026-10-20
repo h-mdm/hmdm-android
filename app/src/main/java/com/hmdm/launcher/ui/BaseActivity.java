@@ -96,7 +96,7 @@ public class BaseActivity extends AppCompatActivity {
                 R.layout.dialog_enter_device_id,
                 null,
                 false );
-        SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
+        SettingsHelper settingsHelper = SettingsHelper.getInstance();
         String serverUrl = settingsHelper.getBaseUrl();
         String serverPath = settingsHelper.getServerProject();
         if (serverPath.length() > 0) {
@@ -188,7 +188,7 @@ public class BaseActivity extends AppCompatActivity {
     protected void updateSettingsFromQr(String qrcode) {
         try {
             Log.d(Const.LOG_TAG, "Get initial settings from the QR code");
-            SettingsHelper settingsHelper = SettingsHelper.getInstance(getApplicationContext());
+            SettingsHelper settingsHelper = SettingsHelper.getInstance();
             JSONObject qr = new JSONObject(qrcode);
             JSONObject extras = qr.getJSONObject(DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
 
@@ -371,7 +371,7 @@ public class BaseActivity extends AppCompatActivity {
                 return false;
             }
 
-            SettingsHelper settingsHelper = SettingsHelper.getInstance( this );
+            SettingsHelper settingsHelper = SettingsHelper.getInstance();
             settingsHelper.setBaseUrl(url.baseUrl);
             settingsHelper.setSecondaryBaseUrl(url.baseUrl);
             settingsHelper.setServerProject(url.serverProject);
@@ -400,7 +400,7 @@ public class BaseActivity extends AppCompatActivity {
 
         dialogDeviceInfoBinding.setSerialNumber(DeviceInfoProvider.getSerialNumber());
 
-        SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
+        SettingsHelper settingsHelper = SettingsHelper.getInstance();
 
         String phone = DeviceInfoProvider.getPhoneNumber(this);
         if (phone == null || phone.equals("")) {
@@ -420,14 +420,14 @@ public class BaseActivity extends AppCompatActivity {
             dialogDeviceInfoBinding.serialLayout.setVisibility(View.GONE);
         }
 
-        dialogDeviceInfoBinding.setDeviceId(SettingsHelper.getInstance(this).getDeviceId());
+        dialogDeviceInfoBinding.setDeviceId(SettingsHelper.getInstance().getDeviceId());
         dialogDeviceInfoBinding.setVersion(BuildConfig.VERSION_NAME + "-" + Utils.getLauncherVariant());
 
-        String serverPath = SettingsHelper.getInstance(this).getServerProject();
+        String serverPath = SettingsHelper.getInstance().getServerProject();
         if (serverPath.length() > 0) {
             serverPath = "/" + serverPath;
         }
-        dialogDeviceInfoBinding.setServerUrl(SettingsHelper.getInstance(this).getBaseUrl() + serverPath);
+        dialogDeviceInfoBinding.setServerUrl(SettingsHelper.getInstance().getBaseUrl() + serverPath);
 
         deviceInfoDialog.show();
     }
@@ -448,7 +448,7 @@ public class BaseActivity extends AppCompatActivity {
         progressDialog.setMessage(getString(R.string.switch_off_blockings));
         progressDialog.show();
 
-        SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
+        SettingsHelper settingsHelper = SettingsHelper.getInstance();
         if (settingsHelper != null && settingsHelper.getConfig() != null) {
             ServerConfig config = settingsHelper.getConfig();
             if (config.getRestrictions() != null && !config.getRestrictions().trim().equals("")) {

@@ -75,6 +75,18 @@ public class Utils {
         return dpm != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && dpm.isDeviceOwnerApp(context.getPackageName());
     }
 
+    // Several DevicePolicyManager calls (installCaCert in particular) are only allowed once the
+    // user has unlocked the device for the first time after boot, and throw
+    // "User must be unlocked" otherwise. Check this before attempting them during the
+    // directBootAware boot path, instead of letting them fail and printing a stack trace.
+    public static boolean isUserUnlocked(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            return true;
+        }
+        UserManager userManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
+        return userManager != null && userManager.isUserUnlocked();
+    }
+
     // In the open source variant, there are no flavors, so by default it's "opensource"
     public static String getLauncherVariant() {
         return BuildConfig.FLAVOR == null || BuildConfig.FLAVOR.equals("") ? "opensource" : BuildConfig.FLAVOR;
@@ -448,6 +460,7 @@ public class Utils {
     }
 
     private static String getDataToken(Context context) {
+        context = context.getApplicationContext();
         String token = context.getSharedPreferences(Const.PREFERENCES, Context.MODE_PRIVATE).getString(Const.PREFERENCES_DATA_TOKEN, null);
         if (token == null) {
             token = java.util.UUID.randomUUID().toString();

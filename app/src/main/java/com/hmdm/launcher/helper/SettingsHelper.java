@@ -76,23 +76,31 @@ public class SettingsHelper {
 
     private static SettingsHelper instance;
 
-    public static SettingsHelper getInstance(Context context) {
+    // Must be called exactly once, from App.attachBaseContext(), before any Activity, Service
+    // or Receiver can possibly run. That's the only place that's guaranteed to already hold the
+    // correct (device-protected, post-swap) context, so no other caller needs to pass one in -
+    // every component just calls the no-arg getInstance() below.
+    public static void init(Context context) {
         if (instance == null) {
             instance = new SettingsHelper(context);
         }
+    }
 
+    public static SettingsHelper getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("SettingsHelper.init() must be called before getInstance()");
+        }
         return instance;
     }
 
-    public SettingsHelper(Context context) {
+    private SettingsHelper(Context context) {
         PACKAGE_NAME = context.getPackageName();
         sharedPreferences = context.getSharedPreferences(PACKAGE_NAME + PREFERENCES_ID, Context.MODE_PRIVATE );
         initConfig();
     }
 
-    public void refreshConfig(Context context) {
+    public void refreshConfig() {
         if (config == null) {
-            sharedPreferences = context.getSharedPreferences(PACKAGE_NAME + PREFERENCES_ID, Context.MODE_PRIVATE );
             initConfig();
         }
     }

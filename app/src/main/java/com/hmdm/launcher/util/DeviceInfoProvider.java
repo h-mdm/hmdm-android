@@ -70,11 +70,11 @@ public class DeviceInfoProvider {
             permissions.add(!BuildConfig.USE_ACCESSIBILITY || !ProUtils.checkAccessibilityService(context) ? 0 : 1);
         }
 
-        SettingsHelper config = SettingsHelper.getInstance(context);
+        SettingsHelper config = SettingsHelper.getInstance();
         if (queryApps) {
             PackageManager packageManager = context.getPackageManager();
             if (config.getConfig() != null) {
-                List<Application> requiredApps = SettingsHelper.getInstance(context).getConfig().getApplications();
+                List<Application> requiredApps = SettingsHelper.getInstance().getConfig().getApplications();
                 for (Application application : requiredApps) {
                     if (application.isRemove()) {
                         continue;
@@ -103,7 +103,7 @@ public class DeviceInfoProvider {
                     }
                 }
 
-                List<RemoteFile> requiredFiles = SettingsHelper.getInstance(context).getConfig().getFiles();
+                List<RemoteFile> requiredFiles = SettingsHelper.getInstance().getConfig().getFiles();
                 for (RemoteFile remoteFile : requiredFiles) {
                     if (remoteFile.getPath() == null || remoteFile.getPath().isEmpty()) {
                         // Protection against crash if the file configuration is invalid
@@ -131,7 +131,7 @@ public class DeviceInfoProvider {
             }
         }
 
-        deviceInfo.setDeviceId( SettingsHelper.getInstance( context ).getDeviceId() );
+        deviceInfo.setDeviceId( SettingsHelper.getInstance().getDeviceId() );
 
         String phone = DeviceInfoProvider.getPhoneNumber(context, 0);
         if (phone == null || phone.equals("")) {

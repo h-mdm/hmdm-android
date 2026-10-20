@@ -126,7 +126,7 @@ public class LocationService extends Service {
                     super.onSatelliteStatusChanged(status);
                     try {
                         Log.d(Const.LOG_TAG, "Satellite status changed, count: " + status.getSatelliteCount());
-                        SettingsHelper.getInstance(LocationService.this.getApplicationContext()).setSatelliteCount(status.getSatelliteCount());
+                        SettingsHelper.getInstance().setSatelliteCount(status.getSatelliteCount());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

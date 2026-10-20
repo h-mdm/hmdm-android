@@ -38,7 +38,7 @@ public class SendDeviceInfoTask extends AsyncTask< DeviceInfo, Integer, Integer 
 
     public SendDeviceInfoTask( Context context ) {
         this.context = context;
-        this.settingsHelper = SettingsHelper.getInstance( context );
+        this.settingsHelper = SettingsHelper.getInstance();
     }
 
     @Override

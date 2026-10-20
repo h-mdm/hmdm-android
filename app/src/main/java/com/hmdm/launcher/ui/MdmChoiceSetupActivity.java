@@ -61,7 +61,7 @@ public class MdmChoiceSetupActivity extends AppCompatActivity {
             AdminReceiver.updateSettings(this, provisioningExtrasBundle);
         }
 
-        SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
+        SettingsHelper settingsHelper = SettingsHelper.getInstance();
         if (settingsHelper.getDeviceId() == null || settingsHelper.getDeviceId().length() == 0) {
             Log.d(Const.LOG_TAG, "Device ID is empty");
             String deviceIdUse = settingsHelper.getDeviceIdUse();
@@ -89,7 +89,7 @@ public class MdmChoiceSetupActivity extends AppCompatActivity {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1 &&
                 provisioningExtrasBundle != null) {
-            SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
+            SettingsHelper settingsHelper = SettingsHelper.getInstance();
             settingsHelper.setConnRetryCount(provisioningExtrasBundle.getInt(Const.CONN_RETRY_COUNT, Const.DEFAULT_CONN_RETRY_COUNT));
             settingsHelper.setConnRetryDelay(provisioningExtrasBundle.getInt(Const.CONN_RETRY_DELAY, Const.DEFAULT_CONN_RETRY_DELAY));
             if (provisioningExtrasBundle.getString(Const.SKIP_INTRO_ATTR) != null ||
@@ -120,7 +120,7 @@ public class MdmChoiceSetupActivity extends AppCompatActivity {
                 R.layout.dialog_enter_device_id,
                 null,
                 false);
-        SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
+        SettingsHelper settingsHelper = SettingsHelper.getInstance();
         String serverUrl = settingsHelper.getBaseUrl();
         String serverPath = settingsHelper.getServerProject();
         if (serverPath.length() > 0) {
@@ -160,7 +160,7 @@ public class MdmChoiceSetupActivity extends AppCompatActivity {
         if ("".equals(deviceId)) {
             return;
         } else {
-            SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
+            SettingsHelper settingsHelper = SettingsHelper.getInstance();
             settingsHelper.setDeviceId( deviceId );
             if (enterDeviceIdDialog != null) {
                 enterDeviceIdDialog.dismiss();

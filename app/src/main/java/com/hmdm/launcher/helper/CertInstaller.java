@@ -230,6 +230,13 @@ public class CertInstaller {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             return;
         }
+        if (!Utils.isUserUnlocked(context)) {
+            // DevicePolicyManager.installCaCert() always throws "User must be unlocked" before
+            // first unlock. Skip quietly here; this runs again from MainActivity's own
+            // Initializer.init() call once the user actually unlocks the device.
+            Log.d(Const.LOG_TAG, "installCertificatesFromAssets(): user not unlocked yet, deferring");
+            return;
+        }
         List<CertEntry> certs = getCertificatesFromAssets(context);
         if (certs == null || certs.size() == 0) {
             return;
@@ -306,19 +313,14 @@ public class CertInstaller {
     }
 
     private static File downloadCert(Context context, String strUrl) throws Exception {
-        File tempFile = new File(context.getExternalFilesDir(null), getFileName(strUrl));
+        File tempFile = new File(InstallUtils.getDownloadCacheDir(context), getFileName(strUrl));
         if (tempFile.exists()) {
             tempFile.delete();
         }
 
         try {
-            try {
-                if (!tempFile.createNewFile()) {
-                    throw new Exception("File " + tempFile.getAbsolutePath() + " can't be created!");
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                tempFile = File.createTempFile(getFileName(strUrl), ".pem");
+            if (!tempFile.createNewFile()) {
+                throw new Exception("File " + tempFile.getAbsolutePath() + " can't be created!");
             }
 
             URL url = new URL(strUrl);

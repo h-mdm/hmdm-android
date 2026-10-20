@@ -20,11 +20,30 @@
 package com.hmdm.launcher;
 
 import android.app.Application;
+import android.content.Context;
+import android.os.Build;
 
+import com.hmdm.launcher.helper.SettingsHelper;
 import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.picasso.Picasso;
 
 public class App extends Application {
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            Context deviceContext = base.createDeviceProtectedStorageContext();
+            deviceContext.moveSharedPreferencesFrom(base, base.getPackageName() + ".helpers.PREFERENCES");
+            deviceContext.moveSharedPreferencesFrom(base, Const.PREFERENCES);
+            deviceContext.moveDatabaseFrom(base, "hmdm.launcher.sqlite");
+            deviceContext.moveDatabaseFrom(base, "mqttAndroidService.db");
+            base = deviceContext;
+        }
+        super.attachBaseContext(base);
+        // base is now whichever context (device-protected, or the original on pre-N) components
+        // should actually use; initialize the singleton here so no caller ever has to pass one in.
+        SettingsHelper.init(base);
+    }
 
     @Override
     public void onCreate() {

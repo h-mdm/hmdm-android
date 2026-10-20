@@ -442,7 +442,7 @@ public class PushNotificationProcessor {
             RemoteLogger.log(context, Const.LOG_WARN, "Can't auto grant permissions: no device owner");
         }
 
-        ServerConfig config = SettingsHelper.getInstance(context).getConfig();
+        ServerConfig config = SettingsHelper.getInstance().getConfig();
         List<String> apps = null;
 
         if (payload != null) {

@@ -34,7 +34,7 @@ public class ScreenOffReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, final Intent intent) {
         Log.d(Const.LOG_TAG, "Screen off");
-        SettingsHelper settingsHelper = SettingsHelper.getInstance(context);
+        SettingsHelper settingsHelper = SettingsHelper.getInstance();
         ServerConfig config = settingsHelper.getConfig();
         if (config != null && config.getKioskScreenOn() != null && config.getKioskScreenOn() &&
                 ProUtils.isKioskModeRunning(context)) {

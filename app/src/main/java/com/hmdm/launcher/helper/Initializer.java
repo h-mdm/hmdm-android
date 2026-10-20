@@ -82,7 +82,7 @@ public class Initializer {
         // Start Push service
         String pushOptions = null;
         int keepaliveTime = Const.DEFAULT_PUSH_ALARM_KEEPALIVE_TIME_SEC;
-        SettingsHelper settingsHelper = SettingsHelper.getInstance(context);
+        SettingsHelper settingsHelper = SettingsHelper.getInstance();
         if (settingsHelper != null && settingsHelper.getConfig() != null) {
             pushOptions = settingsHelper.getConfig().getPushOptions();
             Integer newKeepaliveTime = settingsHelper.getConfig().getKeepaliveTime();

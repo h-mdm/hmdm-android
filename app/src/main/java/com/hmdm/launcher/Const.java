@@ -118,8 +118,6 @@ public class Const {
     public static final String INTENT_PUSH_NOTIFICATION_PREFIX = "com.hmdm.push.";
     public static final String INTENT_PUSH_NOTIFICATION_EXTRA = "com.hmdm.PUSH_DATA";
 
-    public static final String WORK_TAG_COMMON = "com.hmdm.launcher";
-
     public static final String DEVICE_CHARGING_USB = "usb";
     public static final String DEVICE_CHARGING_AC = "ac";
 
