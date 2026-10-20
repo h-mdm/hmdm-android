@@ -35,7 +35,6 @@ import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.hmdm.launcher.BuildConfig;
 import com.hmdm.launcher.Const;
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.databinding.ActivityAdminBinding;
@@ -143,7 +142,7 @@ public class AdminActivity extends BaseActivity {
                 UserManager.DISALLOW_CONFIG_SCREEN_TIMEOUT + "," +
                 UserManager.DISALLOW_ADJUST_VOLUME;
         if (settingsHelper.getConfig() != null && settingsHelper.getConfig().getRestrictions() != null) {
-            restrictions = "," + settingsHelper.getConfig().getRestrictions();
+            restrictions += "," + settingsHelper.getConfig().getRestrictions();
         }
         Utils.unlockUserRestrictions(this, restrictions);
         Utils.disableScreenshots(false, this);
@@ -158,6 +157,7 @@ public class AdminActivity extends BaseActivity {
         dismissDialog(enterServerDialog);
         dismissDialog(enterDeviceIdDialog);
         binding.deviceId.setText(settingsHelper.getDeviceId());
+        updateConfig(null);
     }
 
     public void saveServerUrl(View view ) {
