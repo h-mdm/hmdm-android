@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dock icon from the launcher redesign -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="@dimen/manage_dock_icon_size"
+    android:height="@dimen/manage_dock_icon_size"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M12,4v11M7.5,10.5L12,15l4.5,-4.5M5,19.5h14"
+        android:strokeColor="#0A0A0B"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+</vector>

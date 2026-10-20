@@ -1,5 +1,6 @@
 package com.hmdm.launcher.ui;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -115,6 +116,7 @@ public class InitialSetupActivity extends BaseActivity implements ConfigUpdater.
     }
 
     @Override
+    @SuppressLint("StaticFieldLeak")
     public void onConfigLoaded() {
         // Set Headwind MDM as the default launcher if required
         final ServerConfig config = settingsHelper.getConfig();

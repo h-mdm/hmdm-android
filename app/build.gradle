@@ -114,13 +114,21 @@ android {
         // (this option is banned by Play Protect in some countries!)
         buildConfigField("Boolean", "USE_ACCESSIBILITY", "false")
     }
+    signingConfigs {
+        // Shared CTRL key committed in the repo
+        debug {
+            storeFile file("../debug.keystore")
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             debuggable false
+            signingConfig signingConfigs.debug
         }
         debug {
+            signingConfig signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

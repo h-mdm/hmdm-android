@@ -24,25 +24,37 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_horizontal"
-    tools:ignore="UseCompoundDrawables"
     android:id="@+id/root_linearLayout"
+    android:padding="@dimen/app_item_padding"
     android:layout_margin="5dp">
 
-    <ImageView
-        android:layout_width="@dimen/app_icon_size"
-        android:layout_height="@dimen/app_icon_size"
-        android:layout_marginTop="16dp"
-        android:id="@+id/imageView"
-        tools:ignore="ContentDescription" />
+    <!-- Rounded tile behind the app icon; its background is set in the adapter -->
+    <FrameLayout
+        android:id="@+id/icon_tile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/app_tile_padding"
+        android:duplicateParentState="true">
+
+        <ImageView
+            android:layout_width="@dimen/app_icon_size"
+            android:layout_height="@dimen/app_icon_size"
+            android:id="@+id/imageView"
+            tools:ignore="ContentDescription" />
+
+    </FrameLayout>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/textView"
+        android:layout_marginTop="@dimen/app_label_margin"
         android:gravity="center"
         android:maxLines="2"
         android:ellipsize="end"
-        android:padding="5dp"/>
+        android:textSize="@dimen/app_label_text_size"
+        android:fontFamily="sans-serif-medium"
+        android:lineSpacingExtra="2dp"/>
 
 </LinearLayout>
 </layout>

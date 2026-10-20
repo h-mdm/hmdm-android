@@ -6,9 +6,11 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.net.Uri;
 import android.provider.DocumentsContract;
 import android.util.Log;
@@ -57,6 +59,7 @@ public abstract class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppLis
     protected int selectedItem = -1;
     protected RecyclerView.LayoutManager layoutManager;
     protected GradientDrawable selectedItemBorder;
+    protected boolean isDarkBackground = true;
     protected boolean focused = true;
     protected boolean dpadUsed = false;
 
@@ -71,7 +74,6 @@ public abstract class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppLis
         this.parentActivity = parentActivity;
         this.settingsHelper = SettingsHelper.getInstance(parentActivity);
 
-        boolean isDarkBackground = true;
         ServerConfig config = settingsHelper.getConfig();
         if (config != null && config.getBackgroundColor() != null) {
             try {
@@ -79,9 +81,11 @@ public abstract class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppLis
             } catch (Exception e) {
             }
         }
+        float density = parentActivity.getResources().getDisplayMetrics().density;
         selectedItemBorder = new GradientDrawable();
         selectedItemBorder.setColor(0); // transparent background
-        selectedItemBorder.setStroke(2, isDarkBackground ? 0xa0ffffff : 0xa0000000); // white or black border with some transparency
+        selectedItemBorder.setCornerRadius(parentActivity.getResources().getDimension(R.dimen.app_tile_radius));
+        selectedItemBorder.setStroke(Math.round(2 * density), isDarkBackground ? 0xa0ffffff : 0xa0000000); // white or black border with some transparency
     }
 
     protected void initShortcuts() {
@@ -100,6 +104,7 @@ public abstract class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppLis
         ViewHolder viewHolder = new ViewHolder(layoutInflater.inflate(R.layout.item_app, parent, false));
         viewHolder.binding.rootLinearLayout.setOnClickListener(onClickListener);
         viewHolder.binding.rootLinearLayout.setOnLongClickListener(onLongClickListener);
+        viewHolder.binding.iconTile.setBackground(createIconTile());
         return viewHolder;
     }
 
@@ -195,6 +200,18 @@ public abstract class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppLis
             e.printStackTrace();
             holder.binding.imageView.setImageResource(R.drawable.ic_android_white_50dp);
         }
+    }
+
+    // Rounded tile behind the app icon, with a ripple when it is tapped
+    private Drawable createIconTile() {
+        float density = parentActivity.getResources().getDisplayMetrics().density;
+        GradientDrawable tile = new GradientDrawable();
+        tile.setCornerRadius(parentActivity.getResources().getDimension(R.dimen.app_tile_radius));
+        tile.setColor(parentActivity.getResources().getColor(isDarkBackground ? R.color.appTileDark : R.color.appTileLight));
+        tile.setStroke(Math.round(density),
+                parentActivity.getResources().getColor(isDarkBackground ? R.color.appTileDarkBorder : R.color.appTileLightBorder));
+        int pressedColor = parentActivity.getResources().getColor(isDarkBackground ? R.color.appTilePressedDark : R.color.appTilePressedLight);
+        return new RippleDrawable(ColorStateList.valueOf(pressedColor), tile, null);
     }
 
     public int getDrawableResourceForWebApp(AppInfo appInfo) {
