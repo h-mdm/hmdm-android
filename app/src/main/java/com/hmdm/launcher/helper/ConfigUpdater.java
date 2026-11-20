@@ -203,7 +203,10 @@ public class ConfigUpdater {
     }
 
     private void lockBackOnFailure() {
-        Utils.lockUserRestrictions(context, settingsHelper.getConfig().getRestrictions());
+        ServerConfig config = settingsHelper.getConfig();
+        if (config != null && config.getRestrictions() != null) {
+            Utils.lockUserRestrictions(context, config.getRestrictions());
+        }
     }
 
     public void skipConfigLoad() {

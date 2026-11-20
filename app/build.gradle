@@ -41,8 +41,8 @@ android {
         // downgrade the dependency to com.fasterxml.jackson to 2.13.5
         minSdkVersion 26
         targetSdkVersion 34
-        versionCode 15400
-        versionName "6.40"
+        versionCode 16411
+        versionName "6.41.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding {
             enabled = true

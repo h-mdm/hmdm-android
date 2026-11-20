@@ -24,6 +24,7 @@ android {
 
     defaultConfig {
         minSdkVersion 14
+        //noinspection EditedTargetSdkVersion
         targetSdkVersion 34
         // Library version 1.1.9
 

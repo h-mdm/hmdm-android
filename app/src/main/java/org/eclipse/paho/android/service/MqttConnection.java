@@ -412,6 +412,32 @@ class MqttConnection implements MqttCallbackExtended {
 	}
 
 	/**
+	 * Hard-stop the underlying Paho client when a graceful disconnect is impossible
+	 * (client is connecting or in the auto-reconnect cycle). Without this, MqttService
+	 * drops the connection from its map while the Paho client keeps reconnecting with
+	 * the same clientId, which makes the broker steal the link back and forth.
+	 */
+	private void shutdownClient() {
+		if (myClient == null) {
+			return;
+		}
+		try {
+			// Don't send a DISCONNECT packet: with timeout 0 the send would wait forever when not connected
+			myClient.disconnectForcibly(0, 0, false);
+		} catch (Exception e) {
+			// Already disconnected: ignore
+		}
+		try {
+			// After close(), the pending reconnect task fails synchronously and is not rescheduled
+			myClient.close();
+		} catch (Exception e) {
+			service.traceError(TAG, "close() failed: " + e.getMessage());
+		}
+		myClient = null;
+		setConnectingState(false);
+	}
+
+	/**
 	 * Disconnect from the server
 	 * 
 	 * @param quiesceTimeout
@@ -440,6 +466,7 @@ class MqttConnection implements MqttCallbackExtended {
 				myClient.disconnect(quiesceTimeout, invocationContext, listener);
 			} catch (Exception e) {
 				handleException(resultBundle, e);
+				shutdownClient();
 			}
 		} else {
 			resultBundle.putString(MqttServiceConstants.CALLBACK_ERROR_MESSAGE,
@@ -447,6 +474,7 @@ class MqttConnection implements MqttCallbackExtended {
 			service.traceError(MqttServiceConstants.DISCONNECT_ACTION,
 					NOT_CONNECTED);
 			service.callbackToActivity(clientHandle, Status.ERROR, resultBundle);
+			shutdownClient();
 		}
 
 		if (connectOptions != null && connectOptions.isCleanSession()) {
@@ -483,6 +511,7 @@ class MqttConnection implements MqttCallbackExtended {
 				myClient.disconnect(invocationContext, listener);
 			} catch (Exception e) {
 				handleException(resultBundle, e);
+				shutdownClient();
 			}
 		} else {
 			resultBundle.putString(MqttServiceConstants.CALLBACK_ERROR_MESSAGE,
@@ -490,6 +519,7 @@ class MqttConnection implements MqttCallbackExtended {
 			service.traceError(MqttServiceConstants.DISCONNECT_ACTION,
 					NOT_CONNECTED);
 			service.callbackToActivity(clientHandle, Status.ERROR, resultBundle);
+			shutdownClient();
 		}
 
 		if (connectOptions != null && connectOptions.isCleanSession()) {
